@@ -198,7 +198,7 @@
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.core.node.Node" title="podpac.core.node.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Node</span></code></a>(**kwargs)</td>
-<td>Summary</td>
+<td>The base class for all Nodes, which defines the common interface for everything.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.core.node.Style" title="podpac.core.node.Style"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Style</span></code></a>([node])</td>
 <td>Summary</td>
@@ -220,44 +220,48 @@
 <dl class="class">
 <dt id="podpac.core.node.Node">
 <em class="property">class </em><code class="descclassname">podpac.core.node.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>The base class for all Nodes, which defines the common interface for everything.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>cache_type</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>cache_type</strong> <span class="classifier-delimiter">:</span> <span class="classifier">[None, ‘disk’, ‘ram’]</span></dt>
+<dd><p class="first last">How the output of the nodes should be cached. By default, outputs are not cached.</p>
 </dd>
-<dt><strong>dtype</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>dtype</strong> <span class="classifier-delimiter">:</span> <span class="classifier">type</span></dt>
+<dd><p class="first last">The numpy datatype of the output. Currently only <cite>float</cite> is supported.</p>
 </dd>
-<dt><strong>evaluated</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>evaluated</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Bool</span></dt>
+<dd><p class="first last">Flag indicating if the node has been evaluated.</p>
 </dd>
-<dt><strong>evaluated_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>evaluated_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
+<dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.
+This attribute stores the coordinates that were last used to evaluate the node.</p>
 </dd>
-<dt><strong>implicit_pipeline_evaluation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>implicit_pipeline_evaluation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Bool</span></dt>
+<dd><p class="first last">Flag indicating if nodes as part of a pipeline should be automatically evaluated when
+the root node is evaluated. This attribute is planned for deprecation in the future.</p>
 </dd>
-<dt><strong>native_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>native_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate, optional</span></dt>
+<dd><p class="first last">The native set of coordinates for a node. This attribute may be <cite>None</cite> for some nodes.</p>
 </dd>
-<dt><strong>node_defaults</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>node_defaults</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Dictionary of defaults values for attributes of a Node.</p>
 </dd>
-<dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.UnitsDataArray</span></dt>
+<dd><p class="first last">Output data from the last evaluation of the node.</p>
 </dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Dictionary of parameters that control the output of a node. For example, these can be coefficients in an 
+equation, or the interpolation type. This attribute is planned for deprecation in the future.</p>
 </dd>
-<dt><strong>style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Style</span></dt>
+<dd><p class="first last">Object discribing how the output of a node should be displayed. This attribute is planned for deprecation in the
+future.</p>
 </dd>
-<dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Units</span></dt>
+<dd><p class="first last">The units of the output data, defined using the pint unit registry <cite>podpac.units.ureg</cite>.</p>
 </dd>
 </dl>
 </td>
@@ -273,8 +277,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">Name of the node in pipeline definitions</p>
 </dd>
 </dl>
 </td>
@@ -286,14 +290,14 @@
 <dl class="attribute">
 <dt id="podpac.core.node.Node.cache_dir">
 <code class="descname">cache_dir</code><a class="headerlink" href="#podpac.core.node.Node.cache_dir" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Return the directory used for caching</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">Path to the default cache directory</p>
 </dd>
 </dl>
 </td>
@@ -305,17 +309,17 @@
 <dl class="method">
 <dt id="podpac.core.node.Node.cache_obj">
 <code class="descname">cache_obj</code><span class="sig-paren">(</span><em>obj</em>, <em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.cache_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.cache_obj" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Cache the input object using the given filename</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>obj</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>obj</strong> <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
+<dd><p class="first last">Object to be cached to disk</p>
 </dd>
-<dt><strong>filename</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>filename</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">File name for the object to be cached</p>
 </dd>
 </dl>
 </td>
@@ -327,21 +331,21 @@
 <dl class="method">
 <dt id="podpac.core.node.Node.cache_path">
 <code class="descname">cache_path</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.cache_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.cache_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Return the cache path for the file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>filename</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>filename</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the cached file</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">Path to the cached file</p>
 </dd>
 </dl>
 </td>
@@ -381,28 +385,37 @@ for all variants/instances of this Node.</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.copy_output_array">
 <code class="descname">copy_output_array</code><span class="sig-paren">(</span><em>init_type='nan'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.copy_output_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.copy_output_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Create a copy of the output array, initialized using the specified method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>init_type</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><dl class="first last docutils">
+<dt>How to initialize the array. Options are:</dt>
+<dd><p class="first last">nan: uses np.full(…, np.nan) (Default option)
+empty: uses np.empty
+zeros: uses np.zeros()
+ones: uses np.ones
+full: uses np.full(…, fillval)
+data: uses the fillval as the input array</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>UnitsDataArray</strong></dt>
+<dd><p class="first last">A copy of the <cite>self.output</cite> array, initialized with the specified method.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>ValueError</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Raises this error if the init_type specified is not supported.</p>
 </dd>
 </dl>
 </td>
@@ -423,7 +436,7 @@ custom implementations or extensions necessary for specific nodes.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>NotImplementedError</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">This needs to be implemented by derived classes</p>
 </dd>
 </dl>
 </td>
@@ -435,21 +448,21 @@ custom implementations or extensions necessary for specific nodes.</p>
 <dl class="attribute">
 <dt id="podpac.core.node.Node.evaluated_hash">
 <code class="descname">evaluated_hash</code><a class="headerlink" href="#podpac.core.node.Node.evaluated_hash" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Get hash for node after being evaluated</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">{hash_return}</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>Exception</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>NodeException</strong></dt>
+<dd><p class="first last">Gets raised if node has not been evaluated</p>
 </dd>
 </dl>
 </td>
@@ -460,29 +473,35 @@ custom implementations or extensions necessary for specific nodes.</p>
 
 <dl class="method">
 <dt id="podpac.core.node.Node.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>coordinates</em>, <em>params=None</em>, <em>output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.execute" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute</code><span class="sig-paren">(</span><em>coordinates</em>, <em>params=None</em>, <em>output=None</em>, <em>method=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the common interface used for ALL nodes. Pipelines only
-understand this and get_description.</p>
+understand this method and get_description.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
+<dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.</p>
 </dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional</span></dt>
+<dd><p class="first last">Default is None. Runtime parameters that modify any default node parameters.</p>
 </dd>
-<dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.UnitsDataArray, optional</span></dt>
+<dd><p class="first last">Default is None. Optional input array used to store the output data. When supplied, the node will not 
+allocate its own memory for the output array. This array needs to have the correct dimensions and 
+coordinates.</p>
+</dd>
+<dt><strong>method</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Default is None. How the node will be executed: serial, parallel, on aws, locally, etc. Currently only local
+execution is supported.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>NotImplementedError</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Children need to implement this method, otherwise this error is raised.</p>
 </dd>
 </dl>
 </td>
@@ -494,24 +513,24 @@ understand this and get_description.</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.get_hash">
 <code class="descname">get_hash</code><span class="sig-paren">(</span><em>coordinates=None</em>, <em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_hash" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Hash used for caching node outputs.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">{evaluated_coordinates}</p>
 </dd>
 <dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">{params}</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">{hash_return}</p>
 </dd>
 </dl>
 </td>
@@ -523,27 +542,27 @@ understand this and get_description.</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.get_image">
 <code class="descname">get_image</code><span class="sig-paren">(</span><em>format='png'</em>, <em>vmin=None</em>, <em>vmax=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Return a base64-encoded image of the output</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>format</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Default is ‘png’. Type of image.</p>
 </dd>
-<dt><strong>vmin</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>vmin</strong> <span class="classifier-delimiter">:</span> <span class="classifier">number, optional</span></dt>
+<dd><p class="first last">Minimum value of colormap</p>
 </dd>
-<dt><strong>vmax</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>vmax</strong> <span class="classifier-delimiter">:</span> <span class="classifier">vmax, optional</span></dt>
+<dd><p class="first last">Maximum value of colormap</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">Base64 encoded image.</p>
 </dd>
 </dl>
 </td>
@@ -555,21 +574,23 @@ understand this and get_description.</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.get_output_coords">
 <code class="descname">get_output_coords</code><span class="sig-paren">(</span><em>coords=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_output_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_output_coords" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Returns the output coordinates based on the user-requested coordinates. This is jointly determined by 
+the input or evaluated coordinates and the native_coordinates (if present).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates, optional</span></dt>
+<dd><p class="first last">Requested coordinates that help determine the coordinates of the output. Uses self.evaluated_coordinates if 
+not supplied.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>podpac.Coordinate</strong></dt>
+<dd><p class="first last">The coordinates of the output if the node is executed with <cite>coords</cite></p>
 </dd>
 </dl>
 </td>
@@ -581,36 +602,38 @@ understand this and get_description.</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.get_output_path">
 <code class="descname">get_output_path</code><span class="sig-paren">(</span><em>filename</em>, <em>outdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_output_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_output_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Get the output path where data is cached to disk</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>filename</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>filename</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the file in the cache.</p>
 </dd>
 <dt><strong>outdir</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">{out_dir}</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">Path to location where data is cached</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>If the output directory doesn’t exist, it will be created.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="podpac.core.node.Node.init">
 <code class="descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Overwrite this method if a node needs to do any additional initialization after the standard initialization.</p>
 </dd></dl>
 
 <dl class="method">
@@ -641,42 +664,39 @@ data: uses the fillval as the input array</p>
 <dd><p class="first last">The style to use for plotting. Uses self.style by default</p>
 </dd>
 <dt><strong>no_style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd><p class="first last">Default is False. If True, self.style will not be assigned to
-arr.attr[‘layer_style’]</p>
+<dd><p class="first last">Default is False. If True, self.style will not be assigned to arr.attr[‘layer_style’]</p>
 </dd>
 <dt><strong>shape</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple</span></dt>
 <dd><p class="first last">Shape of array. Uses self.shape by default.</p>
 </dd>
 <dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict/list</span></dt>
-<dd><p class="first last">input to UnitsDataArray</p>
+<dd><p class="first last">Input to UnitsDataArray (i.e. an xarray coords dictionary/list)</p>
 </dd>
 <dt><strong>dims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list(str)</span></dt>
-<dd><p class="first last">input to UnitsDataArray</p>
+<dd><p class="first last">Input to UnitsDataArray (i.e. an xarray dims list of strings)</p>
 </dd>
 <dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pint.unit.Unit, optional</span></dt>
-<dd><p class="first last">Default is self.units The Units for the data contained in the
-DataArray</p>
+<dd><p class="first last">Default is self.units The Units for the data contained in the DataArray.</p>
 </dd>
 <dt><strong>dtype</strong> <span class="classifier-delimiter">:</span> <span class="classifier">type, optional</span></dt>
 <dd><p class="first last">Default is np.float. Datatype used by default</p>
 </dd>
 <dt><strong>**kwargs</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Dictioary of any additional keyword arguments that will be passed to UnitsDataArray.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>arr</strong> <span class="classifier-delimiter">:</span> <span class="classifier">UnitsDataArray</span></dt>
-<dd><p class="first last">Unit-aware xarray DataArray of the desired size initialized using
-the method specified</p>
+<dt><strong>UnitsDataArray</strong></dt>
+<dd><p class="first last">Unit-aware xarray DataArray of the desired size initialized using the method specified.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>ValueError</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Raises this error if the init_type specified is not supported.</p>
 </dd>
 </dl>
 </td>
@@ -688,42 +708,51 @@ the method specified</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.initialize_coord_array">
 <code class="descname">initialize_coord_array</code><span class="sig-paren">(</span><em>coords</em>, <em>init_type='nan'</em>, <em>fillval=0</em>, <em>style=None</em>, <em>no_style=False</em>, <em>units=None</em>, <em>dtype=&lt;class 'float'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.initialize_coord_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.initialize_coord_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Initialize an output array using a podpac.Coordinate object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
+<dd><p class="first last">Coordinates descriping the size of the data array that will be initialized</p>
 </dd>
 <dt><strong>init_type</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><dl class="first last docutils">
+<dt>How to initialize the array. Options are:</dt>
+<dd><p class="first last">nan: uses np.full(…, np.nan) (Default option)
+empty: uses np.empty
+zeros: uses np.zeros()
+ones: uses np.ones
+full: uses np.full(…, fillval)
+data: uses the fillval as the input array</p>
 </dd>
-<dt><strong>fillval</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
-<dd><p class="first last">Description</p>
+</dl>
 </dd>
-<dt><strong>style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>fillval</strong> <span class="classifier-delimiter">:</span> <span class="classifier">number/np.ndarray, optional</span></dt>
+<dd><p class="first last">used if init_type==’full’ or ‘data’, default = 0</p>
+</dd>
+<dt><strong>style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Style, optional</span></dt>
+<dd><p class="first last">The style to use for plotting. Uses self.style by default</p>
 </dd>
 <dt><strong>no_style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Default is False. If True, self.style will not be assigned to arr.attr[‘layer_style’]</p>
 </dd>
-<dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Unit, optional</span></dt>
+<dd><p class="first last">Default is self.units The Units for the data contained in the DataArray.</p>
 </dd>
 <dt><strong>dtype</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Default is np.float. Datatype used by default</p>
 </dd>
 <dt><strong>**kwargs</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Dictioary of any additional keyword arguments that will be passed to UnitsDataArray.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>UnitsDataArray</strong></dt>
+<dd><p class="first last">Unit-aware xarray DataArray of the desired size initialized using the method specified.</p>
 </dd>
 </dl>
 </td>
@@ -735,48 +764,57 @@ the method specified</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.initialize_output_array">
 <code class="descname">initialize_output_array</code><span class="sig-paren">(</span><em>init_type='nan'</em>, <em>fillval=0</em>, <em>style=None</em>, <em>no_style=False</em>, <em>shape=None</em>, <em>coords=None</em>, <em>dims=None</em>, <em>units=None</em>, <em>dtype=&lt;class 'float'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.initialize_output_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.initialize_output_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Initializes the UnitsDataArray with the expected output size.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>init_type</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><dl class="first last docutils">
+<dt>How to initialize the array. Options are:</dt>
+<dd><p class="first last">nan: uses np.full(…, np.nan) (Default option)
+empty: uses np.empty
+zeros: uses np.zeros()
+ones: uses np.ones
+full: uses np.full(…, fillval)
+data: uses the fillval as the input array</p>
 </dd>
-<dt><strong>fillval</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
-<dd><p class="first last">Description</p>
+</dl>
 </dd>
-<dt><strong>style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>fillval</strong> <span class="classifier-delimiter">:</span> <span class="classifier">number/np.ndarray, optional</span></dt>
+<dd><p class="first last">used if init_type==’full’ or ‘data’, default = 0</p>
+</dd>
+<dt><strong>style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Style, optional</span></dt>
+<dd><p class="first last">The style to use for plotting. Uses self.style by default</p>
 </dd>
 <dt><strong>no_style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Default is False. If True, self.style will not be assigned to arr.attr[‘layer_style’]</p>
 </dd>
-<dt><strong>shape</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>shape</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list/tuple, optional</span></dt>
+<dd><p class="first last">Shape of array. Uses self.shape by default.</p>
 </dd>
-<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Coordinate, optional</span></dt>
+<dd><p class="first last">Input to UnitsDataArray (i.e. an xarray coords dictionary/list)</p>
 </dd>
 <dt><strong>dims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Input to UnitsDataArray (i.e. an xarray dims list of strings)</p>
 </dd>
-<dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Unit, optional</span></dt>
+<dd><p class="first last">Default is self.units The Units for the data contained in the DataArray.</p>
 </dd>
 <dt><strong>dtype</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Default is np.float. Datatype used by default</p>
 </dd>
 <dt><strong>**kwargs</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Dictioary of any additional keyword arguments that will be passed to UnitsDataArray.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>UnitsDataArray</strong></dt>
+<dd><p class="first last">Unit-aware xarray DataArray of the desired size initialized using the method specified.</p>
 </dd>
 </dl>
 </td>
@@ -788,14 +826,14 @@ the method specified</p>
 <dl class="attribute">
 <dt id="podpac.core.node.Node.latlon_bounds_str">
 <code class="descname">latlon_bounds_str</code><a class="headerlink" href="#podpac.core.node.Node.latlon_bounds_str" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Helper property used for naming cached files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">String containing the latitude/longitude bounds of a set of coordinates</p>
 </dd>
 </dl>
 </td>
@@ -807,23 +845,23 @@ the method specified</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.load">
 <code class="descname">load</code><span class="sig-paren">(</span><em>name</em>, <em>coordinates</em>, <em>params</em>, <em>outdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Retrieves a cached file from disk.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the file prefix.</p>
 </dd>
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
+<dd><p class="first last">{evaluated_coordinates}</p>
 </dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">{params}</p>
 </dd>
-<dt><strong>outdir</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>outdir</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">{outdir}</p>
 </dd>
 </dl>
 </td>
@@ -835,21 +873,21 @@ the method specified</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.load_cached_obj">
 <code class="descname">load_cached_obj</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.load_cached_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.load_cached_obj" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Retreive an object from cache</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>filename</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>filename</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">File name of object to be retrieved from cache</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>object</strong></dt>
+<dd><p class="first last">Object loaded from cache</p>
 </dd>
 </dl>
 </td>
@@ -861,14 +899,14 @@ the method specified</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.load_from_file">
 <code class="descname">load_from_file</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.load_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.load_from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Retrieves a specified file from disk using pickle, and assigns it to self.output</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>path</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>path</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to file</p>
 </dd>
 </dl>
 </td>
@@ -880,14 +918,14 @@ the method specified</p>
 <dl class="attribute">
 <dt id="podpac.core.node.Node.pipeline">
 <code class="descname">pipeline</code><a class="headerlink" href="#podpac.core.node.Node.pipeline" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Create a pipeline node from this node</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>podpac.Pipeline</strong></dt>
+<dd><p class="first last">A pipeline node created using the self.pipeline_definition</p>
 </dd>
 </dl>
 </td>
@@ -905,8 +943,8 @@ the method specified</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>OrderedDict</strong></dt>
+<dd><p class="first last">Dictionary-formatted definition of a PODPAC pipeline.</p>
 </dd>
 </dl>
 </td>
@@ -918,66 +956,52 @@ the method specified</p>
 <dl class="attribute">
 <dt id="podpac.core.node.Node.pipeline_json">
 <code class="descname">pipeline_json</code><a class="headerlink" href="#podpac.core.node.Node.pipeline_json" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Full pipeline definition for this node in json format</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">JSON-formatted definition of a PODPAC pipeline.</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="podpac.core.node.Node.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>show=True</em>, <em>interpolation='none'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot function to display the output</p>
-<p>TODO: Improve this substantially please</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>show</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>interpolation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>**kwargs</strong></dt>
-<dd><p class="first last">Description</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
+<p class="rubric">Notes</p>
+<p>This definition can be used to create Pipeline Nodes. It also serves as a light-weight transport mechanism to 
+share algorithms and pipelines, or run code on cloud services.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.core.node.Node.shape">
 <code class="descname">shape</code><a class="headerlink" href="#podpac.core.node.Node.shape" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Returns the shape of the output based on the evaluated coordinates. This shape is jointly determined by the
+input or evaluated coordinates and the native_coordinates (if present).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>coords: podpac.Coordinates, optional</strong></dt>
+<dd><p class="first last">Requested coordinates that help determine the shape of the output. Uses self.evaluated_coordinates if not 
+supplied.</p>
 </dd>
 </dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tuple/list</strong></dt>
+<dd><p class="first last">Size of the dimensions of the output</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>NodeException</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">If the shape cannot be automatically determined, this exception is raised.</p>
 </dd>
 </dl>
 </td>
@@ -989,27 +1013,27 @@ the method specified</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.write">
 <code class="descname">write</code><span class="sig-paren">(</span><em>name</em>, <em>outdir=None</em>, <em>format='pickle'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Write self.output to disk using the specified format</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the file prefix. The final filename will have &lt;name&gt;_&lt;hash&gt;_&lt;latlon_bounds_str&gt;.&lt;format&gt;</p>
 </dd>
 <dt><strong>outdir</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">{outdir}</p>
 </dd>
 <dt><strong>format</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">The file format. Currently only <cite>pickle</cite> is supported.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>NotImplementedError</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">Raised if an unsupported format is specified</p>
 </dd>
 </dl>
 </td>

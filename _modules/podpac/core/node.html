@@ -185,6 +185,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.cm</span>
 
 
 <span class="k">try</span><span class="p">:</span>
@@ -200,12 +201,42 @@
 <span class="kn">from</span> <span class="nn">podpac</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac</span> <span class="k">import</span> <span class="n">Units</span><span class="p">,</span> <span class="n">UnitsDataArray</span>
 <span class="kn">from</span> <span class="nn">podpac</span> <span class="k">import</span> <span class="n">Coordinate</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
 
+<span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;native_coordinates&#39;</span><span class="p">:</span> 
+        <span class="sd">&#39;&#39;&#39;The native set of coordinates for a node. This attribute may be `None` for some nodes.&#39;&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;evaluated_coordinates&#39;</span><span class="p">:</span> 
+        <span class="sd">&#39;&#39;&#39;The set of coordinates requested by a user. The Node will be executed using these coordinates.&#39;&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="s1">&#39;Default is None. Runtime parameters that modify any default node parameters.&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hash_return&#39;</span><span class="p">:</span> <span class="s1">&#39;A unique hash capturing the coordinates and parameters used to execute the node. &#39;</span><span class="p">,</span>
+    <span class="s1">&#39;outdir&#39;</span><span class="p">:</span> <span class="s1">&#39;Optional output directory. Uses settings.CACHE_DIR by default&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_init_type&#39;</span><span class="p">:</span> 
+        <span class="sd">&#39;&#39;&#39;How to initialize the array. Options are:</span>
+<span class="sd">                nan: uses np.full(..., np.nan) (Default option)</span>
+<span class="sd">                empty: uses np.empty</span>
+<span class="sd">                zeros: uses np.zeros()</span>
+<span class="sd">                ones: uses np.ones</span>
+<span class="sd">                full: uses np.full(..., fillval)</span>
+<span class="sd">                data: uses the fillval as the input array&#39;&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_fillval&#39;</span> <span class="p">:</span> <span class="s2">&quot;used if init_type==&#39;full&#39; or &#39;data&#39;, default = 0&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_style&#39;</span> <span class="p">:</span> <span class="s2">&quot;The style to use for plotting. Uses self.style by default&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_no_style&#39;</span> <span class="p">:</span> <span class="s2">&quot;Default is False. If True, self.style will not be assigned to arr.attr[&#39;layer_style&#39;]&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_shape&#39;</span><span class="p">:</span> <span class="s1">&#39;Shape of array. Uses self.shape by default.&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_coords&#39;</span> <span class="p">:</span> <span class="s2">&quot;Input to UnitsDataArray (i.e. an xarray coords dictionary/list)&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_dims&#39;</span> <span class="p">:</span> <span class="s2">&quot;Input to UnitsDataArray (i.e. an xarray dims list of strings)&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_units&#39;</span> <span class="p">:</span> <span class="s2">&quot;Default is self.units The Units for the data contained in the DataArray.&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_dtype&#39;</span> <span class="p">:</span><span class="s2">&quot;Default is np.float. Datatype used by default&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_kwargs&#39;</span> <span class="p">:</span> <span class="s2">&quot;Dictioary of any additional keyword arguments that will be passed to UnitsDataArray.&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;arr_return&#39;</span> <span class="p">:</span> 
+        <span class="sd">&quot;&quot;&quot;UnitsDataArray</span>
+<span class="sd">            Unit-aware xarray DataArray of the desired size initialized using the method specified.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+    <span class="p">}</span>
 
 <div class="viewcode-block" id="NodeException"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.NodeException">[docs]</a><span class="k">class</span> <span class="nc">NodeException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Summary</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Style"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Style">[docs]</a><span class="k">class</span> <span class="nc">Style</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
@@ -231,8 +262,8 @@
 
 <div class="viewcode-block" id="Style.__init__"><a class="viewcode-back" href="../../../user/api-min/podpac.core.node.Style.html#podpac.core.compositor.Style.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">node</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">__class</span><span class="o">.</span><span class="vm">__name__</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">units</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">__class</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">units</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Style</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="n">name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span>
@@ -249,34 +280,38 @@
     <span class="k">def</span> <span class="nf">_cmap_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;viridis&#39;</span><span class="p">)</span></div>
 
-
-<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Summary</span>
+<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The base class for all Nodes, which defines the common interface for everything.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    cache_type : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    dtype : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    evaluated : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    evaluated_coordinates : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    implicit_pipeline_evaluation : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    native_coordinates : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    node_defaults : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    output : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    params : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    style : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    units : TYPE</span>
-<span class="sd">        Description</span>
+<span class="sd">    cache_type : [None, &#39;disk&#39;, &#39;ram&#39;]</span>
+<span class="sd">        How the output of the nodes should be cached. By default, outputs are not cached.</span>
+<span class="sd">    dtype : type</span>
+<span class="sd">        The numpy datatype of the output. Currently only `float` is supported.</span>
+<span class="sd">    evaluated : Bool</span>
+<span class="sd">        Flag indicating if the node has been evaluated.</span>
+<span class="sd">    evaluated_coordinates : podpac.Coordinate</span>
+<span class="sd">        {evaluated_coordinates}</span>
+<span class="sd">        This attribute stores the coordinates that were last used to evaluate the node.</span>
+<span class="sd">    implicit_pipeline_evaluation : Bool</span>
+<span class="sd">        Flag indicating if nodes as part of a pipeline should be automatically evaluated when</span>
+<span class="sd">        the root node is evaluated. This attribute is planned for deprecation in the future.</span>
+<span class="sd">    native_coordinates : podpac.Coordinate, optional</span>
+<span class="sd">        {native_coordinates} </span>
+<span class="sd">    node_defaults : dict</span>
+<span class="sd">        Dictionary of defaults values for attributes of a Node. </span>
+<span class="sd">    output : podpac.UnitsDataArray</span>
+<span class="sd">        Output data from the last evaluation of the node. </span>
+<span class="sd">    params : dict</span>
+<span class="sd">        Dictionary of parameters that control the output of a node. For example, these can be coefficients in an </span>
+<span class="sd">        equation, or the interpolation type. This attribute is planned for deprecation in the future.</span>
+<span class="sd">    style : podpac.Style</span>
+<span class="sd">        Object discribing how the output of a node should be displayed. This attribute is planned for deprecation in the</span>
+<span class="sd">        future.</span>
+<span class="sd">    units : podpac.Units</span>
+<span class="sd">        The units of the output data, defined using the pint unit registry `podpac.units.ureg`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">output</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -303,22 +338,32 @@
         <span class="k">return</span> <span class="n">Style</span><span class="p">()</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the shape of the output based on the evaluated coordinates. This shape is jointly determined by the</span>
+<span class="sd">        input or evaluated coordinates and the native_coordinates (if present).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        coords: podpac.Coordinates, optional</span>
+<span class="sd">            Requested coordinates that help determine the shape of the output. Uses self.evaluated_coordinates if not </span>
+<span class="sd">            supplied. </span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        tuple/list</span>
+<span class="sd">            Size of the dimensions of the output</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NodeException</span>
-<span class="sd">            Description</span>
+<span class="sd">            If the shape cannot be automatically determined, this exception is raised. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Changes here likely will also require changes in initialize_output_array</span>
-        <span class="n">ev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span>
+        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="n">ev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">ev</span> <span class="o">=</span> <span class="n">coords</span>
         <span class="c1">#nv = self._trait_values.get(&#39;native_coordinates&#39;,  None)</span>
         <span class="c1"># Switching from _trait_values to hasattr because &quot;native_coordinates&quot;</span>
         <span class="c1"># not showing up in _trait_values</span>
@@ -362,52 +407,60 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        **kwargs</span>
-<span class="sd">            Description</span>
+<span class="sd">            Keyword arguments provided by user when class was instantiated.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        dict</span>
+<span class="sd">            Keyword arguments that will be passed to the standard intialization function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">kwargs</span>
 
 <div class="viewcode-block" id="Node.init"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Overwrite this method if a node needs to do any additional initialization after the standard initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="Node.execute"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.execute"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.execute">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;This is the common interface used for ALL nodes. Pipelines only</span>
-<span class="sd">        understand this and get_description.</span>
+<span class="sd">        understand this method and get_description.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        coordinates : TYPE</span>
-<span class="sd">            Description</span>
-<span class="sd">        params : None, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        output : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">        coordinates : podpac.Coordinate</span>
+<span class="sd">            {evaluated_coordinates}</span>
+<span class="sd">        params : dict, optional</span>
+<span class="sd">            Default is None. Runtime parameters that modify any default node parameters.</span>
+<span class="sd">        output : podpac.UnitsDataArray, optional</span>
+<span class="sd">            Default is None. Optional input array used to store the output data. When supplied, the node will not </span>
+<span class="sd">            allocate its own memory for the output array. This array needs to have the correct dimensions and </span>
+<span class="sd">            coordinates.</span>
+<span class="sd">        method : str, optional</span>
+<span class="sd">            Default is None. How the node will be executed: serial, parallel, on aws, locally, etc. Currently only local</span>
+<span class="sd">            execution is supported.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>
-<span class="sd">            Description</span>
+<span class="sd">            Children need to implement this method, otherwise this error is raised. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Node.get_output_coords"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_output_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Returns the output coordinates based on the user-requested coordinates. This is jointly determined by </span>
+<span class="sd">        the input or evaluated coordinates and the native_coordinates (if present).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        coords : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">        coords : podpac.Coordinates, optional</span>
+<span class="sd">            Requested coordinates that help determine the coordinates of the output. Uses self.evaluated_coordinates if </span>
+<span class="sd">            not supplied.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        podpac.Coordinate</span>
+<span class="sd">            The coordinates of the output if the node is executed with `coords`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Changes here likely will also require changes in shape</span>
@@ -425,61 +478,62 @@
             <span class="n">crds</span> <span class="o">=</span> <span class="n">coords</span>
         <span class="k">return</span> <span class="n">crds</span></div>
 
-<div class="viewcode-block" id="Node.initialize_output_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.initialize_output_array">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_output_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="Node.initialize_output_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.initialize_output_array">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">initialize_output_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">no_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Initializes the UnitsDataArray with the expected output size.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        init_type : str, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        fillval : int, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        style : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_init_type}</span>
+<span class="sd">        fillval : number/np.ndarray, optional</span>
+<span class="sd">            {arr_fillval}</span>
+<span class="sd">        style : podpac.Style, optional</span>
+<span class="sd">            {arr_style}</span>
 <span class="sd">        no_style : bool, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        shape : None, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        coords : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_no_style}</span>
+<span class="sd">        shape : list/tuple, optional</span>
+<span class="sd">            {arr_shape}</span>
+<span class="sd">        coords : Coordinate, optional</span>
+<span class="sd">            {arr_coords}</span>
 <span class="sd">        dims : None, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        units : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_dims}</span>
+<span class="sd">        units : Unit, optional</span>
+<span class="sd">            {arr_units}</span>
 <span class="sd">        dtype : TYPE, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_dtype}</span>
 <span class="sd">        **kwargs</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_kwargs}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        {arr_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">crds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_output_coords</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span>
         <span class="n">dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">crds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_array</span><span class="p">(</span><span class="n">init_type</span><span class="p">,</span> <span class="n">fillval</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">no_style</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span>
                                      <span class="n">crds</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="Node.copy_output_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.copy_output_array">[docs]</a>    <span class="k">def</span> <span class="nf">copy_output_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+    
+<div class="viewcode-block" id="Node.copy_output_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.copy_output_array">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">copy_output_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a copy of the output array, initialized using the specified method.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        init_type : str, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_init_type}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        UnitsDataArray</span>
+<span class="sd">            A copy of the `self.output` array, initialized with the specified method.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            Description</span>
+<span class="sd">            Raises this error if the init_type specified is not supported.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">shape</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span>
@@ -497,40 +551,41 @@
 
         <span class="k">return</span> <span class="n">x</span></div>
 
-<div class="viewcode-block" id="Node.initialize_coord_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.initialize_coord_array">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_coord_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<div class="viewcode-block" id="Node.initialize_coord_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.initialize_coord_array">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">initialize_coord_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">no_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Initialize an output array using a podpac.Coordinate object.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        coords : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        coords : podpac.Coordinate</span>
+<span class="sd">            Coordinates descriping the size of the data array that will be initialized</span>
 <span class="sd">        init_type : str, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        fillval : int, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        style : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_init_type}</span>
+<span class="sd">        fillval : number/np.ndarray, optional</span>
+<span class="sd">            {arr_fillval}</span>
+<span class="sd">        style : podpac.Style, optional</span>
+<span class="sd">            {arr_style}</span>
 <span class="sd">        no_style : bool, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        units : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_no_style}</span>
+<span class="sd">        units : podpac.Unit, optional</span>
+<span class="sd">            {arr_units}</span>
 <span class="sd">        dtype : TYPE, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_dtype}</span>
 <span class="sd">        **kwargs</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_kwargs}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        {arr_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_array</span><span class="p">(</span><span class="n">init_type</span><span class="p">,</span> <span class="n">fillval</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">no_style</span><span class="p">,</span>
                                      <span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span>
                                      <span class="n">units</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Node.initialize_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.initialize_array">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="Node.initialize_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.initialize_array">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">initialize_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">no_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize output data array</span>
@@ -538,44 +593,35 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        init_type : str, optional</span>
-<span class="sd">            How to initialize the array. Options are:</span>
-<span class="sd">                nan: uses np.full(..., np.nan) (Default option)</span>
-<span class="sd">                empty: uses np.empty</span>
-<span class="sd">                zeros: uses np.zeros()</span>
-<span class="sd">                ones: uses np.ones</span>
-<span class="sd">                full: uses np.full(..., fillval)</span>
-<span class="sd">                data: uses the fillval as the input array</span>
+<span class="sd">            {arr_init_type}</span>
 <span class="sd">        fillval : number, optional</span>
-<span class="sd">            used if init_type==&#39;full&#39; or &#39;data&#39;, default = 0</span>
+<span class="sd">            {arr_fillval}</span>
 <span class="sd">        style : Style, optional</span>
-<span class="sd">            The style to use for plotting. Uses self.style by default</span>
+<span class="sd">            {arr_style}</span>
 <span class="sd">        no_style : bool, optional</span>
-<span class="sd">            Default is False. If True, self.style will not be assigned to</span>
-<span class="sd">            arr.attr[&#39;layer_style&#39;]</span>
+<span class="sd">            {arr_no_style}</span>
 <span class="sd">        shape : tuple</span>
-<span class="sd">            Shape of array. Uses self.shape by default.</span>
+<span class="sd">            {arr_shape}</span>
 <span class="sd">        coords : dict/list</span>
-<span class="sd">            input to UnitsDataArray</span>
+<span class="sd">            {arr_coords}</span>
 <span class="sd">        dims : list(str)</span>
-<span class="sd">            input to UnitsDataArray</span>
+<span class="sd">            {arr_dims}</span>
 <span class="sd">        units : pint.unit.Unit, optional</span>
-<span class="sd">            Default is self.units The Units for the data contained in the</span>
-<span class="sd">            DataArray</span>
+<span class="sd">            {arr_units}</span>
 <span class="sd">        dtype : type, optional</span>
-<span class="sd">            Default is np.float. Datatype used by default</span>
+<span class="sd">            {arr_dtype}</span>
 <span class="sd">        **kwargs</span>
-<span class="sd">            Description</span>
+<span class="sd">            {arr_kwargs}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        arr : UnitsDataArray</span>
-<span class="sd">            Unit-aware xarray DataArray of the desired size initialized using</span>
-<span class="sd">            the method specified</span>
+<span class="sd">        {arr_return}</span>
+<span class="sd">            </span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            Description</span>
+<span class="sd">            Raises this error if the init_type specified is not supported.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span>
@@ -607,32 +653,6 @@
         <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
         <span class="k">return</span> <span class="n">x</span></div>
 
-<div class="viewcode-block" id="Node.plot"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Plot function to display the output</span>
-
-<span class="sd">        TODO: Improve this substantially please</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        show : bool, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        interpolation : str, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        **kwargs</span>
-<span class="sd">            Description</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-
-        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">cmap</span><span class="p">,</span>
-                       <span class="n">interpolation</span><span class="o">=</span><span class="n">interpolation</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">base_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -640,8 +660,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the node in pipeline definitions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
 
@@ -651,8 +671,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        OrderedDict</span>
+<span class="sd">            Dictionary containing the location of the Node, and the name of the plugin (if required)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 
@@ -678,7 +698,7 @@
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>
-<span class="sd">            Description</span>
+<span class="sd">            This needs to be implemented by derived classes</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">parents</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
         <span class="n">podpac_parents</span> <span class="o">=</span> <span class="p">[</span>
@@ -694,8 +714,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        OrderedDict</span>
+<span class="sd">            Dictionary-formatted definition of a PODPAC pipeline. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="kn">from</span> <span class="nn">podpac.core.pipeline</span> <span class="k">import</span> <span class="n">make_pipeline_definition</span>
@@ -703,101 +723,111 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pipeline_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Full pipeline definition for this node in json format</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        str</span>
+<span class="sd">            JSON-formatted definition of a PODPAC pipeline.</span>
+<span class="sd">            </span>
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        This definition can be used to create Pipeline Nodes. It also serves as a light-weight transport mechanism to </span>
+<span class="sd">        share algorithms and pipelines, or run code on cloud services. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_definition</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Create a pipeline node from this node</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        podpac.Pipeline</span>
+<span class="sd">            A pipeline node created using the self.pipeline_definition</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pipeline</span> <span class="k">import</span> <span class="n">Pipeline</span>
         <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_definition</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Node.get_hash"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_hash">[docs]</a>    <span class="k">def</span> <span class="nf">get_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Hash used for caching node outputs.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        coordinates : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {evaluated_coordinates}</span>
 <span class="sd">        params : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {params}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        str</span>
+<span class="sd">            {hash_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># convert to OrderedDict with consistent keys</span>
-            <span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
 
             <span class="c1"># convert dict values to OrderedDict with consistent keys</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
                     <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
 
         <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">coordinates</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">params</span><span class="p">)))</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">evaluated_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Get hash for node after being evaluated</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        str</span>
+<span class="sd">            {hash_return}</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
-<span class="sd">        Exception</span>
-<span class="sd">            Description</span>
+<span class="sd">        NodeException</span>
+<span class="sd">            Gets raised if node has not been evaluated</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;node not evaluated&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;node not evaluated&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">latlon_bounds_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Helper property used for naming cached files</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        str</span>
+<span class="sd">            String containing the latitude/longitude bounds of a set of coordinates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span><span class="o">.</span><span class="n">latlon_bounds_str</span>
 
 
 <div class="viewcode-block" id="Node.get_output_path"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_output_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Get the output path where data is cached to disk</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        filename : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Name of the file in the cache.</span>
 <span class="sd">        outdir : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {out_dir}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        str</span>
+<span class="sd">            Path to location where data is cached</span>
+<span class="sd">            </span>
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        If the output directory doesn&#39;t exist, it will be created.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">outdir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">outdir</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">OUT_DIR</span>
+            <span class="n">outdir</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outdir</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
@@ -806,21 +836,21 @@
 
 
 <div class="viewcode-block" id="Node.write"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;pickle&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Write self.output to disk using the specified format</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        name : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Name of the file prefix. The final filename will have &lt;name&gt;_&lt;hash&gt;_&lt;latlon_bounds_str&gt;.&lt;format&gt;</span>
 <span class="sd">        outdir : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            {outdir}</span>
 <span class="sd">        format : str, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            The file format. Currently only `pickle` is supported. </span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>
-<span class="sd">            Description</span>
+<span class="sd">            Raised if an unsupported format is specified</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="n">name</span><span class="p">,</span>
@@ -835,18 +865,18 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Node.load"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Retrieves a cached file from disk. </span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        name : TYPE</span>
-<span class="sd">            Description</span>
-<span class="sd">        coordinates : TYPE</span>
-<span class="sd">            Description</span>
-<span class="sd">        params : TYPE</span>
-<span class="sd">            Description</span>
-<span class="sd">        outdir : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Name of the file prefix.</span>
+<span class="sd">        coordinates : podpac.Coordinate</span>
+<span class="sd">            {evaluated_coordinates}</span>
+<span class="sd">        params : dict</span>
+<span class="sd">            {params}</span>
+<span class="sd">        outdir : str, optional</span>
+<span class="sd">            {outdir}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="n">name</span><span class="p">,</span>
@@ -858,12 +888,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.load_from_file"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.load_from_file">[docs]</a>    <span class="k">def</span> <span class="nf">load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Retrieves a specified file from disk using pickle, and assigns it to self.output</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        path : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        path : str</span>
+<span class="sd">            Path to file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
@@ -873,21 +903,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Node.get_image"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_image">[docs]</a>    <span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Return a base64-encoded image of the output</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        format : str, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        vmin : None, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        vmax : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">            Default is &#39;png&#39;. Type of image. </span>
+<span class="sd">        vmin : number, optional</span>
+<span class="sd">            Minimum value of colormap</span>
+<span class="sd">        vmax : vmax, optional</span>
+<span class="sd">            Maximum value of colormap</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        str</span>
+<span class="sd">            Base64 encoded image. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">matplotlib.image</span> <span class="k">import</span> <span class="n">imsave</span>
@@ -904,18 +934,18 @@
         <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">vmin</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">vmax</span> <span class="o">-</span> <span class="n">vmin</span><span class="p">)</span>
         <span class="n">i</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">viridis</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">im_data</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
-        <span class="n">imsave</span><span class="p">(</span><span class="n">im_data</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+        <span class="n">imsave</span><span class="p">(</span><span class="n">im_data</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span>
         <span class="n">im_data</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">im_data</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cache_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Return the directory used for caching</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        str</span>
+<span class="sd">            Path to the default cache directory</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">basedir</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span>
         <span class="n">subdir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)[</span><span class="mi">8</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
@@ -923,30 +953,30 @@
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">dirs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Node.cache_path"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.cache_path">[docs]</a>    <span class="k">def</span> <span class="nf">cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Return the cache path for the file</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        filename : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Name of the cached file</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        str</span>
+<span class="sd">            Path to the cached file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pre</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">pre</span>  <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.cache_obj"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.cache_obj">[docs]</a>    <span class="k">def</span> <span class="nf">cache_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Cache the input object using the given filename</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        obj : TYPE</span>
-<span class="sd">            Description</span>
-<span class="sd">        filename : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        obj : object</span>
+<span class="sd">            Object to be cached to disk</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            File name for the object to be cached</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_TO_S3</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
@@ -960,17 +990,17 @@
             <span class="n">s3</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.load_cached_obj"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.load_cached_obj">[docs]</a>    <span class="k">def</span> <span class="nf">load_cached_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Retreive an object from cache</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        filename : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            File name of object to be retrieved from cache</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        object</span>
+<span class="sd">            Object loaded from cache</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_TO_S3</span><span class="p">:</span>
@@ -1008,27 +1038,6 @@
             <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">(</span><span class="n">attr</span><span class="p">)):</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div></div>
 
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="c1"># checking creation of output node</span>
-    <span class="n">c1</span> <span class="o">=</span> <span class="n">Coordinate</span><span class="p">(</span><span class="n">lat_lon</span><span class="o">=</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span> <span class="n">time</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-    <span class="n">c2</span> <span class="o">=</span> <span class="n">Coordinate</span><span class="p">(</span><span class="n">lat_lon</span><span class="o">=</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mi">15</span><span class="p">)))</span>
-
-    <span class="n">n</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">native_coordinates</span><span class="o">=</span><span class="n">c1</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">initialize_output_array</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">n</span><span class="o">.</span><span class="n">evaluated_coordinates</span> <span class="o">=</span> <span class="n">c2</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">initialize_output_array</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-    <span class="n">n</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">native_coordinates</span><span class="o">=</span><span class="n">c1</span><span class="o">.</span><span class="n">unstack</span><span class="p">())</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">initialize_output_array</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">n</span><span class="o">.</span><span class="n">evaluated_coordinates</span> <span class="o">=</span> <span class="n">c2</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">initialize_output_array</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-    <span class="n">n</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">native_coordinates</span><span class="o">=</span><span class="n">c1</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">initialize_output_array</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">n</span><span class="o">.</span><span class="n">evaluated_coordinates</span> <span class="o">=</span> <span class="n">c2</span><span class="o">.</span><span class="n">unstack</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">initialize_output_array</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Nothing to do&quot;</span><span class="p">)</span>
 </pre></div>
 
            </div>
