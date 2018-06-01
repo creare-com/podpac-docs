@@ -180,7 +180,7 @@
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
 <span class="c1"># Internal imports</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinate</span> <span class="k">import</span> <span class="n">Coordinate</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinate</span> <span class="k">import</span> <span class="n">Coordinate</span><span class="p">,</span> <span class="n">coordinate</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
 
 <div class="viewcode-block" id="Compositor"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor">[docs]</a><span class="k">class</span> <span class="nc">Compositor</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
@@ -327,13 +327,12 @@
         <span class="c1"># WARNING: this assumes</span>
         <span class="c1">#              native_coords = source_coords + shared_coordinates</span>
         <span class="c1">#         NOT  native_coords = shared_coords + source_coords</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_source_coordinates_complete</span> \
-                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">coords_subset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span>
-                    <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_source_coordinates_complete</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">coords_subset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">coords_dim</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_subset</span><span class="p">,</span> <span class="n">coords_subset</span><span class="p">):</span>
-                <span class="n">nc</span> <span class="o">=</span> <span class="n">Coordinate</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">coords_dim</span><span class="p">:</span> <span class="n">c</span><span class="p">})</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span>
+                <span class="c1"># TODO convert this to direct Coordinate()</span>
+                <span class="n">nc</span> <span class="o">=</span> <span class="n">coordinate</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">coords_dim</span><span class="p">:</span> <span class="n">c</span><span class="p">})</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span>
                 <span class="c1"># Switching from _trait_values to hasattr because &quot;native_coordinates&quot;</span>
                 <span class="c1"># sometimes not showing up in _trait_values in other locations</span>
                 <span class="c1"># Not confirmed here</span>
