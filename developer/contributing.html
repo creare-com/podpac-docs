@@ -110,8 +110,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#lint">Lint</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#code-coverage">Code Coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#integration-testing">Integration testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code-coverage">Code Coverage</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#governance">Governance</a></li>
 </ul>
 </li>
@@ -324,13 +327,39 @@ $ pylint podpac/settings.py     <span class="c1"># lint single file</span>
 $ pytest -k &quot;TestClass&quot;    # run only the TestClass
 </pre></div>
 </div>
-<p>Configuration options are specified in <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code></p>
+<p>Configuration options are specified in <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code>.</p>
+<div class="section" id="integration-testing">
+<span id="integration-testing"></span><h3>Integration testing<a class="headerlink" href="#integration-testing" title="Permalink to this headline">¶</a></h3>
+<p>We use <code class="docutils literal notranslate"><span class="pre">pytest</span></code> to write integration tests.
+Generally these tests should be written in seperate files from unit tests.
+To specify that a test is an integration test, use the custom pytest marker <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.integration</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="nd">@pytest.mark.integration</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="nd">@pytest.mark.integration</span>
+<span class="k">class</span> <span class="nc">TestClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Integration tests do not run by default.
+To run integration tests from the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pytest -m integration
+</pre></div>
+</div>
+<p>See <a class="reference external" href="https://docs.pytest.org/en/latest/example/markers.html">working with custom markers</a> for more details on how to use markers in pytest.</p>
 </div>
 <div class="section" id="code-coverage">
-<span id="code-coverage"></span><h2>Code Coverage<a class="headerlink" href="#code-coverage" title="Permalink to this headline">¶</a></h2>
-<p>We use <a class="reference external" href="https://github.com/pytest-dev/pytest-cov"><code class="docutils literal notranslate"><span class="pre">pytest-cov</span></code></a> (which uses <a class="reference external" href="https://coverage.readthedocs.io/en/coverage-4.5.1/"><code class="docutils literal notranslate"><span class="pre">coverage</span></code></a> underneath) to monitor code coverage of unit tests and <a class="reference external" href="https://github.com/coveralls-clients/coveralls-python"><code class="docutils literal notranslate"><span class="pre">coveralls</span></code></a> to provide the coverage status. To record coverage while running tests, run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pytest --cov<span class="o">=</span>podpac --cov-report html podpac   <span class="c1"># outputs html coverage</span>
+<span id="code-coverage"></span><h3>Code Coverage<a class="headerlink" href="#code-coverage" title="Permalink to this headline">¶</a></h3>
+<p>We use <a class="reference external" href="https://github.com/pytest-dev/pytest-cov"><code class="docutils literal notranslate"><span class="pre">pytest-cov</span></code></a> (which uses <a class="reference external" href="https://coverage.readthedocs.io/en/coverage-4.5.1/"><code class="docutils literal notranslate"><span class="pre">coverage</span></code></a> underneath) to monitor code coverage of unit tests. To record coverage while running tests, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pytest --cov<span class="o">=</span>podpac --cov-report html:./artifacts/coverage podpac   <span class="c1"># outputs html coverage to directory artifacts/coverage</span>
 </pre></div>
+</div>
+<p>We use <a class="reference external" href="https://github.com/coveralls-clients/coveralls-python"><code class="docutils literal notranslate"><span class="pre">coveralls</span></code></a> to provide <a class="reference external" href="https://coveralls.io/github/creare-com/podpac">coverage status and visualization</a>.</p>
 </div>
 </div>
 <div class="section" id="governance">

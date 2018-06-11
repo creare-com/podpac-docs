@@ -202,27 +202,14 @@
 <span class="kn">from</span> <span class="nn">podpac</span> <span class="k">import</span> <span class="n">Coordinate</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
 
-<span class="n">COMMON_NODE_DOC</span> <span class="o">=</span> <span class="p">{</span>
+<span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;native_coordinates&#39;</span><span class="p">:</span> 
         <span class="sd">&#39;&#39;&#39;The native set of coordinates for a node. This attribute may be `None` for some nodes.&#39;&#39;&#39;</span><span class="p">,</span>
     <span class="s1">&#39;evaluated_coordinates&#39;</span><span class="p">:</span> 
         <span class="sd">&#39;&#39;&#39;The set of coordinates requested by a user. The Node will be executed using these coordinates.&#39;&#39;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;execute_params&#39;</span><span class="p">:</span> <span class="s1">&#39;Default is None. Runtime parameters that modify any default node parameters.&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;execute_out&#39;</span><span class="p">:</span> 
-        <span class="sd">&#39;&#39;&#39;Default is None. Optional input array used to store the output data. When supplied, the node will not </span>
-<span class="sd">            allocate its own memory for the output array. This array needs to have the correct dimensions and </span>
-<span class="sd">            coordinates.&#39;&#39;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;execute_method&#39;</span><span class="p">:</span> 
-        <span class="sd">&#39;&#39;&#39;Default is None. How the node will be executed: serial, parallel, on aws, locally, etc. Currently only local</span>
-<span class="sd">            execution is supported.&#39;&#39;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;execute_return&#39;</span><span class="p">:</span> 
-        <span class="sd">&#39;&#39;&#39;UnitsDataArray</span>
-<span class="sd">            Unit-aware xarray DataArray containing the results of the node execution.&#39;&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="s1">&#39;Default is None. Runtime parameters that modify any default node parameters.&#39;</span><span class="p">,</span>
     <span class="s1">&#39;hash_return&#39;</span><span class="p">:</span> <span class="s1">&#39;A unique hash capturing the coordinates and parameters used to execute the node. &#39;</span><span class="p">,</span>
     <span class="s1">&#39;outdir&#39;</span><span class="p">:</span> <span class="s1">&#39;Optional output directory. Uses settings.CACHE_DIR by default&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;definition_return&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;&#39;OrderedDict</span>
-<span class="s1">            Dictionary containing the location of the Node, the name of the plugin (if required), as well as any </span>
-<span class="s1">            parameters and attributes that were tagged by children.&#39;&#39;&#39;</span><span class="p">,</span>
     <span class="s1">&#39;arr_init_type&#39;</span><span class="p">:</span> 
         <span class="sd">&#39;&#39;&#39;How to initialize the array. Options are:</span>
 <span class="sd">                nan: uses np.full(..., np.nan) (Default option)</span>
@@ -245,8 +232,6 @@
 <span class="sd">            Unit-aware xarray DataArray of the desired size initialized using the method specified.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
     <span class="p">}</span>
-
-<span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
 <div class="viewcode-block" id="NodeException"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.NodeException">[docs]</a><span class="k">class</span> <span class="nc">NodeException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Summary</span>
@@ -326,8 +311,6 @@
 <span class="sd">        future.</span>
 <span class="sd">    units : podpac.Units</span>
 <span class="sd">        The units of the output data, defined using the pint unit registry `podpac.units.ureg`.</span>
-<span class="sd">    interpolation : str, optional</span>
-<span class="sd">        The interpolation type to use for the node. Not all nodes use this attribute.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">output</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -341,14 +324,12 @@
     <span class="n">implicit_pipeline_evaluation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Evaluate the pipeline implicitly (True, Default)&quot;</span><span class="p">)</span>
     <span class="n">evaluated_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="s1">&#39;podpac.core.coordinate.Coordinate&#39;</span><span class="p">,</span>
                                         <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">_params</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">Units</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">dtype</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">cache_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;disk&#39;</span><span class="p">,</span> <span class="s1">&#39;ram&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">node_defaults</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    
-    <span class="n">interpolation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 
     <span class="n">style</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Style</span><span class="p">)</span>
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">)</span>
@@ -357,9 +338,48 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;See `get_output_shape`</span>
+        <span class="sd">&quot;&quot;&quot;Returns the shape of the output based on the evaluated coordinates. This shape is jointly determined by the</span>
+<span class="sd">        input or evaluated coordinates and the native_coordinates (if present).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        coords: podpac.Coordinates, optional</span>
+<span class="sd">            Requested coordinates that help determine the shape of the output. Uses self.evaluated_coordinates if not </span>
+<span class="sd">            supplied. </span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple/list</span>
+<span class="sd">            Size of the dimensions of the output</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NodeException</span>
+<span class="sd">            If the shape cannot be automatically determined, this exception is raised. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_output_shape</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="c1"># Changes here likely will also require changes in initialize_output_array</span>
+        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="n">ev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">ev</span> <span class="o">=</span> <span class="n">coords</span>
+        <span class="c1">#nv = self._trait_values.get(&#39;native_coordinates&#39;,  None)</span>
+        <span class="c1"># Switching from _trait_values to hasattr because &quot;native_coordinates&quot;</span>
+        <span class="c1"># not showing up in _trait_values</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;native_coordinates&#39;</span><span class="p">):</span>
+            <span class="n">nv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nv</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">ev</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nv</span><span class="o">.</span><span class="n">get_shape</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ev</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ev</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">elif</span> <span class="n">nv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nv</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cannot determine shape if &quot;</span>
+                                <span class="s2">&quot;evaluated_coordinates and native_coordinates&quot;</span>
+                                <span class="s2">&quot; are both None.&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Node.__init__"><a class="viewcode-back" href="../../../user/api-min/podpac.core.node.Node.html#podpac.core.compositor.Node.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Do not overwrite me &quot;&quot;&quot;</span>
@@ -410,11 +430,14 @@
 <span class="sd">        coordinates : podpac.Coordinate</span>
 <span class="sd">            {evaluated_coordinates}</span>
 <span class="sd">        params : dict, optional</span>
-<span class="sd">            {execute_params} </span>
+<span class="sd">            Default is None. Runtime parameters that modify any default node parameters.</span>
 <span class="sd">        output : podpac.UnitsDataArray, optional</span>
-<span class="sd">            {execute_out}</span>
+<span class="sd">            Default is None. Optional input array used to store the output data. When supplied, the node will not </span>
+<span class="sd">            allocate its own memory for the output array. This array needs to have the correct dimensions and </span>
+<span class="sd">            coordinates.</span>
 <span class="sd">        method : str, optional</span>
-<span class="sd">            {execute_method}</span>
+<span class="sd">            Default is None. How the node will be executed: serial, parallel, on aws, locally, etc. Currently only local</span>
+<span class="sd">            execution is supported.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -422,80 +445,6 @@
 <span class="sd">            Children need to implement this method, otherwise this error is raised. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
-    
-<div class="viewcode-block" id="Node.get_output_shape"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_output_shape">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the shape of the output based on the evaluated coordinates. This shape is jointly determined by the</span>
-<span class="sd">        input or evaluated coordinates and the native_coordinates (if present).</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
-<span class="sd">        coords: podpac.Coordinates, optional</span>
-<span class="sd">            Requested coordinates that help determine the shape of the output. Uses self.evaluated_coordinates if not </span>
-<span class="sd">            supplied. </span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        tuple/list</span>
-<span class="sd">            Size of the dimensions of the output</span>
-
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        NodeException</span>
-<span class="sd">            If the shape cannot be automatically determined, this exception is raised. </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># Changes here likely will also require changes in initialize_output_array</span>
-        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
-            <span class="n">ev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span>
-        <span class="k">else</span><span class="p">:</span> 
-            <span class="n">ev</span> <span class="o">=</span> <span class="n">coords</span>
-        <span class="c1">#nv = self._trait_values.get(&#39;native_coordinates&#39;,  None)</span>
-        <span class="c1"># Switching from _trait_values to hasattr because &quot;native_coordinates&quot;</span>
-        <span class="c1"># not showing up in _trait_values</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;native_coordinates&#39;</span><span class="p">):</span>
-            <span class="n">nv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">nv</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">ev</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">nv</span><span class="o">.</span><span class="n">get_shape</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">ev</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">ev</span><span class="o">.</span><span class="n">shape</span>
-        <span class="k">elif</span> <span class="n">nv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">nv</span><span class="o">.</span><span class="n">shape</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cannot determine shape if &quot;</span>
-                                <span class="s2">&quot;evaluated_coordinates and native_coordinates&quot;</span>
-                                <span class="s2">&quot; are both None.&quot;</span><span class="p">)</span>        </div>
-
-<div class="viewcode-block" id="Node.get_output_dims"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_output_dims">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the dimensions of the output coordinates based on the user-requested coordinates. This is jointly </span>
-<span class="sd">        determined by the input or evaluated coordinates and the native_coordinates (if present).</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        coords : podpac.Coordinates, optional</span>
-<span class="sd">            Requested coordinates that help determine the coordinates of the output. Uses self.evaluated_coordinates if </span>
-<span class="sd">            not supplied.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">            A list of the coordinates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Changes here likely will also require changes in shape</span>
-        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="p">(</span><span class="n">Coordinate</span><span class="p">)):</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinate</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
-
-        <span class="c1">#if self._trait_values.get(&quot;native_coordinates&quot;, None) is not None:</span>
-        <span class="c1"># Switching from _trait_values to hasattr because &quot;native_coordinates&quot;</span>
-        <span class="c1"># not showing up in _trait_values</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;native_coordinates&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span><span class="o">.</span><span class="n">dims</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">dims</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span>
-        <span class="k">return</span> <span class="n">dims</span></div>
 
 <div class="viewcode-block" id="Node.get_output_coords"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_output_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the output coordinates based on the user-requested coordinates. This is jointly determined by </span>
@@ -700,7 +649,7 @@
             <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;layer_style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">style</span>
         <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
         <span class="k">return</span> <span class="n">x</span></div>
 
     <span class="nd">@property</span>
@@ -721,7 +670,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        {definition_return}</span>
+<span class="sd">        OrderedDict</span>
+<span class="sd">            Dictionary containing the location of the Node, and the name of the plugin (if required)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 
@@ -733,39 +683,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;plugin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traits</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;attr&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="n">attrs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span>
-        <span class="k">if</span> <span class="n">attrs</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;attrs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attrs</span>
-        <span class="k">return</span> <span class="n">d</span>
 
-<div class="viewcode-block" id="Node.get_params"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Helper function to update default parameters with runtime parameters. </span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
-<span class="sd">        params: dict</span>
-<span class="sd">            {execute_params}</span>
-<span class="sd">            </span>
-<span class="sd">        Return</span>
-<span class="sd">        -------</span>
-<span class="sd">        dict</span>
-<span class="sd">            The set of parameters that will be used for the execution of the node.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traits</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="n">p</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">params</span><span class="p">:</span> 
-            <span class="n">p</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">p</span></div>
+        <span class="k">return</span> <span class="n">d</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -873,7 +792,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;node not evaluated&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">latlon_bounds_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -980,7 +899,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">output</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">coordinates</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Node.get_image"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_image">[docs]</a>    <span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a base64-encoded image of the output</span>
