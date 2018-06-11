@@ -200,42 +200,33 @@
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.core.data.data.DataSource" title="podpac.core.data.data.DataSource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataSource</span></code></a>(**kwargs)</td>
-<td>Summary</td>
+<td>Base node for any data obtained directly from a single source.</td>
 </tr>
 </tbody>
 </table>
 <dl class="class">
 <dt id="podpac.core.data.data.DataSource">
 <em class="property">class </em><code class="descclassname">podpac.core.data.data.</code><code class="descname">DataSource</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/data.html#DataSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.data.DataSource" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Base node for any data obtained directly from a single source.</p>
+<p class="rubric">Notes</p>
+<p>Developers of new DataSource nodes need to implement the <cite>get_data</cite> and <cite>get_native_coordinates</cite> methods.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>evaluated</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>interpolation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Type of interpolation</p>
 </dd>
-<dt><strong>evaluated_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>interpolation_param</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Any</span></dt>
+<dd><p class="first last">Parameter used for the interpolation, usually indicating a tolerance</p>
 </dd>
-<dt><strong>interpolation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>no_data_vals</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
+<dd><p class="first last">List of values from source data that should be interpreted as ‘no data’ or ‘nans’</p>
 </dd>
-<dt><strong>interpolation_tolerance</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>no_data_vals</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>source</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>source</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Any</span></dt>
+<dd><p class="first last">The location of the source. Depending on the child node this can be a filepath, numpy array, or dictionary as
+a few examples.</p>
 </dd>
 </dl>
 </td>
@@ -245,14 +236,15 @@
 <dl class="attribute">
 <dt id="podpac.core.data.data.DataSource.definition">
 <code class="descname">definition</code><a class="headerlink" href="#podpac.core.data.data.DataSource.definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Pipeline node defintion for DataSource nodes.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>OrderedDict</strong></dt>
+<dd><p class="first last">Dictionary containing the location of the Node, the name of the plugin (if required), as well as any 
+parameters and attributes that were tagged by children.</p>
 </dd>
 </dl>
 </td>
@@ -263,28 +255,34 @@
 
 <dl class="method">
 <dt id="podpac.core.data.data.DataSource.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>coordinates</em>, <em>params=None</em>, <em>output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/data.html#DataSource.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.data.DataSource.execute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<code class="descname">execute</code><span class="sig-paren">(</span><em>coordinates</em>, <em>params=None</em>, <em>output=None</em>, <em>method=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/data.html#DataSource.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.data.DataSource.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes this nodes using the supplied coordinates and params.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
+<dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.</p>
 </dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional</span></dt>
+<dd><p class="first last">Default is None. Runtime parameters that modify any default node parameters.</p>
 </dd>
-<dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.UnitsDataArray, optional</span></dt>
+<dd><p class="first last">Default is None. Optional input array used to store the output data. When supplied, the node will not 
+allocate its own memory for the output array. This array needs to have the correct dimensions and 
+coordinates.</p>
+</dd>
+<dt><strong>method</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Default is None. How the node will be executed: serial, parallel, on aws, locally, etc. Currently only local
+execution is supported.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>UnitsDataArray</strong></dt>
+<dd><p class="first last">Unit-aware xarray DataArray containing the results of the node execution.</p>
 </dd>
 </dl>
 </td>
@@ -304,18 +302,27 @@ source data, but all coordinates will match 1:1 with the subset data</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
+<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data 
+source</p>
 </dd>
-<dt><strong>coodinates_slice</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coodinates_slice</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
+<dd><p class="first last">Either a list of slices or a boolean array that give the indices of the data that needs to be retrieved from
+the data source</p>
 </dd>
 </dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>UnitsDataArray</strong></dt>
+<dd><p class="first last">A subset of the returned data</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>NotImplementedError</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">This needs to be implemented by derived classes</p>
 </dd>
 </dl>
 </td>
@@ -334,15 +341,19 @@ there is no intersection</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates</span></dt>
+<dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>UnitsDataArray</strong></dt>
+<dd><p class="first last">A nan-array in case the native_coordinates do not intersection with coordinates</p>
+</dd>
+<dt><strong>UnitsDataArray, coords_subset</strong></dt>
+<dd><p class="first last">An array containing the subset of the datasource, along with the coordinates of the datasubset (in the 
+coordinate system of the data source).</p>
 </dd>
 </dl>
 </td>
@@ -354,52 +365,24 @@ there is no intersection</p>
 <dl class="method">
 <dt id="podpac.core.data.data.DataSource.get_native_coordinates">
 <code class="descname">get_native_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/data.html#DataSource.get_native_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.data.DataSource.get_native_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>This should return a podpac.Coordinate object that describes the coordinates of the data source.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>NotImplementedError</strong></dt>
-<dd><p class="first last">Description</p>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>podpac.Coordinate</strong></dt>
+<dd><p class="first last">The coordinates describing the data source array.</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="podpac.core.data.data.DataSource.interpolate_data">
-<code class="descname">interpolate_data</code><span class="sig-paren">(</span><em>data_src</em>, <em>coords_src</em>, <em>coords_dst</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/data.html#DataSource.interpolate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.data.DataSource.interpolate_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>data_src</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>coords_src</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>coords_dst</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
+<dl class="docutils">
+<dt>NotImplementedError</dt>
+<dd>This needs to be implemented by derived classes</dd>
 </dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="method">
