@@ -190,7 +190,59 @@
 <dl class="class">
 <dt id="podpac.core.compositor.Compositor">
 <em class="property">class </em><code class="descclassname">podpac.core.compositor.</code><code class="descname">Compositor</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
+<dd><p>The base class for all Nodes, which defines the common interface for everything.</p>
+<p class="rubric">Notes</p>
+<p>Developers of new Compositor nodes need to implement the <cite>composite</cite> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>shared_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate, optional</span></dt>
+<dd><p class="first last">Coordinates that are shared amongst all of the composited sources</p>
+</dd>
+<dt><strong>source_coordinates = podpac.Coordinate, optional</strong></dt>
+<dd><p class="first last">Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the 
+user-requested coordinates. It is an optimization.</p>
+</dd>
+<dt><strong>is_source_coordinates_complete</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Bool</span></dt>
+<dd><p class="first last">Default is False. The source_coordinates do not have to completely describe the source. For example, the source
+coordinates could include the year-month-day of the source, but the actual source also has hour-minute-second
+information. In that case, source_coordinates is incomplete. This flag is used to automatically construct 
+native_coordinates</p>
+</dd>
+<dt><strong>sources</strong> <span class="classifier-delimiter">:</span> <span class="classifier">np.ndarray</span></dt>
+<dd><p class="first last">An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to 
+subselect the nodes that will be evaluated.</p>
+</dd>
+<dt><strong>cache_native_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">True</span></dt>
+<dd><p class="first last">Default is True. If native_coordinates are requested by the user, it may take a long time to calculate if the 
+Compositor points to many sources. The result is relatively small and is cached by default. Caching may not be
+desired if the datasource change or is updated.</p>
+</dd>
+<dt><strong>interpolation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Indicates the interpolation type. This gets passed down to the DataSources as part of the compositor.</p>
+</dd>
+<dt><strong>threaded</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd><p class="first last">Default if False.
+When threaded is False, the compositor stops executing sources once the
+output is completely filled for efficiency. When threaded is True, the
+compositor must execute every source. The result is the same, but note
+that because of this, threaded=False could be faster than threaded=True,
+especially if n_threads is low. For example, threaded with n_threads=1
+could be much slower than non-threaded if the output is completely filled
+after the first few sources.</p>
+</dd>
+<dt><strong>n_threads</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Default is 10 – used when threaded is True. 
+NASA data servers seem to have a hard limit of 10 simultaneous requests, which determined the default value.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
 <dt id="podpac.core.compositor.Compositor.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#podpac.core.compositor.Compositor.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Do not overwrite me</p>
@@ -209,56 +261,68 @@
 <tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_traits</span></code>(**traits)</td>
 <td>Dynamically add trait attributes to the HasTraits instance.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_obj</span></code>(obj,&nbsp;filename)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_definition</span></code>()</td>
+<td>Get the base pipeline definition.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_obj</span></code>(obj,&nbsp;filename)</td>
 <td>Cache the input object using the given filename</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_path</span></code>(filename)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_path</span></code>(filename)</td>
 <td>Return the cache path for the file</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">class_own_trait_events</span></code>(name)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">class_own_trait_events</span></code>(name)</td>
 <td>Get a dict of all event handlers defined on this class, not a parent.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">class_own_traits</span></code>(**metadata)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">class_own_traits</span></code>(**metadata)</td>
 <td>Get a dict of all the traitlets defined on this class, not a parent.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">class_trait_names</span></code>(**metadata)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">class_trait_names</span></code>(**metadata)</td>
 <td>Get a list of all the names of this class’ traits.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">class_traits</span></code>(**metadata)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">class_traits</span></code>(**metadata)</td>
 <td>Get a <code class="docutils literal notranslate"><span class="pre">dict</span></code> of all the traits of this class.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_disk_cache</span></code>([attr,&nbsp;node_cache,&nbsp;all_cache])</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_disk_cache</span></code>([attr,&nbsp;node_cache,&nbsp;all_cache])</td>
 <td>Helper function to clear disk cache.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.composite" title="podpac.core.compositor.Compositor.composite"><code class="xref py py-obj docutils literal notranslate"><span class="pre">composite</span></code></a>(outputs[,&nbsp;result])</td>
-<td>Summary</td>
+<tr class="row-odd"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.composite" title="podpac.core.compositor.Compositor.composite"><code class="xref py py-obj docutils literal notranslate"><span class="pre">composite</span></code></a>(outputs[,&nbsp;result])</td>
+<td>Implements the rules for compositing multiple sources together.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy_output_array</span></code>([init_type])</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy_output_array</span></code>([init_type])</td>
 <td>Create a copy of the output array, initialized using the specified method.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.execute" title="podpac.core.compositor.Compositor.execute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">execute</span></code></a>(coordinates[,&nbsp;params,&nbsp;output])</td>
-<td>Summary</td>
+<tr class="row-odd"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.execute" title="podpac.core.compositor.Compositor.execute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">execute</span></code></a>(coordinates[,&nbsp;params,&nbsp;output,&nbsp;method])</td>
+<td>Executes this nodes using the supplied coordinates and params.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_hash</span></code>([coordinates,&nbsp;params])</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_hash</span></code>([coordinates,&nbsp;params])</td>
 <td>Hash used for caching node outputs.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_image</span></code>([format,&nbsp;vmin,&nbsp;vmax])</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_image</span></code>([format,&nbsp;vmin,&nbsp;vmax])</td>
 <td>Return a base64-encoded image of the output</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.get_native_coordinates" title="podpac.core.compositor.Compositor.get_native_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_native_coordinates</span></code></a>()</td>
-<td>This one is tricky…</td>
+<tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.get_native_coordinates" title="podpac.core.compositor.Compositor.get_native_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_native_coordinates</span></code></a>()</td>
+<td>Returns the native coordinates of the entire dataset.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_coords</span></code>([coords])</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_coords</span></code>([coords])</td>
 <td>Returns the output coordinates based on the user-requested coordinates.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_dims</span></code>([coords])</td>
+<td>Returns the dimensions of the output coordinates based on the user-requested coordinates.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_path</span></code>(filename[,&nbsp;outdir])</td>
 <td>Get the output path where data is cached to disk</td>
 </tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_shape</span></code>([coords])</td>
+<td>Returns the shape of the output based on the evaluated coordinates.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([params])</td>
+<td>Helper function to update default parameters with runtime parameters.</td>
+</tr>
 <tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.get_shared_coordinates" title="podpac.core.compositor.Compositor.get_shared_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_shared_coordinates</span></code></a>()</td>
-<td>Summary</td>
+<td>Coordinates shared by each source.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.get_source_coordinates" title="podpac.core.compositor.Compositor.get_source_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_source_coordinates</span></code></a>()</td>
-<td>Summary</td>
+<td>Returns the coordinates describing each source.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trait</span></code>(name)</td>
 <td>Returns True if the object has a trait with the specified name.</td>
@@ -278,7 +342,7 @@
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_output_array</span></code>([init_type,&nbsp;…])</td>
 <td>Initializes the UnitsDataArray with the expected output size.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.iteroutputs" title="podpac.core.compositor.Compositor.iteroutputs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iteroutputs</span></code></a>(coordinates,&nbsp;params)</td>
+<tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.iteroutputs" title="podpac.core.compositor.Compositor.iteroutputs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iteroutputs</span></code></a>(coordinates,&nbsp;params[,&nbsp;method])</td>
 <td>Summary</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code>(name,&nbsp;coordinates,&nbsp;params[,&nbsp;outdir])</td>
@@ -351,7 +415,7 @@
 <td>A contextmanager for running a block with our cross validation lock set to True.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.compositor.html#podpac.core.compositor.Compositor.definition" title="podpac.core.compositor.Compositor.definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></a></td>
-<td>Summary</td>
+<td>Pipeline node defintion for Compositor nodes.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></td>
 <td>A trait which allows any value.</td>
@@ -389,37 +453,34 @@
 <tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></td>
 <td>A trait whose value must be an instance of a specified class.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">params</span></code></td>
-<td>An instance of a Python dict.</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></td>
 <td>Create a pipeline node from this node</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline_definition</span></code></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline_definition</span></code></td>
 <td>Full pipeline definition for this node.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline_json</span></code></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline_json</span></code></td>
 <td>Full pipeline definition for this node in json format</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">shape</span></code></td>
-<td>Returns the shape of the output based on the evaluated coordinates.</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">shape</span></code></td>
+<td>See <cite>get_output_shape</cite></td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_coordinates</span></code></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_coordinates</span></code></td>
 <td>A trait whose value must be an instance of a specified class.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_coordinates</span></code></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_coordinates</span></code></td>
 <td>A trait whose value must be an instance of a specified class.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span></code></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span></code></td>
 <td>A trait whose value must be an instance of a specified class.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></td>
 <td>A trait whose value must be an instance of a specified class.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">threaded</span></code></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">threaded</span></code></td>
 <td>A boolean (True, False) trait.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></td>
 <td>Units Summary</td>
 </tr>
 </tbody>
@@ -427,17 +488,17 @@
 <dl class="method">
 <dt id="podpac.core.compositor.Compositor.composite">
 <code class="descname">composite</code><span class="sig-paren">(</span><em>outputs</em>, <em>result=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.composite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.composite" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Implements the rules for compositing multiple sources together.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>outputs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>outputs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">A list of outputs that need to be composited together</p>
 </dd>
-<dt><strong>result</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>result</strong> <span class="classifier-delimiter">:</span> <span class="classifier">UnitDataArray, optional</span></dt>
+<dd><p class="first last">An optional pre-filled array may be supplied, otherwise the output will be allocated.</p>
 </dd>
 </dl>
 </td>
@@ -456,14 +517,15 @@
 <dl class="attribute">
 <dt id="podpac.core.compositor.Compositor.definition">
 <code class="descname">definition</code><a class="headerlink" href="#podpac.core.compositor.Compositor.definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Pipeline node defintion for Compositor nodes.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>OrderedDict</strong></dt>
+<dd><p class="first last">Dictionary containing the location of the Node, the name of the plugin (if required), as well as any 
+parameters and attributes that were tagged by children.</p>
 </dd>
 </dl>
 </td>
@@ -474,28 +536,34 @@
 
 <dl class="method">
 <dt id="podpac.core.compositor.Compositor.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>coordinates</em>, <em>params=None</em>, <em>output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.execute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<code class="descname">execute</code><span class="sig-paren">(</span><em>coordinates</em>, <em>params=None</em>, <em>output=None</em>, <em>method=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes this nodes using the supplied coordinates and params.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
+<dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.</p>
 </dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional</span></dt>
+<dd><p class="first last">Default is None. Runtime parameters that modify any default node parameters.</p>
 </dd>
-<dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.UnitsDataArray, optional</span></dt>
+<dd><p class="first last">Default is None. Optional input array used to store the output data. When supplied, the node will not 
+allocate its own memory for the output array. This array needs to have the correct dimensions and 
+coordinates.</p>
+</dd>
+<dt><strong>method</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Default is None. How the node will be executed: serial, parallel, on aws, locally, etc. Currently only local
+execution is supported.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>UnitsDataArray</strong></dt>
+<dd><p class="first last">Unit-aware xarray DataArray containing the results of the node execution.</p>
 </dd>
 </dl>
 </td>
@@ -507,32 +575,38 @@
 <dl class="method">
 <dt id="podpac.core.compositor.Compositor.get_native_coordinates">
 <code class="descname">get_native_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.get_native_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.get_native_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>This one is tricky… you can have multi-level compositors
-One for a folder described by a date
-One for all the folders over all dates. 
-The single folder one has time coordinates that are actually
-more accurate than just the folder time coordinate, so you want
-to replace the time coordinate in native coordinate – does this 
-rule hold? `</p>
+<dd><p>Returns the native coordinates of the entire dataset.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>podpac.Coordinate</strong></dt>
+<dd><p class="first last">Description
+Native coordinates of the entire dataset.</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>This one is tricky… you can have multi-level compositors
+One for a folder described by a date
+One for all the folders over all dates. 
+The single folder one has time coordinates that are actually
+more accurate than just the folder time coordinate, so you want
+to replace the time coordinate in native coordinate – does this 
+rule hold?</p>
+<p>Also, you could have datasource with wildly different coordinates – how are the native coordinates described
+in that case? This is the usecase for the GroupCoordinates, but then how to evaluate nodes with
+GroupCoordinates?</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="podpac.core.compositor.Compositor.get_shared_coordinates">
 <code class="descname">get_shared_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.get_shared_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.get_shared_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Coordinates shared by each source.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -551,14 +625,15 @@ rule hold? `</p>
 <dl class="method">
 <dt id="podpac.core.compositor.Compositor.get_source_coordinates">
 <code class="descname">get_source_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.get_source_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.get_source_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Returns the coordinates describing each source. 
+This may be implemented by derived classes, and is an optimization that allows a subset of source to be executed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>podpac.Coordinate</strong></dt>
+<dd><p class="first last">Coordinates describing each source.</p>
 </dd>
 </dl>
 </td>
@@ -569,7 +644,7 @@ rule hold? `</p>
 
 <dl class="method">
 <dt id="podpac.core.compositor.Compositor.iteroutputs">
-<code class="descname">iteroutputs</code><span class="sig-paren">(</span><em>coordinates</em>, <em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.iteroutputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.iteroutputs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">iteroutputs</code><span class="sig-paren">(</span><em>coordinates</em>, <em>params</em>, <em>method=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.iteroutputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.iteroutputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Summary</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
