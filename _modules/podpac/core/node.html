@@ -667,13 +667,18 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
 
 
-    <span class="k">def</span> <span class="nf">_base_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;populates &#39;node&#39; and &#39;plugin&#39;, if necessary</span>
+<div class="viewcode-block" id="Node.base_definition"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.base_definition">[docs]</a>    <span class="k">def</span> <span class="nf">base_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the base pipeline definition.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        OrderedDict</span>
 <span class="sd">            Dictionary containing the location of the Node, and the name of the plugin (if required)</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        definition : full pipeline definition</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
 
@@ -686,27 +691,32 @@
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;plugin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
 
-        <span class="k">return</span> <span class="n">d</span>
+        <span class="k">return</span> <span class="n">d</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Pipeline node definition. Implemented in primary base nodes, with</span>
-<span class="sd">        custom implementations or extensions necessary for specific nodes.</span>
+<span class="sd">        Pipeline node definition.</span>
 
-<span class="sd">        Should be an OrderedDict with at least a &#39;node&#39; attribute.</span>
+<span class="sd">        This property is implemented in the primary base nodes (DataSource, Algorithm, and Compositor). Node</span>
+<span class="sd">        subclasses with additional params or attrs will need to extend this property.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        definition : OrderedDict</span>
+<span class="sd">            pipeline definition with a &#39;node&#39; attribute plus any additional attributes</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>
 <span class="sd">            This needs to be implemented by derived classes</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        base_definition : base pipeline definition (with common fields)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">parents</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
-        <span class="n">podpac_parents</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="vm">__module__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">p</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parents</span>
-            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="vm">__module__</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;podpac.&#39;</span><span class="p">)]</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;See </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">podpac_parents</span><span class="p">))</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pipeline_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
