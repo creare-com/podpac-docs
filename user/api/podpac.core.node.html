@@ -264,32 +264,11 @@ future.</p>
 <dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Units</span></dt>
 <dd><p class="first last">The units of the output data, defined using the pint unit registry <cite>podpac.units.ureg</cite>.</p>
 </dd>
-<dt><strong>interpolation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">The interpolation type to use for the node. Not all nodes use this attribute.</p>
-</dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
-<dl class="method">
-<dt id="podpac.core.node.Node.base_definition">
-<code class="descname">base_definition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.base_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.base_definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the base pipeline definition.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>{definition_return}</strong></dt>
-<dd></dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="podpac.core.node.Node.base_ref">
 <code class="descname">base_ref</code><a class="headerlink" href="#podpac.core.node.Node.base_ref" title="Permalink to this definition">¶</a></dt>
@@ -449,21 +428,14 @@ data: uses the fillval as the input array</p>
 <dl class="attribute">
 <dt id="podpac.core.node.Node.definition">
 <code class="descname">definition</code><a class="headerlink" href="#podpac.core.node.Node.definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pipeline node definition.</p>
-<p>This property is implemented in the primary base nodes (DataSource, Algorithm, and Compositor). Node
-subclasses with additional params or attrs will need to extend this property.</p>
+<dd><p>Pipeline node definition. Implemented in primary base nodes, with
+custom implementations or extensions necessary for specific nodes.</p>
+<p>Should be an OrderedDict with at least a ‘node’ attribute.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>definition</strong> <span class="classifier-delimiter">:</span> <span class="classifier">OrderedDct</span></dt>
-<dd><p class="first last">full pipeline definition, including the base_defition and any additional properties</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>NotImplementedError</strong></dt>
 <dd><p class="first last">This needs to be implemented by derived classes</p>
 </dd>
@@ -472,10 +444,6 @@ subclasses with additional params or attrs will need to extend this property.</p
 </tr>
 </tbody>
 </table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#podpac.core.node.Node.base_definition" title="podpac.core.node.Node.base_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_definition</span></code></a></p>
-</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -633,34 +601,6 @@ not supplied.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="podpac.core.node.Node.get_output_dims">
-<code class="descname">get_output_dims</code><span class="sig-paren">(</span><em>coords=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_output_dims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_output_dims" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the dimensions of the output coordinates based on the user-requested coordinates. This is jointly 
-determined by the input or evaluated coordinates and the native_coordinates (if present).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates, optional</span></dt>
-<dd><p class="first last">Requested coordinates that help determine the coordinates of the output. Uses self.evaluated_coordinates if 
-not supplied.</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>list</strong></dt>
-<dd><p class="first last">A list of the coordinates</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="podpac.core.node.Node.get_output_path">
 <code class="descname">get_output_path</code><span class="sig-paren">(</span><em>filename</em>, <em>outdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_output_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_output_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the output path where data is cached to disk</p>
@@ -689,60 +629,6 @@ not supplied.</p>
 </table>
 <p class="rubric">Notes</p>
 <p>If the output directory doesn’t exist, it will be created.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="podpac.core.node.Node.get_output_shape">
-<code class="descname">get_output_shape</code><span class="sig-paren">(</span><em>coords=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_output_shape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_output_shape" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the shape of the output based on the evaluated coordinates. This shape is jointly determined by the
-input or evaluated coordinates and the native_coordinates (if present).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coords: podpac.Coordinates, optional</strong></dt>
-<dd><p class="first last">Requested coordinates that help determine the shape of the output. Uses self.evaluated_coordinates if not 
-supplied.</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>tuple/list</strong></dt>
-<dd><p class="first last">Size of the dimensions of the output</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>NodeException</strong></dt>
-<dd><p class="first last">If the shape cannot be automatically determined, this exception is raised.</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="podpac.core.node.Node.get_params">
-<code class="descname">get_params</code><span class="sig-paren">(</span><em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to update default parameters with runtime parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>params: dict</strong></dt>
-<dd><p class="first last">{execute_params}</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="method">
@@ -1093,7 +979,36 @@ share algorithms and pipelines, or run code on cloud services.</p>
 <dl class="attribute">
 <dt id="podpac.core.node.Node.shape">
 <code class="descname">shape</code><a class="headerlink" href="#podpac.core.node.Node.shape" title="Permalink to this definition">¶</a></dt>
-<dd><p>See <cite>get_output_shape</cite></p>
+<dd><p>Returns the shape of the output based on the evaluated coordinates. This shape is jointly determined by the
+input or evaluated coordinates and the native_coordinates (if present).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>coords: podpac.Coordinates, optional</strong></dt>
+<dd><p class="first last">Requested coordinates that help determine the shape of the output. Uses self.evaluated_coordinates if not 
+supplied.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tuple/list</strong></dt>
+<dd><p class="first last">Size of the dimensions of the output</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>NodeException</strong></dt>
+<dd><p class="first last">If the shape cannot be automatically determined, this exception is raised.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
