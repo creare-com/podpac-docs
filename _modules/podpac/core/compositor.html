@@ -183,46 +183,79 @@
 <span class="c1"># Internal imports</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinate</span> <span class="k">import</span> <span class="n">Coordinate</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span> 
+
+<span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Compositor"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor">[docs]</a><span class="k">class</span> <span class="nc">Compositor</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The base class for all Nodes, which defines the common interface for everything.</span>
 
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shared_coordinates : podpac.Coordinate, optional</span>
+<span class="sd">        Coordinates that are shared amongst all of the composited sources</span>
+<span class="sd">    source_coordinates = podpac.Coordinate, optional</span>
+<span class="sd">        Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the </span>
+<span class="sd">        user-requested coordinates. It is an optimization. </span>
+<span class="sd">    is_source_coordinates_complete : Bool</span>
+<span class="sd">        Default is False. The source_coordinates do not have to completely describe the source. For example, the source</span>
+<span class="sd">        coordinates could include the year-month-day of the source, but the actual source also has hour-minute-second</span>
+<span class="sd">        information. In that case, source_coordinates is incomplete. This flag is used to automatically construct </span>
+<span class="sd">        native_coordinates</span>
+<span class="sd">    sources : np.ndarray</span>
+<span class="sd">        An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to </span>
+<span class="sd">        subselect the nodes that will be evaluated.</span>
+<span class="sd">    cache_native_coordinates : True</span>
+<span class="sd">        Default is True. If native_coordinates are requested by the user, it may take a long time to calculate if the </span>
+<span class="sd">        Compositor points to many sources. The result is relatively small and is cached by default. Caching may not be</span>
+<span class="sd">        desired if the datasource change or is updated. </span>
+<span class="sd">    interpolation : str</span>
+<span class="sd">        Indicates the interpolation type. This gets passed down to the DataSources as part of the compositor. </span>
+<span class="sd">    threaded : bool, optional</span>
+<span class="sd">        Default if False.</span>
+<span class="sd">        When threaded is False, the compositor stops executing sources once the</span>
+<span class="sd">        output is completely filled for efficiency. When threaded is True, the</span>
+<span class="sd">        compositor must execute every source. The result is the same, but note</span>
+<span class="sd">        that because of this, threaded=False could be faster than threaded=True,</span>
+<span class="sd">        especially if n_threads is low. For example, threaded with n_threads=1</span>
+<span class="sd">        could be much slower than non-threaded if the output is completely filled</span>
+<span class="sd">        after the first few sources.</span>
+<span class="sd">    n_threads : int</span>
+<span class="sd">        Default is 10 -- used when threaded is True. </span>
+<span class="sd">        NASA data servers seem to have a hard limit of 10 simultaneous requests, which determined the default value.</span>
+<span class="sd">        </span>
+<span class="sd">    Notes</span>
+<span class="sd">    ------</span>
+<span class="sd">    Developers of new Compositor nodes need to implement the `composite` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">shared_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">is_source_coordinates_complete</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;This allows some optimizations but assumes that a node&#39;s &quot;</span>
               <span class="s2">&quot;native_coordinates=source_coordinate + shared_coordinate &quot;</span>
-              <span class="s2">&quot;IN THAT ORDER&quot;</span><span class="p">))</span>
+              <span class="s2">&quot;IN THAT ORDER&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">sources</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
-    <span class="n">cache_native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cache_native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     
-    <span class="n">interpolation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-
-    <span class="c1"># When threaded is False, the compositor stops executing sources once the</span>
-    <span class="c1"># output is completely filled for efficiency. When threaded is True, the</span>
-    <span class="c1"># compositor must execute every source. The result is the same, but note</span>
-    <span class="c1"># that because of this, threaded=False could be faster than threaded=True,</span>
-    <span class="c1"># especially if n_threads is low. For example, threaded with n_threads=1</span>
-    <span class="c1"># could be much slower than non-threaded if the output is completely filled</span>
-    <span class="c1"># after the first few sources.</span>
-
-    <span class="c1"># NASA data servers seem to have a hard limit of 10 simultaneous requests,</span>
-    <span class="c1"># so the default for now is 10.</span>
-    
-    <span class="n">threaded</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">n_threads</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">interpolation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+   
+    <span class="n">threaded</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">n_threads</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;source_coordinates&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_source_coordinates_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_source_coordinates</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Compositor.get_source_coordinates"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor.get_source_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">get_source_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Returns the coordinates describing each source. </span>
+<span class="sd">        This may be implemented by derived classes, and is an optimization that allows a subset of source to be executed.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        podpac.Coordinate</span>
+<span class="sd">            Coordinates describing each source.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">None</span></div>
         
@@ -231,7 +264,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_shared_coordinates</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Compositor.get_shared_coordinates"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor.get_shared_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">get_shared_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Coordinates shared by each source. </span>
 <span class="sd">        </span>
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -241,14 +274,14 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Compositor.composite"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor.composite">[docs]</a>    <span class="k">def</span> <span class="nf">composite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Implements the rules for compositing multiple sources together. </span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        outputs : TYPE</span>
-<span class="sd">            Description</span>
-<span class="sd">        result : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">        outputs : list</span>
+<span class="sd">            A list of outputs that need to be composited together</span>
+<span class="sd">        result : UnitDataArray, optional</span>
+<span class="sd">            An optional pre-filled array may be supplied, otherwise the output will be allocated. </span>
 <span class="sd">        </span>
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -262,19 +295,28 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Compositor.get_native_coordinates"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor.get_native_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Returns the native coordinates of the entire dataset.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        podpac.Coordinate</span>
+<span class="sd">            Description</span>
+<span class="sd">            Native coordinates of the entire dataset.</span>
+<span class="sd">            </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -------</span>
 <span class="sd">        This one is tricky... you can have multi-level compositors</span>
 <span class="sd">        One for a folder described by a date</span>
 <span class="sd">        One for all the folders over all dates. </span>
 <span class="sd">        The single folder one has time coordinates that are actually</span>
 <span class="sd">        more accurate than just the folder time coordinate, so you want</span>
 <span class="sd">        to replace the time coordinate in native coordinate -- does this </span>
-<span class="sd">        rule hold? `</span>
+<span class="sd">        rule hold? </span>
 <span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        Also, you could have datasource with wildly different coordinates -- how are the native coordinates described</span>
+<span class="sd">        in that case? This is the usecase for the GroupCoordinates, but then how to evaluate nodes with</span>
+<span class="sd">        GroupCoordinates? </span>
+<span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span> 
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;native.coordinates&#39;</span><span class="p">)</span>
@@ -290,7 +332,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">crds</span><span class="p">,</span> <span class="s1">&#39;native.coordinates&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">crds</span></div>
     
-<div class="viewcode-block" id="Compositor.iteroutputs"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor.iteroutputs">[docs]</a>    <span class="k">def</span> <span class="nf">iteroutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<div class="viewcode-block" id="Compositor.iteroutputs"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor.iteroutputs">[docs]</a>    <span class="k">def</span> <span class="nf">iteroutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Summary</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
@@ -346,7 +388,7 @@
             <span class="c1"># TODO pool of pre-allocated scratch space</span>
             <span class="c1"># TODO: docstring?</span>
             <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">src</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">src</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
             <span class="n">pool</span> <span class="o">=</span> <span class="n">ThreadPool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span><span class="p">)</span>
             <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="n">src</span><span class="p">])</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">src_subset</span><span class="p">]</span>
             
@@ -357,77 +399,71 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># scratch space</span>
             <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">src_subset</span><span class="p">:</span>
-                <span class="n">output</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="n">output</span>
                 <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span></div>
 
-<div class="viewcode-block" id="Compositor.execute"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
-<span class="sd">        </span>
+<div class="viewcode-block" id="Compositor.execute"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.Compositor.execute">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Executes this nodes using the supplied coordinates and params. </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        coordinates : TYPE</span>
-<span class="sd">            Description</span>
-<span class="sd">        params : None, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        output : None, optional</span>
-<span class="sd">            Description</span>
-<span class="sd">        </span>
+<span class="sd">        coordinates : podpac.Coordinate</span>
+<span class="sd">            {evaluated_coordinates}</span>
+<span class="sd">        params : dict, optional</span>
+<span class="sd">            {execute_params} </span>
+<span class="sd">        output : podpac.UnitsDataArray, optional</span>
+<span class="sd">            {execute_out}</span>
+<span class="sd">        method : str, optional</span>
+<span class="sd">            {execute_method}</span>
+<span class="sd">            </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        {execute_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">output</span>
         
-        <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteroutputs</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteroutputs</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">composite</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">evaluated</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span></div>
 
     <span class="nd">@property</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Pipeline node defintion for Compositor nodes. </span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        {definition_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="ne">NotImplementedError</span>
-
-        <span class="c1"># TODO test</span>
-
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_definition</span><span class="p">()</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_definition</span><span class="p">()</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;sources&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;attrs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedCompositor</span><span class="p">()</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;attrs&#39;</span><span class="p">][</span><span class="s1">&#39;interpolation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
 
 <div class="viewcode-block" id="OrderedCompositor"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.OrderedCompositor">[docs]</a><span class="k">class</span> <span class="nc">OrderedCompositor</span><span class="p">(</span><span class="n">Compositor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Summary</span>
+    <span class="sd">&quot;&quot;&quot;Compositor that combines sources based on their order in self.sources. Once a request contains no</span>
+<span class="sd">    nans, the result is returned. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
-<div class="viewcode-block" id="OrderedCompositor.composite"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.OrderedCompositor.composite">[docs]</a>    <span class="k">def</span> <span class="nf">composite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+<div class="viewcode-block" id="OrderedCompositor.composite"><a class="viewcode-back" href="../../../user/api/podpac.core.compositor.html#podpac.core.compositor.OrderedCompositor.composite">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">composite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Composites outputs in order that they appear.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        outputs : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        outputs : generator</span>
+<span class="sd">            Generator that gives UnitDataArray&#39;s with the source values.</span>
 <span class="sd">        result : None, optional</span>
 <span class="sd">            Description</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        {execute_return} This composites the sources together until there are no nans or no more sources.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># consume the first source output</span>
