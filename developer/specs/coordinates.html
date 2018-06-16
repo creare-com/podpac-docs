@@ -215,164 +215,221 @@
 </div>
 <div class="section" id="specification">
 <span id="specification"></span><h1>Specification<a class="headerlink" href="#specification" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="user-interface">
-<span id="user-interface"></span><h2>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="coordinates-for-one-dimension">
+<span id="coordinates-for-one-dimension"></span><h2>Coordinates for One Dimension<a class="headerlink" href="#coordinates-for-one-dimension" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Coordinate values are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code></li>
+<li>Coordinate deltas are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">np.timedelta64</span></code></li>
+<li>When input:<ul>
+<li>numerical values and deltas are cast to <code class="docutils literal notranslate"><span class="pre">float</span></code></li>
+<li>string values are parsed with <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code></li>
+<li>string deltas are split and then parsed by <code class="docutils literal notranslate"><span class="pre">np.timedelta64</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">'1,D'</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">np.timedelta(1,</span> <span class="pre">'D')</span></code>)</li>
+</ul>
+</li>
+</ul>
+<div class="section" id="coordinates1d">
+<span id="coordinates1d"></span><h3>Coordinates1D<a class="headerlink" href="#coordinates1d" title="Permalink to this headline">¶</a></h3>
+<p>Traits:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Enum(‘lat’, ‘lon’, ‘time’, ‘alt’)</li>
+<li><code class="docutils literal notranslate"><span class="pre">units</span></code>: Units</li>
+<li><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: Unicode</li>
+<li><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘segment’, ‘point’)</li>
+<li><code class="docutils literal notranslate"><span class="pre">segment_position</span></code>: Float</li>
+<li><code class="docutils literal notranslate"><span class="pre">extents</span></code>: array, [Float, Float]</li>
+</ul>
+<p>Properties</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only array</li>
+<li><code class="docutils literal notranslate"><span class="pre">dtype</span></code>: <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code> or <code class="docutils literal notranslate"><span class="pre">np.float64</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: Int</li>
+<li><code class="docutils literal notranslate"><span class="pre">bounds</span></code>: read-only array, [Float, Float]</li>
+<li><code class="docutils literal notranslate"><span class="pre">area_bounds</span></code>: read-only array, [Float, Float]</li>
+<li><code class="docutils literal notranslate"><span class="pre">is_datetime</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">is_descending</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">rasterio_regularity</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">scipy_regularity</span></code></li>
+</ul>
+<p>Methods</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">select(bounds)</span></code>: returns a new Coordinates1D object within the given bounds</li>
+<li><code class="docutils literal notranslate"><span class="pre">intersect(other1D)</span></code>: returns a new Coordinates1D object with the other1D.bounds</li>
+<li><code class="docutils literal notranslate"><span class="pre">add</span></code>: add delta value to each coordinate value (returns a new Coordinates1D by default, can be used in-place)</li>
+<li><code class="docutils literal notranslate"><span class="pre">concat</span></code>: concatenate another Coordinates1D  (returns a new Coordinates1D by default, can be used in-place)</li>
+</ul>
+<p>Operators</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">len</span></code>: size</li>
+<li><code class="docutils literal notranslate"><span class="pre">in</span></code>: area_bounds[0] &lt; value &lt; area_bounds[1]</li>
+<li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: returns a new Coordinates1D object; supports a single index, a slice, an index array, and a boolean array</li>
+<li><code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">+=</span></code>: concat Coordinates1D or add value</li>
+<li><code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">-=</span></code>: subtract value</li>
+<li><code class="docutils literal notranslate"><span class="pre">&amp;</span></code>: intersect</li>
+</ul>
+</div>
+<div class="section" id="arraycoordinates1d">
+<span id="arraycoordinates1d"></span><h3>ArrayCoordinates1D<a class="headerlink" href="#arraycoordinates1d" title="Permalink to this headline">¶</a></h3>
+<p>An arbitrary list of coordinates, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is array-like.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ArrayCoordinates1D</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="monotoniccoordinates1d">
+<span id="monotoniccoordinates1d"></span><h3>MonotonicCoordinates1D<a class="headerlink" href="#monotoniccoordinates1d" title="Permalink to this headline">¶</a></h3>
+<p>A sorted list of coordinates, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is array-like and sorted (in either direction)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MonotonicCoordinates1D</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="uniformcoordinates1d">
+<span id="uniformcoordinates1d"></span><h3>UniformCoordinates1D<a class="headerlink" href="#uniformcoordinates1d" title="Permalink to this headline">¶</a></h3>
+<p>Uniformly-spaced coordinates, defined by a start, stop, and step/size.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="shorthand">
+<span id="shorthand"></span><h3>Shorthand<a class="headerlink" href="#shorthand" title="Permalink to this headline">¶</a></h3>
+<p>For ease-of-use, the following aliases will be defined (one of these options):</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_ca</span></code>, <code class="docutils literal notranslate"><span class="pre">_cm</span></code>, <code class="docutils literal notranslate"><span class="pre">_cu</span></code>, <code class="docutils literal notranslate"><span class="pre">_cl</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">A1D</span></code>, <code class="docutils literal notranslate"><span class="pre">M1D</span></code>, <code class="docutils literal notranslate"><span class="pre">U1D</span></code>, <code class="docutils literal notranslate"><span class="pre">L1D</span></code></li>
+</ul>
+<p>Also, consider named versions, 16 in total (one of these options):</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">A1DLat</span></code>, <code class="docutils literal notranslate"><span class="pre">U1DTime</span></code>, …</li>
+<li><code class="docutils literal notranslate"><span class="pre">ArrayLat1D</span></code>, <code class="docutils literal notranslate"><span class="pre">UniformTime1D</span></code>, …</li>
+<li><code class="docutils literal notranslate"><span class="pre">LatArray1D</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeUniform1D</span></code>, …</li>
+<li><code class="docutils literal notranslate"><span class="pre">ArrayLat</span></code>, <code class="docutils literal notranslate"><span class="pre">UniformTime</span></code>, …</li>
+<li><code class="docutils literal notranslate"><span class="pre">LatArray</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeUniform</span></code>, …</li>
+<li><code class="docutils literal notranslate"><span class="pre">ALat</span></code>, <code class="docutils literal notranslate"><span class="pre">UTime</span></code>, …</li>
+<li><code class="docutils literal notranslate"><span class="pre">_alat</span></code>, <code class="docutils literal notranslate"><span class="pre">_utime</span></code>, …</li>
+</ul>
+<p>So that the following are equivalent</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">U1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">ULat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or possibly</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">_cu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">_ulat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="multidemensional-coordinates">
+<span id="multidemensional-coordinates"></span><h2>Multidemensional Coordinates<a class="headerlink" href="#multidemensional-coordinates" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="coordinate-creation">
 <span id="coordinate-creation"></span><h3>Coordinate Creation<a class="headerlink" href="#coordinate-creation" title="Permalink to this headline">¶</a></h3>
-<p>Coordinate creation is based on <a class="reference external" href="http://xarray.pydata.org/en/stable/data-structures.html#dataarray">xarray.DataArray</a>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="s1">&#39;segment&#39;</span><span class="p">,</span> <span class="n">segment_position</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<p>Coordinates are created from a list or dict containing Coordinates1D objects.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Coordinates</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>When using a list, each item is either</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">values</span></code> - a list of coordinate values, one for each dimension. Each item is translated to the correct Coordinate1D type under the hood.</li>
-<li><code class="docutils literal notranslate"><span class="pre">dims</span></code> - a list of dimension labels, matching the length of <code class="docutils literal notranslate"><span class="pre">values</span></code></li>
+<li>a Coordinates1D object (unstacked dimensions)</li>
+<li>a tuple of Coordinate1D objects (stacked dimensions)</li>
 </ul>
-<p>Valid coordinate values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="n">time</span> <span class="o">=</span> <span class="n">ArrayCoordinate1D</span><span class="p">([</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-02&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">time</span><span class="p">],</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="n">time</span><span class="p">],</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span> <span class="c1"># stacked</span>
+</pre></div>
+</div>
+<p>When using a dict, dimension names are mapped to (tuples of) Coordinate1D objects. <em>Note: in Python &lt;= 3.5, an OrderedDict is required.</em></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="n">time</span> <span class="o">=</span> <span class="n">ArrayCoordinate1D</span><span class="p">([</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-02&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">({</span><span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">({</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span> <span class="c1"># stacked</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="stacking-functions">
+<span id="stacking-functions"></span><h3>Stacking functions<a class="headerlink" href="#stacking-functions" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">stack</span></code> function is recommended as it makes stacking more explicit.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">stack</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="n">time</span><span class="p">],</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">({</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">:</span> <span class="n">stack</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">stacked_linspace</span></code> helper function returns a tuple of UniformCoordinates1D, each with the given size, so that the following examples are equivalent</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stacked_linspace</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="mi">100</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
+<span class="n">alt</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">alt</span><span class="s1">&#39;)</span>
+<span class="n">stacked</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">alt</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="traits">
+<span id="traits"></span><h3>Traits<a class="headerlink" href="#traits" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>a single value (number, string, or datetime object)</li>
-<li>an array-like of numbers, strings, or datetime objects</li>
-<li>a Coordinate1D object</li>
-<li>a tuple of valid coordinate values (for stacked coordinates)</li>
+<li><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: Unicode</li>
+<li><code class="docutils literal notranslate"><span class="pre">distance_units</span></code>: Units</li>
+<li><code class="docutils literal notranslate"><span class="pre">segment_position</span></code>: Float</li>
+<li><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘segment’, ‘point’)</li>
 </ul>
-<p>Valid dimension labels:</p>
+<p><em>TODO: defaults, passing on to Coordinates1D, overriding with Coordinates1D</em></p>
+</div>
+<div class="section" id="properties">
+<span id="properties"></span><h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>‘lat’, ‘lon’, ‘time’, or ‘alt’</li>
-<li>two or more dimension labels joined by underscores, e.g. ‘lat_lon’ or ‘time_lat_lon’ (for stacked coordinates)</li>
+<li><code class="docutils literal notranslate"><span class="pre">ndim</span></code>: Int</li>
+<li><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple(str, str, …)</li>
+<li><code class="docutils literal notranslate"><span class="pre">shape</span></code> - tuple(int, int, …)</li>
+<li><code class="docutils literal notranslate"><span class="pre">coords</span></code> - OrderedDict, maps dimension names to Coordinate1D objects or tuples of Coordinate1D objects</li>
+<li><code class="docutils literal notranslate"><span class="pre">coords1d</span></code> - OrderedDict, maps dimension names to Coordinate1D objects (always unstacked)</li>
+<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code> - xarray Coordinates (dictionary mapping dimension names to named DataArrays)</li>
 </ul>
-</div>
-<div class="section" id="coordinate-attributes">
-<span id="coordinate-attributes"></span><h3>Coordinate attributes<a class="headerlink" href="#coordinate-attributes" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">ndim</span></code> - number of dimensions</li>
-<li><code class="docutils literal notranslate"><span class="pre">dims</span></code> - tuple of dimensions</li>
-<li><code class="docutils literal notranslate"><span class="pre">shape</span></code> - tuple of sizes for each dimension</li>
-<li><code class="docutils literal notranslate"><span class="pre">coords1d</span></code> - OrderedDict, maps dimensions to Coordinate1D objects (a tuple of Coordinate1D objects for stacked dimensions)</li>
-<li><code class="docutils literal notranslate"><span class="pre">coords</span></code> - DataArray.coords object, (maps dimensions to named DataArrays)</li>
-</ul>
-</div>
-<div class="section" id="basic-examples">
-<span id="basic-examples"></span><h3>Basic Examples:<a class="headerlink" href="#basic-examples" title="Permalink to this headline">¶</a></h3>
-<p>A grid of lat, lon points:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">]],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>A uniform grid of lat, lon points:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">4</span><span class="p">)],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>Uniform coordinate values can be defined using a step instead of a size, which is particularly natural for time coordinates:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-10&#39;</span><span class="p">,</span> <span class="s1">&#39;1,D&#39;</span><span class="p">)],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>When there is only one dimension, as above, you can pass the value directly (without a list):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">((</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-10&#39;</span><span class="p">,</span> <span class="s1">&#39;1,D&#39;</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>A single point with four dimenions:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s1">&#39;2018-01-01&#39;</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">])</span>
+<p>For stacked dimensions, the dimension names are combined by an underscore, and the coordinates are implemented as a pandas MultiIndex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span><span class="o">.</span><span class="n">dims</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">UniformCoordinates1D</span><span class="p">,</span> <span class="n">UniformCoordinates1D</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="k">with</span> <span class="n">MultiIndex</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="c1"># we get this for free due to the MultiIndex</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">UniformCoordinates1D</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="stacked-coordinates">
-<span id="stacked-coordinates"></span><h3>Stacked Coordinates<a class="headerlink" href="#stacked-coordinates" title="Permalink to this headline">¶</a></h3>
-<p>Sets of coordinates can be “stacked” in a single dimension. In the resulting output DataArray, these dimensions are implemented as <a class="reference external" href="http://xarray.pydata.org/en/stable/data-structures.html#multiindex-coordinates">MultiIndex coordinates</a>, which themselves are <code class="docutils literal notranslate"><span class="pre">pandas.MultiIndex</span></code> objects.</p>
-<p>A list of stacked lat, lon coordinates:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># TODO which of these two?</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">]),</span> <span class="n">dims</span><span class="o">=</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">40</span><span class="p">]],</span> <span class="n">dims</span><span class="o">=</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">)</span>
+<div class="section" id="methods">
+<span id="methods"></span><h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+<div class="section" id="operators">
+<span id="operators"></span><h3>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+<div class="section" id="miscellaneous-examples">
+<span id="miscellaneous-examples"></span><h3>Miscellaneous Examples<a class="headerlink" href="#miscellaneous-examples" title="Permalink to this headline">¶</a></h3>
+<p>Some equivalent ways to copy:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="c1"># I&#39;m not sure we need this one</span>
+<span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+<span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>A uniformly-spaced line:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># TODO which of these two?</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">4</span><span class="p">)),</span> <span class="n">dims</span><span class="o">=</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">40</span><span class="p">],</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">)</span>
+<p>Select specific dimensions</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">]</span>
+<span class="n">c1</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>Stacked and unstacked coordinates can be mixed:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat_lon</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">40</span><span class="p">]]</span>
-<span class="n">time</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-10&#39;</span><span class="p">,</span> <span class="s1">&#39;1,D&#39;</span><span class="p">)</span>
-<span class="c1"># TODO which of these two?</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="n">time</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat_lon</span><span class="p">,</span> <span class="n">time</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
+<p>Downsample <em>(note: in the current spec, this only works if there is no stacking)</em></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c2</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span><span class="p">[::</span><span class="mi">10</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="creating-coordinates-from-existing-coordinates">
-<span id="creating-coordinates-from-existing-coordinates"></span><h3>Creating Coordinates from Existing Coordinates<a class="headerlink" href="#creating-coordinates-from-existing-coordinates" title="Permalink to this headline">¶</a></h3>
-<p>The actual coordinates for each dimension can be accessed in the <code class="docutils literal notranslate"><span class="pre">.coords</span></code> attribute as named DataArrays. One way to copy existing coordinates or to create a new Coordinates object with only certain dimensions or certain coordinate values:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-<span class="n">coords_new</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">],</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">][</span><span class="mi">10</span><span class="p">:</span><span class="mi">20</span><span class="p">:</span><span class="mi">2</span><span class="p">]])</span>
+<p>Downsample only the time dimension <em>(note: in the current spec, only works if time is not stacked)</em></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">d</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">][::</span><span class="mi">10</span><span class="p">]</span>
+<span class="n">c3</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The coordinate values are stored as Coordinate1D objects in the <code class="docutils literal notranslate"><span class="pre">coords1d</span></code> attribute. Coordinates can be created from these Coordinate1D objects directly, so another way to use existing coordinates:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-<span class="n">coords_new</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">],</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">][</span><span class="mi">10</span><span class="p">:</span><span class="mi">20</span><span class="p">:</span><span class="mi">2</span><span class="p">]])</span>
-</pre></div>
-</div>
-<p>Using the values from <code class="docutils literal notranslate"><span class="pre">coords1d</span></code> is often preferable because it preserves the coordinate type (which can be more efficient) and metadata (e.g. ctype).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">],</span> <span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">][</span><span class="mi">10</span><span class="p">:</span><span class="mi">20</span><span class="p">:</span><span class="mi">2</span><span class="p">]])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">],</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">][</span><span class="mi">10</span><span class="p">:</span><span class="mi">20</span><span class="p">:</span><span class="mi">2</span><span class="p">]])</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span>
-<span class="go">UniformCoordinate1D</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span>
-<span class="go">UniformCoordinate1D</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span>
-<span class="go">Coordinate1D # nonparameterized</span>
-</pre></div>
-</div>
-<p>Note that the <code class="docutils literal notranslate"><span class="pre">dims</span></code> argument has been omitted from the above statements. The DataArrays and Coordinate1D objects are named, and these names are used automatically as the dims.</p>
-</div>
-<div class="section" id="fromdict">
-<span id="fromdict"></span><h3>fromdict<a class="headerlink" href="#fromdict" title="Permalink to this headline">¶</a></h3>
-<p>Coordinates can also be created from the <code class="docutils literal notranslate"><span class="pre">coords</span></code> and <code class="docutils literal notranslate"><span class="pre">coords1d</span></code> attributes of existing Coordinates, where again the coords1d input may be preferred:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">fromdict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">fromdict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>TODO: not sure if this needs to be supported:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span> <span class="p">(</span><span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">])])</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">fromdict</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="advanced-usage">
-<span id="advanced-usage"></span><h3>Advanced usage<a class="headerlink" href="#advanced-usage" title="Permalink to this headline">¶</a></h3>
-<p>Of course, you can create DataArrays and Coordinate1D objects manually, as well:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-<span class="n">lon</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">])</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">Coordinate1D</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="s1">&#39;point&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>Defining Coordinate1D objects manually is particularly important if you need to use a different ctype or other metadata for a particular dimension:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lat</span> <span class="o">=</span> <span class="n">Coordinate1D</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="s1">&#39;point&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">coords</span><span class="o">.</span><span class="n">ctype</span>
-<span class="go">&#39;segment&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ctype</span>
-<span class="go">&#39;segment&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ctype</span>
-<span class="go">&#39;point&#39;</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="coordinate-modification">
-<span id="coordinate-modification"></span><h3>Coordinate modification<a class="headerlink" href="#coordinate-modification" title="Permalink to this headline">¶</a></h3>
-<p>TODO: Add specification for how to and what happens when adding/intersecting/replacing/dropping/sub-selecting coordinates</p>
-</div>
-</div>
-<div class="section" id="developer-interface">
-<span id="developer-interface"></span><h2>Developer interface<a class="headerlink" href="#developer-interface" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="coordinate1d-interface">
-<span id="coordinate1d-interface"></span><h3>Coordinate1D interface<a class="headerlink" href="#coordinate1d-interface" title="Permalink to this headline">¶</a></h3>
-<p>TODO: Add common attributes and function expected by any Coordinate1D class in case we want to develop new types of coordinates</p>
 </div>
 </div>
 </div>
