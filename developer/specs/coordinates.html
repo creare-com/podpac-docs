@@ -227,8 +227,9 @@
 </ul>
 </li>
 </ul>
-<div class="section" id="coordinates1d">
-<span id="coordinates1d"></span><h3>Coordinates1D<a class="headerlink" href="#coordinates1d" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="coordinates1d-basecoordinates1d">
+<span id="coordinates1d-basecoordinates1d"></span><h3>Coordinates1D(BaseCoordinates1D)<a class="headerlink" href="#coordinates1d-basecoordinates1d" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Coordinates1D</span></code> is the base class for coordinates in a single dimension and defines the common interface.</p>
 <p>Traits:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Enum(‘lat’, ‘lon’, ‘time’, ‘alt’)</li>
@@ -245,45 +246,64 @@
 <li><code class="docutils literal notranslate"><span class="pre">size</span></code>: Int</li>
 <li><code class="docutils literal notranslate"><span class="pre">bounds</span></code>: read-only array, [Float, Float]</li>
 <li><code class="docutils literal notranslate"><span class="pre">area_bounds</span></code>: read-only array, [Float, Float]</li>
-<li><code class="docutils literal notranslate"><span class="pre">is_datetime</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">is_descending</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">rasterio_regularity</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">scipy_regularity</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">is_datetime</span></code>: Boolean</li>
+<li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: Boolean</li>
+<li><code class="docutils literal notranslate"><span class="pre">is_descending</span></code>: Boolean</li>
+<li><code class="docutils literal notranslate"><span class="pre">rasterio_regularity</span></code>: Boolean <em>note: can this be moved into the interpolation?</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">scipy_regularity</span></code>: Boolean <em>note: can this be moved into the interpolation?</em></li>
 </ul>
 <p>Methods</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">select(bounds)</span></code>: returns a new Coordinates1D object within the given bounds</li>
-<li><code class="docutils literal notranslate"><span class="pre">intersect(other1D)</span></code>: returns a new Coordinates1D object with the other1D.bounds</li>
-<li><code class="docutils literal notranslate"><span class="pre">add</span></code>: add delta value to each coordinate value (returns a new Coordinates1D by default, can be used in-place)</li>
-<li><code class="docutils literal notranslate"><span class="pre">concat</span></code>: concatenate another Coordinates1D  (returns a new Coordinates1D by default, can be used in-place)</li>
+<li><code class="docutils literal notranslate"><span class="pre">select(bounds)</span></code>: select coordinates within the given bounds<ul>
+<li>returns a new Coordinates1D object by default, or can be modified in-place</li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">intersect(other)</span></code>: intersect these coordinates with other coordinates<ul>
+<li>returns a new Coordinates1D object by default, or can be modified in-place</li>
+<li>if <code class="docutils literal notranslate"><span class="pre">other</span></code> is Coordinates1D, raises an exception if <code class="docutils literal notranslate"><span class="pre">other.name</span> <span class="pre">!=</span> <span class="pre">self.name</span></code></li>
+<li>if <code class="docutils literal notranslate"><span class="pre">other</span></code> is StackedCoordinates or Coordinates, intersects with <code class="docutils literal notranslate"><span class="pre">other[self.name]</span></code> or return empty coordinates if `other[self.name] does not exist <em>(TODO or raise exception?)</em></li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">add</span></code>: add delta value to each coordinate value<ul>
+<li>returns a new Coordinates1D object by default, or can be modified in-place</li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: concatenate additional coordinates<ul>
+<li>returns a new Coordinates1D object by default, or can be used in-place</li>
+<li>raises an exception if <code class="docutils literal notranslate"><span class="pre">other.name</span> <span class="pre">!=</span> <span class="pre">self.name</span></code></li>
+<li><em>not sure we need this…</em></li>
+</ul>
+</li>
 </ul>
 <p>Operators</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">len</span></code>: size</li>
-<li><code class="docutils literal notranslate"><span class="pre">in</span></code>: area_bounds[0] &lt; value &lt; area_bounds[1]</li>
-<li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: returns a new Coordinates1D object; supports a single index, a slice, an index array, and a boolean array</li>
-<li><code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">+=</span></code>: concat Coordinates1D or add value</li>
+<li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: index the coordinate values<ul>
+<li>returns a new Coordinates1D object</li>
+<li>supports a single index, a slice, an index array, or a boolean array</li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">+=</span></code>: either concat Coordinates1D or add value</li>
 <li><code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">-=</span></code>: subtract value</li>
 <li><code class="docutils literal notranslate"><span class="pre">&amp;</span></code>: intersect</li>
 </ul>
 </div>
-<div class="section" id="arraycoordinates1d">
-<span id="arraycoordinates1d"></span><h3>ArrayCoordinates1D<a class="headerlink" href="#arraycoordinates1d" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="arraycoordinates1d-coordinates1d">
+<span id="arraycoordinates1d-coordinates1d"></span><h3>ArrayCoordinates1D(Coordinates1D)<a class="headerlink" href="#arraycoordinates1d-coordinates1d" title="Permalink to this headline">¶</a></h3>
 <p>An arbitrary list of coordinates, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is array-like.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ArrayCoordinates1D</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="monotoniccoordinates1d">
-<span id="monotoniccoordinates1d"></span><h3>MonotonicCoordinates1D<a class="headerlink" href="#monotoniccoordinates1d" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="monotoniccoordinates1d-coordinates1d">
+<span id="monotoniccoordinates1d-coordinates1d"></span><h3>MonotonicCoordinates1D(Coordinates1D)<a class="headerlink" href="#monotoniccoordinates1d-coordinates1d" title="Permalink to this headline">¶</a></h3>
 <p>A sorted list of coordinates, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is array-like and sorted (in either direction)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MonotonicCoordinates1D</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="uniformcoordinates1d">
-<span id="uniformcoordinates1d"></span><h3>UniformCoordinates1D<a class="headerlink" href="#uniformcoordinates1d" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="uniformcoordinates1d-coordinates1d">
+<span id="uniformcoordinates1d-coordinates1d"></span><h3>UniformCoordinates1D(Coordinates1D)<a class="headerlink" href="#uniformcoordinates1d-coordinates1d" title="Permalink to this headline">¶</a></h3>
 <p>Uniformly-spaced coordinates, defined by a start, stop, and step/size.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
@@ -298,24 +318,90 @@
 </ul>
 <p>Also, consider named versions, 16 in total (one of these options):</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">A1DLat</span></code>, <code class="docutils literal notranslate"><span class="pre">U1DTime</span></code>, …</li>
-<li><code class="docutils literal notranslate"><span class="pre">ArrayLat1D</span></code>, <code class="docutils literal notranslate"><span class="pre">UniformTime1D</span></code>, …</li>
-<li><code class="docutils literal notranslate"><span class="pre">LatArray1D</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeUniform1D</span></code>, …</li>
-<li><code class="docutils literal notranslate"><span class="pre">ArrayLat</span></code>, <code class="docutils literal notranslate"><span class="pre">UniformTime</span></code>, …</li>
-<li><code class="docutils literal notranslate"><span class="pre">LatArray</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeUniform</span></code>, …</li>
-<li><code class="docutils literal notranslate"><span class="pre">ALat</span></code>, <code class="docutils literal notranslate"><span class="pre">UTime</span></code>, …</li>
 <li><code class="docutils literal notranslate"><span class="pre">_alat</span></code>, <code class="docutils literal notranslate"><span class="pre">_utime</span></code>, …</li>
+<li><code class="docutils literal notranslate"><span class="pre">ALat</span></code>, <code class="docutils literal notranslate"><span class="pre">UTime</span></code>, …</li>
 </ul>
 <p>So that the following are equivalent</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">_cu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">_ulat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or possibly</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
 <span class="n">U1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
 <span class="n">ULat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>or possibly</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-<span class="n">_cu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-<span class="n">_ulat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+</div>
+</div>
+<div class="section" id="stacked-coordinates">
+<span id="stacked-coordinates"></span><h2>Stacked Coordinates<a class="headerlink" href="#stacked-coordinates" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="stackedcoordinates-basecoordinates1d">
+<span id="stackedcoordinates-basecoordinates1d"></span><h3>StackedCoordinates(BaseCoordinates1D)<a class="headerlink" href="#stackedcoordinates-basecoordinates1d" title="Permalink to this headline">¶</a></h3>
+<p>Coordinates for two or more physical dimensions that are indexed together (aligned, as opposed to defining a grid). This class should be considered an implementation detail that behaves like a tuple (is iterable) but also facilitates a common interface with Coordinates1D by mapping indexing and other methods to its Coordinates1D objects.</p>
+<p>Properties</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: dimension names joined by an underscore, e.g. <code class="docutils literal notranslate"><span class="pre">'lat_lon'</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only DataArray or MultiIndex</li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: Int</li>
+</ul>
+<p>Methods</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">select(bounds)</span></code>: select coordinates within the given bounds<ul>
+<li>returns a new StackedCoordinates object by default, or can be modified in-place</li>
+<li>TODO: how are bounds defined?</li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">intersect(other)</span></code>: intersect these coordinates with other coordinates<ul>
+<li>TODO</li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: concatenate additional coordinates<ul>
+<li>returns a new StackedCoordinates object by default, or can be used in-place</li>
+<li>raises an exception if <code class="docutils literal notranslate"><span class="pre">other.name</span> <span class="pre">!=</span> <span class="pre">self.name</span></code></li>
+<li><em>not sure we need this…</em></li>
+</ul>
+</li>
+</ul>
+<p>Operators</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: index each of coordinates values<ul>
+<li>returns a new StackedCoordinates object</li>
+<li>supports a single index, a slice, an index array, or a boolean array</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="helper-functions">
+<span id="helper-functions"></span><h3>Helper Functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">stacked_linspace</span></code> helper function returns a uniformly spaced line as StackedCoordinates, so that the following examples are equivalent</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stacked_linspace</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="mi">100</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
+<span class="n">alt</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">alt</span><span class="s1">&#39;)</span>
+<span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">alt</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="shorthand">
+<span id="id1"></span><h3>Shorthand<a class="headerlink" href="#shorthand" title="Permalink to this headline">¶</a></h3>
+<p>For ease-of-use, the following aliases will be defined:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_s</span></code> and <code class="docutils literal notranslate"><span class="pre">_sl</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">Stacked</span></code>, <code class="docutils literal notranslate"><span class="pre">SL</span></code></li>
+</ul>
+<p>So that the above can be rewritten:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">_sl</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="mi">100</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">_s</span><span class="p">(</span><span class="n">_ulat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">_ulon</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">_ualt</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>or possibly, with the other scheme:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Stacked</span><span class="p">(</span><span class="n">ULat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">ULon</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">UAlt</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -324,46 +410,26 @@
 <span id="multidemensional-coordinates"></span><h2>Multidemensional Coordinates<a class="headerlink" href="#multidemensional-coordinates" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="coordinate-creation">
 <span id="coordinate-creation"></span><h3>Coordinate Creation<a class="headerlink" href="#coordinate-creation" title="Permalink to this headline">¶</a></h3>
-<p>Coordinates are created from a list or dict containing Coordinates1D objects.</p>
+<p>Coordinates are created from a list or dict containing BaseCoordinates1D objects (Coordinates1D or StackedCoordinates).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Coordinates</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>When using a list, each item is either</p>
-<ul class="simple">
-<li>a Coordinates1D object (unstacked dimensions)</li>
-<li>a tuple of Coordinate1D objects (stacked dimensions)</li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-<span class="n">time</span> <span class="o">=</span> <span class="n">ArrayCoordinate1D</span><span class="p">([</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-02&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">time</span><span class="p">],</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="n">time</span><span class="p">],</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span> <span class="c1"># stacked</span>
+<p>For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c1</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">time</span><span class="p">],</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
+<span class="n">c2</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="n">time</span><span class="p">],</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>When using a dict, dimension names are mapped to (tuples of) Coordinate1D objects. <em>Note: in Python &lt;= 3.5, an OrderedDict is required.</em></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinate1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-<span class="n">time</span> <span class="o">=</span> <span class="n">ArrayCoordinate1D</span><span class="p">([</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-02&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">({</span><span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">({</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span> <span class="c1"># stacked</span>
+<p>When <code class="docutils literal notranslate"><span class="pre">values</span></code> is a dict, dimension names are mapped to the BaseCoordinates1D objects. <em>Note: in Python &lt;= 3.5, an OrderedDict is required.</em></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c1</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">({</span><span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
+<span class="n">c2</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">({</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">:</span> <span class="n">Stacked</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="stacking-functions">
-<span id="stacking-functions"></span><h3>Stacking functions<a class="headerlink" href="#stacking-functions" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">stack</span></code> function is recommended as it makes stacking more explicit.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">stack</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="n">time</span><span class="p">],</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">({</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">:</span> <span class="n">stack</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">stacked_linspace</span></code> helper function returns a tuple of UniformCoordinates1D, each with the given size, so that the following examples are equivalent</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stacked_linspace</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="mi">100</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">))</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
-<span class="n">alt</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">alt</span><span class="s1">&#39;)</span>
-<span class="n">stacked</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">alt</span><span class="p">)</span>
+<div class="section" id="implicit-stacking">
+<span id="implicit-stacking"></span><h3>Implicit Stacking<a class="headerlink" href="#implicit-stacking" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">stack</span></code> function is recommended as it makes stacking more explicit, but we may wish to support stacking implicitly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c1</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="n">time</span><span class="p">],</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
+<span class="n">c2</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">({</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">),</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">},</span> <span class="o">**</span><span class="n">traits</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -382,30 +448,68 @@
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">ndim</span></code>: Int</li>
 <li><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple(str, str, …)</li>
-<li><code class="docutils literal notranslate"><span class="pre">shape</span></code> - tuple(int, int, …)</li>
-<li><code class="docutils literal notranslate"><span class="pre">coords</span></code> - OrderedDict, maps dimension names to Coordinate1D objects or tuples of Coordinate1D objects</li>
-<li><code class="docutils literal notranslate"><span class="pre">coords1d</span></code> - OrderedDict, maps dimension names to Coordinate1D objects (always unstacked)</li>
-<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code> - xarray Coordinates (dictionary mapping dimension names to named DataArrays)</li>
+<li><code class="docutils literal notranslate"><span class="pre">shape</span></code>: tuple(int, int, …)</li>
+<li><code class="docutils literal notranslate"><span class="pre">coords</span></code>: OrderedDict mapping dimension names to Coordinate1D or StackedCoordinates</li>
+<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: xarray Coordinates (dictionary-like mapping dimension names to named DataArrays)</li>
 </ul>
 <p>For stacked dimensions, the dimension names are combined by an underscore, and the coordinates are implemented as a pandas MultiIndex:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span><span class="o">.</span><span class="n">dims</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
 <span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">UniformCoordinates1D</span><span class="p">,</span> <span class="n">UniformCoordinates1D</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">UniformCoordinates1D</span><span class="p">,</span> <span class="n">UniformCoordinates1D</span><span class="p">)</span> <span class="c1"># this is actually a StackedCoordinates object</span>
 <span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
 <span class="n">coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="k">with</span> <span class="n">MultiIndex</span>
 <span class="n">coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="c1"># we get this for free due to the MultiIndex</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">UniformCoordinates1D</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="methods">
 <span id="methods"></span><h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
-<p>TODO</p>
+<p>In general, methods will return a new Coordinates object by default, with an option to modify the Coordinates in-place.</p>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">add</span></code>: TODO</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: TODO</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">select(bounds)</span></code>: TODO</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">intersect(other):</span></code> TODO</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">drop_dims(dims)</span></code>: remove dimensions</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">dims</span></code> may be a dimension name (str) or a list of dimension names</li>
+<li>stacked dimensions can be removed together or individually</li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the folowwinng equivalent</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">drop_dims</span><span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">drop_dims</span><span class="p">([</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+
+<span class="c1"># drop part of a stacked dimension</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">drop_dims</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">add_dim</span></code></p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">unstack</span></code></p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">stack</span></code></p>
+</li>
+</ul>
 </div>
 <div class="section" id="operators">
 <span id="operators"></span><h3>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h3>
-<p>TODO</p>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">[]</span></code>: Get or set the Coordinates1D object for the given dimension; checks the size when setting coordinates for a stacked dimension</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span><span class="o">.</span><span class="n">dims</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">UniformCoordinates1D</span>
+<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
+<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="c1"># modify the coordinates (or raise an exception for size mismatch)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">[dim]</span> <span class="pre">=</span> <span class="pre">&lt;Coordinates1D&gt;</span></code>: Set the coordinates for this dimension. If this dimension is stacked, the size is checked.</p>
+</li>
+</ul>
 </div>
 <div class="section" id="miscellaneous-examples">
 <span id="miscellaneous-examples"></span><h3>Miscellaneous Examples<a class="headerlink" href="#miscellaneous-examples" title="Permalink to this headline">¶</a></h3>
@@ -420,13 +524,20 @@
 <span class="n">c1</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>Downsample <em>(note: in the current spec, this only works if there is no stacking)</em></p>
+<p>Downsample (even if some dimensions are stacked)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c2</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span><span class="p">[::</span><span class="mi">10</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 </pre></div>
 </div>
-<p>Downsample only the time dimension <em>(note: in the current spec, only works if time is not stacked)</em></p>
+<p>Downsample only the time dimension (only works if time is not stacked)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 <span class="n">d</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">][::</span><span class="mi">10</span><span class="p">]</span>
+<span class="n">c3</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The safe way would would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_dim</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">][::</span><span class="mi">10</span><span class="p">]</span>
 <span class="n">c3</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
