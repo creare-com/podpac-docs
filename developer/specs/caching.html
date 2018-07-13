@@ -192,6 +192,7 @@
 </ul>
 </li>
 <li>Cached queries are idempotent with respect to some set of parameters that define the query (location/datetime, datasource, paramters used to compute a prediction).</li>
+<li>ability to retrieve calculated data from a pipeline after execution in an interactive shell for debugging or analysis purposes</li>
 <li>Support different storage mediums<ul>
 <li>This includes:<ul>
 <li>RAM</li>
@@ -238,7 +239,7 @@
 <ol class="simple">
 <li>SMAP data retrieved from NASA servers while serving a request is stored on local disk for future requests.</li>
 <li>Server that uses podpac to handle requests for data that involves complex computations using forecast data (e.g. weather predictions) as an input. Multiple processes are used to load-balance handling of requests. The same calculation should ideally not be performed by more than one of these processes. However, this could be subject to available RAM. In addition, results of calculations bassed on forecast data should be redone when updated forecast data becomes available.</li>
-<li>Server like above, but requests are handled by a “serverless” technology like AWS lambda. Intermediate results are cached in a netowrk storage like AWS s3 (or sharded MongoDB cluster, or HDFS filesystem).</li>
+<li>Server like above, but requests are handled by a “serverless” technology like AWS lambda. Intermediate results are cached in a network storage like AWS s3 (or sharded MongoDB cluster, or HDFS filesystem).</li>
 <li>TODO: Add example usecases</li>
 </ol>
 </div>
@@ -256,7 +257,7 @@
 <div class="section" id="implementation-notes">
 <span id="implementation-notes"></span><h1>Implementation Notes<a class="headerlink" href="#implementation-notes" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li>Idempotence can be supported using key computed via some hashing protocol (maybe the key is the has of a dictionary).</li>
+<li>Idempotence can be supported using key computed via some hashing protocol. Maybe the key is the hash of a dictionary representing parameter key/values and there is some specification on the keys like the time parameter is always “datetime”.</li>
 <li>Keys used to retrieve data need to support a distributed system. Basically, cache system needs to know, or be able to figure out, what server to make a request to when data is cached over some kind of network storage system (multiple s3 buckets, sharded database, HDFS).<ul>
 <li>This can be accomplished by:<ul>
 <li>reserving a portion of a retrieval key (hash) to specify the network resource<ul>
