@@ -183,16 +183,22 @@
 <li>xarrays</li>
 <li>UnitsDataArray</li>
 <li>? DataSource</li>
+<li>? other serialized binary data<ul>
+<li>GeoTIFFs</li>
 </ul>
 </li>
 </ul>
 </li>
+</ul>
+</li>
+<li>Cached queries are idempotent with respect to some set of parameters that define the query (location/datetime, datasource, paramters used to compute a prediction).</li>
 <li>Support different storage mediums<ul>
 <li>This includes:<ul>
 <li>RAM</li>
 <li>local disk (HDD/SSD)</li>
 <li>AWS s3</li>
 <li>? Databases (MongoDB supports geospatial queries and binary data)</li>
+<li>? HDFS file system</li>
 </ul>
 </li>
 </ul>
@@ -207,20 +213,34 @@
 </ul>
 </li>
 <li>Support prioritization of cached data under resource limitations<ul>
-<li>Bassed on:
-* size of data (bytes)
-* computational cost to reproduce (time to compute)
-* access patterns:
-* frequency of use
-* recency of use</li>
+<li>Bassed on:<ul>
+<li>size of data (bytes)</li>
+<li>computational cost to reproduce (time to compute)</li>
+<li>access patterns:<ul>
+<li>frequency of use</li>
+<li>recency of use</li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li>Support expiration of data (e.g. forecast data that is updated at some time interval)</li>
+<li>Support cache tiers:<ul>
+<li>respond from “better” tier when possible (e.g. RAM)</li>
+<li>fall back on “worse” tier (e.g. local disk then s3 or some other networked storage)</li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="section" id="example-use-cases">
 <span id="example-use-cases"></span><h1>Example Use cases<a class="headerlink" href="#example-use-cases" title="Permalink to this headline">¶</a></h1>
-<p>TODO: Add example usecases</p>
+<ol class="simple">
+<li>SMAP data retrieved from NASA servers while serving a request is stored on local disk for future requests.</li>
+<li>Server that uses podpac to handle requests for data that involves complex computations using forecast data (e.g. weather predictions) as an input. Multiple processes are used to load-balance handling of requests. The same calculation should ideally not be performed by more than one of these processes. However, this could be subject to available RAM. In addition, results of calculations bassed on forecast data should be redone when updated forecast data becomes available.</li>
+<li>Server like above, but requests are handled by a “serverless” technology like AWS lambda. Intermediate results are cached in a netowrk storage like AWS s3 (or sharded MongoDB cluster, or HDFS filesystem).</li>
+<li>TODO: Add example usecases</li>
+</ol>
 </div>
 <div class="section" id="specification">
 <span id="specification"></span><h1>Specification<a class="headerlink" href="#specification" title="Permalink to this headline">¶</a></h1>
@@ -232,6 +252,28 @@
 <span id="developer-interface"></span><h2>Developer interface<a class="headerlink" href="#developer-interface" title="Permalink to this headline">¶</a></h2>
 <p>TODO: Add developer interface specs</p>
 </div>
+</div>
+<div class="section" id="implementation-notes">
+<span id="implementation-notes"></span><h1>Implementation Notes<a class="headerlink" href="#implementation-notes" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li>Idempotence can be supported using key computed via some hashing protocol (maybe the key is the has of a dictionary).</li>
+<li>Keys used to retrieve data need to support a distributed system. Basically, cache system needs to know, or be able to figure out, what server to make a request to when data is cached over some kind of network storage system (multiple s3 buckets, sharded database, HDFS).<ul>
+<li>This can be accomplished by:<ul>
+<li>reserving a portion of a retrieval key (hash) to specify the network resource<ul>
+<li>could be hard to change the “key” for a particular network resource after the fact.</li>
+<li>likely need to support adding (maybe deleting) network resources over time.</li>
+</ul>
+</li>
+<li>Using a centralized lookup server<ul>
+<li>central server could be bottleneck</li>
+<li>retrieval becomes at least two network bassed queries (one to central server, and then one for data).</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 </div>
 
 
