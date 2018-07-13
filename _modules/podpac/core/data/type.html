@@ -190,6 +190,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 
 <span class="kn">import</span> <span class="nn">bs4</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -222,6 +223,7 @@
 <span class="k">except</span><span class="p">:</span>
     <span class="n">requests</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># TODO: remove support urllib3 - requests is sufficient</span>
         <span class="kn">import</span> <span class="nn">urllib3</span>
     <span class="k">except</span><span class="p">:</span>
         <span class="n">urllib3</span> <span class="o">=</span> <span class="kc">None</span>
@@ -244,8 +246,8 @@
 <span class="kn">from</span> <span class="nn">podpac.core.data.data</span> <span class="k">import</span> <span class="n">COMMON_DATA_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span> 
 
-<span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_DATA_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">COMMON_DOC</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">COMMON_NODE_DOC</span><span class="p">)</span>
+<span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">COMMON_DOC</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>      <span class="c1"># inherit and overwrite with COMMON_DATA_DOC</span>
 
 <div class="viewcode-block" id="NumpyArray"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.NumpyArray">[docs]</a><span class="k">class</span> <span class="nc">NumpyArray</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">DataSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource from a numpy array</span>
@@ -263,10 +265,10 @@
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
     
 <div class="viewcode-block" id="NumpyArray.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.NumpyArray.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_slice</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">coordinates_slice</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">coordinates_index</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_coord_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span>
                                         <span class="n">fillval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">d</span></div></div>
@@ -278,48 +280,63 @@
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    auth_class : podpac.core.authentication.SessionWithHeaderRedirection</span>
-<span class="sd">        A request.Session-derived class that has header redirection. This is used to authenticate using an EarthData </span>
-<span class="sd">        login. When username and password are provided, an auth_session is created using this class. </span>
+<span class="sd">        A request.Session-derived class that has header redirection. This is used to authenticate using an EarthData</span>
+<span class="sd">        login. When username and password are provided, an auth_session is created using this class.</span>
 <span class="sd">    auth_session : podpac.core.authentication.SessionWithHeaderRedirection</span>
-<span class="sd">        Instance of the auth_class. This is created if username and password is supplied, but this object can also be </span>
+<span class="sd">        Instance of the auth_class. This is created if username and password is supplied, but this object can also be</span>
 <span class="sd">        supplied directly</span>
 <span class="sd">    datakey : str</span>
 <span class="sd">        Pydap &#39;key&#39; for the data to be retrieved from the server. Datasource may have multiple keys, so this key</span>
-<span class="sd">        determines which variable is returned from the source. </span>
+<span class="sd">        determines which variable is returned from the source.</span>
 <span class="sd">    dataset : pydap.model.DatasetType</span>
-<span class="sd">        The open pydap dataset. This is provided for troubleshooting. </span>
+<span class="sd">        The open pydap dataset. This is provided for troubleshooting.</span>
 <span class="sd">    native_coordinates : podpac.Coordinate</span>
 <span class="sd">        {ds_native_coordinates}</span>
-<span class="sd">    password : str, optional </span>
+<span class="sd">    password : str, optional</span>
 <span class="sd">        Password used for authenticating against OpenDAP server. WARNING: this is stored as plain-text, provide</span>
-<span class="sd">        auth_session instead if you have security concerns. </span>
+<span class="sd">        auth_session instead if you have security concerns.</span>
 <span class="sd">    source : str</span>
-<span class="sd">        URL of the OpenDAP server. </span>
+<span class="sd">        URL of the OpenDAP server.</span>
 <span class="sd">    username : str, optional</span>
 <span class="sd">        Username used for authenticating against OpenDAP server. WARNING: this is stored as plain-text, provide</span>
-<span class="sd">        auth_session instead if you have security concerns. </span>
+<span class="sd">        auth_session instead if you have security concerns.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
+    <span class="c1"># required inputs</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">datakey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># optional inputs and later defined traits</span>
     <span class="n">auth_session</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">authentication</span><span class="o">.</span><span class="n">SessionWithHeaderRedirection</span><span class="p">,</span>
                                <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">auth_class</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Type</span><span class="p">(</span><span class="n">authentication</span><span class="o">.</span><span class="n">SessionWithHeaderRedirection</span><span class="p">)</span>
     <span class="n">username</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">password</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="s1">&#39;pydap.model.DatasetType&#39;</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;auth_session&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_auth_session_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="c1"># requires username and password</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_class</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
 
-        <span class="c1"># check url</span>
+        <span class="c1"># requires auth_class</span>
+        <span class="c1"># TODO: default auth_class?</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_class</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># instantiate and check utl</span>
         <span class="k">try</span><span class="p">:</span>
+            <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_class</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
             <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s1">&#39;.dds&#39;</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
+            <span class="c1"># TODO: catch a 403 error</span>
             <span class="k">return</span> <span class="kc">None</span>
+
+
         <span class="k">return</span> <span class="n">session</span>
    
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="s1">&#39;pydap.model.DatasetType&#39;</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -327,7 +344,7 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        source : None, optional</span>
+<span class="sd">        source : str, optional</span>
 <span class="sd">            Description</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
@@ -335,31 +352,48 @@
 <span class="sd">        TYPE</span>
 <span class="sd">            Description</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: is source ever None?</span>
+        <span class="c1"># TODO: enforce string source</span>
         <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">source</span>
         
+        <span class="c1"># auth session</span>
+        <span class="c1"># if self.auth_session:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">dataset</span> <span class="o">=</span> <span class="n">pydap</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="c1">#Check Url (probably inefficient...)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s1">&#39;.dds&#39;</span><span class="p">)</span>
-            <span class="n">dataset</span> <span class="o">=</span> <span class="n">pydap</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">)</span>
-        
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># TODO handle a 403 error</span>
+            <span class="c1"># TODO: Check Url (probably inefficient...)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s1">&#39;.dds&#39;</span><span class="p">)</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="n">pydap</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="c1"># TODO: handle 403 error</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="k">return</span> <span class="n">dataset</span>
         
 
+    <span class="c1"># TODO: where does &quot;change&quot; get passed in from?</span>
     <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_update_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">change</span><span class="p">[</span><span class="s1">&#39;old&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_update_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">change</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_dataset</span><span class="p">(</span><span class="n">change</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
 
-    <span class="n">datakey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">change</span><span class="p">[</span><span class="s1">&#39;old&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">change</span><span class="p">[</span><span class="s1">&#39;old&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;new&#39;</span> <span class="ow">in</span> <span class="n">change</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_dataset</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">change</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
   
 <div class="viewcode-block" id="PyDAP.get_native_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.PyDAP.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -370,15 +404,15 @@
 <span class="sd">        NotImplementedError</span>
 <span class="sd">            DAP has no mechanism for creating coordinates automatically, so this is left up to child classes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;DAP has no mechanism for creating coordinates&quot;</span>
-                                  <span class="s2">&quot;, so this is left up to child class &quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;DAP has no mechanism for creating coordinates&quot;</span> <span class="o">+</span>
+                                  <span class="s2">&quot;, so this is left up to child class &quot;</span> <span class="o">+</span>
                                   <span class="s2">&quot;implementations.&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PyDAP.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.PyDAP.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_slice</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">datakey</span><span class="p">][</span><span class="nb">tuple</span><span class="p">(</span><span class="n">coordinates_slice</span><span class="p">)]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">datakey</span><span class="p">][</span><span class="nb">tuple</span><span class="p">(</span><span class="n">coordinates_index</span><span class="p">)]</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_coord_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span>
                                         <span class="n">fillval</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">d</span></div>
@@ -394,6 +428,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
 
+<span class="c1"># TODO: rename &quot;Rasterio&quot; to be more consistent with other naming conventions</span>
 <div class="viewcode-block" id="RasterioSource"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.RasterioSource">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RasterioSource</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">DataSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource using Rasterio.</span>
@@ -432,6 +467,9 @@
             <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">source</span>
+
+        <span class="c1"># TODO: dataset should not open by default</span>
+        <span class="c1"># prefer with as: syntax</span>
         <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
     
 <div class="viewcode-block" id="RasterioSource.close_dataset"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.RasterioSource.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -450,30 +488,32 @@
         <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
 <span class="sd">        </span>
 <span class="sd">        The default implementation tries to find the lat/lon coordinates based on dataset.affine or dataset.transform</span>
-<span class="sd">        (depending on the version of rasterio). It cannot determine the alt or time dimensions, so child classes may </span>
-<span class="sd">        have to overload this method. </span>
+<span class="sd">        (depending on the version of rasterio). It cannot determine the alt or time dimensions, so child classes may</span>
+<span class="sd">        have to overload this method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dlon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">width</span>
         <span class="n">dlat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">height</span>
+
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;affine&#39;</span><span class="p">):</span>
             <span class="n">affine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">affine</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">affine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">transform</span>
+
         <span class="n">left</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">bounds</span>
-        <span class="k">if</span> <span class="n">affine</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span> <span class="ow">or</span>\
-           <span class="n">affine</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Have not implemented rotated coords&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">affine</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="n">affine</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Rotated coordinates are not yet supported&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">dlat</span><span class="p">),</span>
                                  <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">dlon</span><span class="p">),</span>
                                  <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="RasterioSource.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.RasterioSource.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coodinates_slice</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_coord_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-        <span class="n">slc</span> <span class="o">=</span> <span class="n">coodinates_slice</span>
+        <span class="n">slc</span> <span class="o">=</span> <span class="n">coordinates_index</span>
         <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="p">((</span><span class="n">slc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">slc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">),</span>
                                <span class="p">(</span><span class="n">slc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">slc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">)),</span>
@@ -539,17 +579,18 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        key : str</span>
-<span class="sd">            Key present in the metadata of the band.</span>
-<span class="sd">        value : str</span>
-<span class="sd">            Value of the key that should be returned</span>
+<span class="sd">        key : str / list</span>
+<span class="sd">            Key present in the metadata of the band. Can be a single key, or a list of keys.</span>
+<span class="sd">        value : str / list</span>
+<span class="sd">            Value of the key that should be returned. Can be a single value, or a list of values</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        np.ndarray</span>
 <span class="sd">            An array of band numbers that match the criteria</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">string_types</span><span class="p">))</span>\
+                <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)):</span>
             <span class="n">key</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
 
@@ -586,13 +627,16 @@
     <span class="n">layer_name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">WCS_DEFAULT_VERSION</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">WCS_DEFAULT_CRS</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">_get_capabilities_qs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;SERVICE=WCS&amp;REQUEST=DescribeCoverage&amp;&#39;</span>
-                                     <span class="s1">&#39;VERSION=</span><span class="si">{version}</span><span class="s1">&amp;COVERAGE=</span><span class="si">{layer}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="n">_get_data_qs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;SERVICE=WCS&amp;VERSION=</span><span class="si">{version}</span><span class="s1">&amp;REQUEST=GetCoverage&amp;&#39;</span>
-                             <span class="s1">&#39;FORMAT=GeoTIFF&amp;COVERAGE=</span><span class="si">{layer}</span><span class="s1">&amp;&#39;</span>
-                             <span class="s1">&#39;BBOX=</span><span class="si">{w}</span><span class="s1">,</span><span class="si">{s}</span><span class="s1">,</span><span class="si">{e}</span><span class="s1">,</span><span class="si">{n}</span><span class="s1">&amp;CRS=</span><span class="si">{crs}</span><span class="s1">&amp;RESPONSE_CRS=</span><span class="si">{crs}</span><span class="s1">&amp;&#39;</span>
-                             <span class="s1">&#39;WIDTH=</span><span class="si">{width}</span><span class="s1">&amp;HEIGHT=</span><span class="si">{height}</span><span class="s1">&amp;TIME=</span><span class="si">{time}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">wcs_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">)</span>   <span class="c1"># default below</span>
 
+    <span class="n">_get_capabilities_qs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;SERVICE=WCS&amp;REQUEST=DescribeCoverage&amp;&#39;</span>
+                                      <span class="s1">&#39;VERSION=</span><span class="si">{version}</span><span class="s1">&amp;COVERAGE=</span><span class="si">{layer}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">_get_data_qs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;SERVICE=WCS&amp;VERSION=</span><span class="si">{version}</span><span class="s1">&amp;REQUEST=GetCoverage&amp;&#39;</span>
+                              <span class="s1">&#39;FORMAT=GeoTIFF&amp;COVERAGE=</span><span class="si">{layer}</span><span class="s1">&amp;&#39;</span>
+                              <span class="s1">&#39;BBOX=</span><span class="si">{w}</span><span class="s1">,</span><span class="si">{s}</span><span class="s1">,</span><span class="si">{e}</span><span class="s1">,</span><span class="si">{n}</span><span class="s1">&amp;CRS=</span><span class="si">{crs}</span><span class="s1">&amp;RESPONSE_CRS=</span><span class="si">{crs}</span><span class="s1">&amp;&#39;</span>
+                              <span class="s1">&#39;WIDTH=</span><span class="si">{width}</span><span class="s1">&amp;HEIGHT=</span><span class="si">{height}</span><span class="s1">&amp;TIME=</span><span class="si">{time}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># TODO: This should be capabilities_url, not get_</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">get_capabilities_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Constructs the url that requests the WCS capabilities</span>
@@ -605,7 +649,6 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s1">&#39;?&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_capabilities_qs</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">)</span>
 
-    <span class="n">wcs_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">)</span>
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;wcs_coordinates&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_wcs_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieves the native coordinates reported by the WCS service.</span>
@@ -629,6 +672,8 @@
             <span class="k">if</span> <span class="n">capabilities</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server&quot;</span><span class="p">)</span>
             <span class="n">capabilities</span> <span class="o">=</span> <span class="n">capabilities</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="c1"># TODO: remove support urllib3 - requests is sufficient</span>
         <span class="k">elif</span> <span class="n">urllib3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">certifi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">(</span><span class="n">ca_certs</span><span class="o">=</span><span class="n">certifi</span><span class="o">.</span><span class="n">where</span><span class="p">())</span>
@@ -663,7 +708,7 @@
         <span class="n">timedomain</span> <span class="o">=</span> <span class="n">capabilities</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;wcs:temporaldomain&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">timedomain</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-                                         <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+                                     <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
         
         <span class="n">date_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;[0-9]</span><span class="si">{4}</span><span class="s1">-[0-9]</span><span class="si">{2}</span><span class="s1">-[0-9]</span><span class="si">{2}</span><span class="s1">T[0-9]</span><span class="si">{2}</span><span class="s1">:[0-9]</span><span class="si">{2}</span><span class="s1">:[0-9]</span><span class="si">{2}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">times</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">timedomain</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&lt;gml:timeposition&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&lt;/gml:timeposition&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -671,7 +716,7 @@
         
         <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">times</span><span class="p">,</span>
                                  <span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-                                 <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>                        
+                                 <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
                                  <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
         
 
@@ -701,19 +746,21 @@
                     <span class="c1"># This is rough, we have to use a regular grid for WCS calls,</span>
                     <span class="c1"># Otherwise we have to do multiple WCS calls...</span>
                     <span class="c1"># TODO: generalize/fix this</span>
-                    <span class="n">cs</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">),</span>
-                             <span class="nb">max</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span>
+                    <span class="n">cs</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">),</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span>
                 <span class="k">elif</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ev</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">podpac</span><span class="o">.</span><span class="n">UniformCoord</span><span class="p">):</span>
-                    <span class="n">cs</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span>
-                             <span class="nb">max</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span>
+                    <span class="n">cs</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wcs_c</span><span class="p">[</span><span class="n">c</span><span class="p">])</span>
+                    <span class="n">cs</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">wcs_c</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+                    <span class="c1"># TODO: OrderedDict() has no append method</span>
+                    <span class="c1"># cs.append(wcs_c[c])</span>
             <span class="n">c</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">c</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wcs_coordinates</span>
 
-<div class="viewcode-block" id="WCS.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.WCS.get_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coodinates_slice</span><span class="p">):</span>
+<div class="viewcode-block" id="WCS.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.WCS.get_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        </span>
 <span class="sd">        Raises</span>
@@ -729,7 +776,7 @@
             <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">sd</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
-            
+        
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">time</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
                 <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s1">&#39;?&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data_qs</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -753,6 +800,8 @@
                         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get data from WCS server&quot;</span><span class="p">)</span>
                     <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
                     <span class="n">content</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">content</span>
+
+                <span class="c1"># TODO: remove support urllib3 - requests is sufficient</span>
                 <span class="k">elif</span> <span class="n">urllib3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">certifi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">(</span><span class="n">ca_certs</span><span class="o">=</span><span class="n">certifi</span><span class="o">.</span><span class="n">where</span><span class="p">())</span>
@@ -813,6 +862,8 @@
                     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get data from WCS server&quot;</span><span class="p">)</span>
                 <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
                 <span class="n">content</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">content</span>
+
+            <span class="c1"># TODO: remove support urllib3 - requests is sufficient</span>
             <span class="k">elif</span> <span class="n">urllib3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">certifi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">(</span><span class="n">ca_certs</span><span class="o">=</span><span class="n">certifi</span><span class="o">.</span><span class="n">where</span><span class="p">())</span>
@@ -895,6 +946,8 @@
     <span class="n">source_interpolation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;nearest_preview&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Node</span><span class="p">)</span>
     <span class="c1"># Specify either one of the next two</span>
+    <span class="c1"># TODO: should this be of type podpac.Coordinate?</span>
+    <span class="c1"># This doesn&#39;t make much sense</span>
     <span class="n">coordinates_source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">reprojected_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -936,7 +989,7 @@
         <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ReprojectedSource.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.ReprojectedSource.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_slice</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_interpolation</span>
@@ -1000,10 +1053,10 @@
 <span class="sd">    node_kwargs : dict, optional</span>
 <span class="sd">        Keyword arguments passed to `node_class` when automatically creating `node`</span>
 <span class="sd">    return_type : str, optional</span>
-<span class="sd">        Either: &#39;file_handle&#39; (for files downloaded to RAM); or </span>
+<span class="sd">        Either: &#39;file_handle&#39; (for files downloaded to RAM); or</span>
 <span class="sd">        the default option &#39;path&#39; (for files downloaded to disk)</span>
 <span class="sd">    s3_bucket : str, optional</span>
-<span class="sd">        Name of the S3 bucket. Uses settings.S3_BUCKET_NAME by default. </span>
+<span class="sd">        Name of the S3 bucket. Uses settings.S3_BUCKET_NAME by default.</span>
 <span class="sd">    s3_data : file/str</span>
 <span class="sd">        If return_type == &#39;file_handle&#39; returns a file pointer object</span>
 <span class="sd">        If return_type == &#39;path&#39; returns a string to the data</span>
@@ -1015,10 +1068,11 @@
     <span class="n">node</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Node</span><span class="p">)</span>
     <span class="n">node_class</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Type</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">DataSource</span><span class="p">)</span>  <span class="c1"># A class</span>
     <span class="n">node_kwargs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="p">{})</span>
-    <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span>
-    <span class="n">s3_data</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">()</span>
+    <span class="n">s3_bucket</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">s3_data</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">_temp_file_cleanup</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">()</span>
     <span class="n">return_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;file_handle&#39;</span><span class="p">,</span> <span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;path&#39;</span><span class="p">)</span>
+    <span class="c1"># TODO: handle s3 auth setup</span>
     
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">node_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1036,11 +1090,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s1">&#39;source&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_kwargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;&#39;source&#39; present in node_kwargs for S3Source&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_class</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_data</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">node_kwargs</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;s3_bucket&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">s3_bucket_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieves defaul S3 Bucket from settings</span>
+        <span class="sd">&quot;&quot;&quot;Retrieves default S3 Bucket from settings</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1058,8 +1113,14 @@
 <span class="sd">        str/file</span>
 <span class="sd">            Either a string to the downloaded file path, or a file handle</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No s3 bucket set&#39;</span><span class="p">)</span>
+
         <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_type</span> <span class="o">==</span> <span class="s1">&#39;file_handle&#39;</span><span class="p">:</span>
+            <span class="c1"># TODO: should this use the with/as syntax</span>
+            <span class="c1"># https://boto3.readthedocs.io/en/latest/reference/services/s3.html#S3.Client.download_fileobj</span>
             <span class="c1"># download into memory</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
             <span class="n">s3</span><span class="o">.</span><span class="n">download_fileobj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">io</span><span class="p">)</span>
@@ -1083,15 +1144,17 @@
                                        <span class="c1">#self.source + &#39;.%d&#39; % i)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmppath</span><span class="p">):</span>
                 <span class="n">s3</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">tmppath</span><span class="p">)</span>
+
+            <span class="c1"># TODO: should we handle temp files here?</span>
             <span class="c1">#self._temp_file_cleanup.append(tmppath)</span>
             <span class="k">return</span> <span class="n">tmppath</span>
 
 <div class="viewcode-block" id="S3Source.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.type.html#podpac.core.data.type.S3Source.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_slice</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">no_data_vals</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;no_data_vals&#39;</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_slice</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
@@ -1105,79 +1168,6 @@
             <span class="nb">super</span><span class="p">(</span><span class="n">S3Source</span><span class="p">)</span><span class="o">.</span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_file_cleanup</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="c1">#from podpac.core.data.type import S3Source</span>
-    <span class="c1">#import podpac</span>
-
-    <span class="n">source</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;SMAPSentinel/SMAP_L2_SM_SP_1AIWDV_20170801T000000_20170731T114719_094E21N_T15110_002.h5&#39;</span>
-    <span class="n">s3</span> <span class="o">=</span> <span class="n">S3Source</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
-    
-    <span class="n">s3</span><span class="o">.</span><span class="n">s3_data</span>
-    
-    <span class="c1">#coord_src = podpac.Coordinate(lat=(45, 0, 16), lon=(-70., -65., 16), time=(0, 1, 2),</span>
-                                    <span class="c1">#order=[&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;])</span>
-    <span class="c1">#coord_dst = podpac.Coordinate(lat=(50., 0., 50), lon=(-71., -66., 100),</span>
-                                    <span class="c1">#order=[&#39;lat&#39;, &#39;lon&#39;])</span>
-    <span class="c1">#LON, LAT, TIME = np.meshgrid(coord_src[&#39;lon&#39;].coordinates,</span>
-                                    <span class="c1">#coord_src[&#39;lat&#39;].coordinates,</span>
-                                    <span class="c1">#coord_src[&#39;time&#39;].coordinates)</span>
-    <span class="c1">##LAT, LON = np.mgrid[0:45+coord_src[&#39;lat&#39;].delta/2:coord_src[&#39;lat&#39;].delta,</span>
-                                <span class="c1">##-70:-65+coord_src[&#39;lon&#39;].delta/2:coord_src[&#39;lon&#39;].delta]    </span>
-    <span class="c1">#source = LAT + 0*LON + 0*TIME</span>
-    <span class="c1">#nas = NumpyArray(source=source.astype(float), </span>
-                        <span class="c1">#native_coordinates=coord_src, interpolation=&#39;bilinear&#39;)</span>
-    <span class="c1">##coord_pts = podpac.Coordinate(lat_lon=(coord_src.coords[&#39;lat&#39;], coord_src.coords[&#39;lon&#39;]))</span>
-    <span class="c1">##o3 = nas.execute(coord_pts)</span>
-    <span class="c1">#o = nas.execute(coord_dst)</span>
-    <span class="c1">##coord_pt = podpac.Coordinate(lat=10., lon=-67.)</span>
-    <span class="c1">##o2 = nas.execute(coord_pt)</span>
-    <span class="kn">from</span> <span class="nn">podpac.datalib.smap</span> <span class="k">import</span> <span class="n">SMAPSentinelSource</span>
-    <span class="n">s3</span><span class="o">.</span><span class="n">node_class</span> <span class="o">=</span> <span class="n">SMAPSentinelSource</span>
-
-    <span class="c1">#coordinates = podpac.Coordinate(lat=(45, 0, 16), lon=(-70., -65., 16),</span>
-                                    <span class="c1">#order=[&#39;lat&#39;, &#39;lon&#39;])</span>
-    <span class="n">coordinates</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="mf">39.3</span><span class="p">,</span> <span class="mf">39.</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">77.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">76.7</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">time</span><span class="o">=</span><span class="s1">&#39;2017-09-03T12:00:00&#39;</span><span class="p">,</span> 
-                                    <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>    
-    <span class="n">reprojected_coordinates</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="mi">45</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">70.</span><span class="p">,</span> <span class="o">-</span><span class="mf">65.</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-                                                <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">]),</span>
-    <span class="c1">#                                           &#39;TopographicWetnessIndexComposited3090m&#39;),</span>
-    <span class="c1">#          )</span>
-
-    <span class="n">o</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-    <span class="n">reprojected</span> <span class="o">=</span> <span class="n">ReprojectedSource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span>
-                                    <span class="n">reprojected_coordinates</span><span class="o">=</span><span class="n">reprojected_coordinates</span><span class="p">,</span>
-                                    <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;bilinear&#39;</span><span class="p">)</span>
-
-    <span class="kn">from</span> <span class="nn">podpac.datalib.smap</span> <span class="k">import</span> <span class="n">SMAP</span>
-    <span class="n">smap</span> <span class="o">=</span> <span class="n">SMAP</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="s1">&#39;SPL4SMAU.003&#39;</span><span class="p">)</span>
-    <span class="n">reprojected</span> <span class="o">=</span> <span class="n">ReprojectedSource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">wcs</span><span class="p">,</span>
-                                    <span class="n">coordinates_source</span><span class="o">=</span><span class="n">smap</span><span class="p">,</span>
-                                    <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>    
-    <span class="n">o2</span> <span class="o">=</span> <span class="n">reprojected</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-
-    <span class="n">coordinates_zoom</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="mf">24.8</span><span class="p">,</span> <span class="mf">30.6</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">85.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">77.5</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">time</span><span class="o">=</span><span class="s1">&#39;2017-08-08T12:00:00&#39;</span><span class="p">,</span> 
-                                         <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
-    <span class="n">o3</span> <span class="o">=</span> <span class="n">wcs</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">coordinates_zoom</span><span class="p">)</span>
-
-
-    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
-    
-    <span class="c1"># Rename files in s3 bucket</span>
-    <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span><span class="p">)</span>
-    <span class="n">s3</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;podpac-s3&#39;</span><span class="p">)</span>
-    <span class="n">obs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">s3</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
-    <span class="n">obs2</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">obs</span> <span class="k">if</span> <span class="s1">&#39;SMAP_L2_SM_SP&#39;</span> <span class="ow">in</span> <span class="n">o</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
-    
-    <span class="n">rootpath</span> <span class="o">=</span> <span class="n">obs2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
-    <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">obs2</span><span class="p">:</span>
-        <span class="n">newkey</span> <span class="o">=</span> <span class="n">rootpath</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">key</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">newkey</span><span class="p">)</span><span class="o">.</span><span class="n">copy_from</span><span class="p">(</span><span class="n">CopySource</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3_bucket</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">o</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
-        
-    <span class="n">obs3</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">s3</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
-    <span class="n">obsD</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">obs3</span> <span class="k">if</span> <span class="s1">&#39;ASOwusu&#39;</span> <span class="ow">in</span> <span class="n">o</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">obsD</span><span class="p">:</span>
-        <span class="n">o</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>    
 </pre></div>
 
            </div>

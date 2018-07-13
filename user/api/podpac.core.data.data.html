@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="podpac.core.data.interpolate" href="podpac.core.data.interpolate.html" />
     <link rel="prev" title="podpac.core.coordinate.util" href="podpac.core.coordinate.util.html" /> 
 
   
@@ -115,6 +116,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../api.html#coordinate">Coordinate</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="../api.html#data">Data</a><ul class="current">
 <li class="toctree-l4 current"><a class="current reference internal" href="#">podpac.core.data.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="podpac.core.data.interpolate.html">podpac.core.data.interpolate</a></li>
 <li class="toctree-l4"><a class="reference internal" href="podpac.core.data.type.html">podpac.core.data.type</a></li>
 </ul>
 </li>
@@ -299,21 +301,26 @@ execution is supported.</p>
 
 <dl class="method">
 <dt id="podpac.core.data.data.DataSource.get_data">
-<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coodinates_slice</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/data.html#DataSource.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.data.DataSource.get_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>This should return an UnitsDataArray
-coordinates and coordinates slice may be strided or subsets of the 
-source data, but all coordinates will match 1:1 with the subset data</p>
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/data.html#DataSource.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.data.DataSource.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is must be defined by the data source implementing the DataSource class.
+When data source nodes are executing, this method is called with request coordinates and coordinate indexes.
+The implementing method can choose which input provides the most efficient method of getting data
+(i.e via coordinates or via the index of the coordinates).</p>
+<p>Coordinates and coordinate indexes may be strided or subsets of the
+source data, but all coordinates and coordinate indexes will match 1:1 with the subset data.</p>
+<p>Most methods generate the template UnitsDataArray using the inherited Node method :meth:initialize_coord_array.
+See :meth:podpac.Node.initialize_coord_array for more details.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
-<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data 
+<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data
 source</p>
 </dd>
-<dt><strong>coodinates_slice</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
-<dd><p class="first last">Either a list of slices or a boolean array that give the indices of the data that needs to be retrieved from
+<dt><strong>coordinates_index</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
+<dd><p class="first last">A list of slices or a boolean array that give the indices of the data that needs to be retrieved from
 the data source</p>
 </dd>
 </dl>
@@ -347,7 +354,7 @@ there is no intersection</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates</span></dt>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
 <dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.</p>
 </dd>
 </dl>
@@ -357,8 +364,8 @@ there is no intersection</p>
 <dt><strong>UnitsDataArray</strong></dt>
 <dd><p class="first last">A nan-array in case the native_coordinates do not intersection with coordinates</p>
 </dd>
-<dt><strong>UnitsDataArray, coords_subset</strong></dt>
-<dd><p class="first last">An array containing the subset of the datasource, along with the coordinates of the datasubset (in the 
+<dt><strong>UnitsDataArray, podpac.Coordinate</strong></dt>
+<dd><p class="first last">An array containing the subset of the datasource, along with the coordinates of the datasubset (in the
 coordinate system of the data source).</p>
 </dd>
 </dl>
@@ -376,19 +383,28 @@ coordinate system of the data source).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>podpac.Coordinate</strong></dt>
 <dd><p class="first last">The coordinates describing the data source array.</p>
 </dd>
 </dl>
 </td>
 </tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>NotImplementedError</strong></dt>
+<dd><p class="first last">This needs to be implemented by derived classes</p>
+</dd>
+</dl>
+</td>
+</tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt>NotImplementedError</dt>
-<dd>This needs to be implemented by derived classes</dd>
-</dl>
+<p class="rubric">Notes</p>
+<p>Need to pay attention to:
+- the order of the dimensions
+- the stacking of the dimension
+- the type of coordinates</p>
+<p>Coordinates should be non-nan and non-repeating for best compatibility</p>
 </dd></dl>
 
 <dl class="method">
@@ -527,6 +543,8 @@ coordinate system of the data source).</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="podpac.core.data.interpolate.html" class="btn btn-neutral float-right" title="podpac.core.data.interpolate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="podpac.core.coordinate.util.html" class="btn btn-neutral" title="podpac.core.coordinate.util" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

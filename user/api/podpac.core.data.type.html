@@ -33,7 +33,8 @@
   <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="podpac.datalib.smap" href="podpac.datalib.smap.html" /> 
+    <link rel="next" title="podpac.datalib.smap" href="podpac.datalib.smap.html" />
+    <link rel="prev" title="podpac.core.data.interpolate" href="podpac.core.data.interpolate.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -115,6 +116,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../api.html#coordinate">Coordinate</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="../api.html#data">Data</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="podpac.core.data.data.html">podpac.core.data.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="podpac.core.data.interpolate.html">podpac.core.data.interpolate</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">podpac.core.data.type</a></li>
 </ul>
 </li>
@@ -254,21 +256,26 @@
 </table>
 <dl class="method">
 <dt id="podpac.core.data.type.NumpyArray.get_data">
-<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_slice</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#NumpyArray.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.NumpyArray.get_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>This should return an UnitsDataArray
-coordinates and coordinates slice may be strided or subsets of the 
-source data, but all coordinates will match 1:1 with the subset data</p>
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#NumpyArray.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.NumpyArray.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is must be defined by the data source implementing the DataSource class.
+When data source nodes are executing, this method is called with request coordinates and coordinate indexes.
+The implementing method can choose which input provides the most efficient method of getting data
+(i.e via coordinates or via the index of the coordinates).</p>
+<p>Coordinates and coordinate indexes may be strided or subsets of the
+source data, but all coordinates and coordinate indexes will match 1:1 with the subset data.</p>
+<p>Most methods generate the template UnitsDataArray using the inherited Node method :meth:initialize_coord_array.
+See :meth:podpac.Node.initialize_coord_array for more details.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
-<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data 
+<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data
 source</p>
 </dd>
-<dt><strong>coodinates_slice</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
-<dd><p class="first last">Either a list of slices or a boolean array that give the indices of the data that needs to be retrieved from
+<dt><strong>coordinates_index</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
+<dd><p class="first last">A list of slices or a boolean array that give the indices of the data that needs to be retrieved from
 the data source</p>
 </dd>
 </dl>
@@ -297,11 +304,11 @@ the data source</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>auth_class</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.core.authentication.SessionWithHeaderRedirection</span></dt>
-<dd><p class="first last">A request.Session-derived class that has header redirection. This is used to authenticate using an EarthData 
+<dd><p class="first last">A request.Session-derived class that has header redirection. This is used to authenticate using an EarthData
 login. When username and password are provided, an auth_session is created using this class.</p>
 </dd>
 <dt><strong>auth_session</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.core.authentication.SessionWithHeaderRedirection</span></dt>
-<dd><p class="first last">Instance of the auth_class. This is created if username and password is supplied, but this object can also be 
+<dd><p class="first last">Instance of the auth_class. This is created if username and password is supplied, but this object can also be
 supplied directly</p>
 </dd>
 <dt><strong>datakey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
@@ -332,21 +339,26 @@ auth_session instead if you have security concerns.</p>
 </table>
 <dl class="method">
 <dt id="podpac.core.data.type.PyDAP.get_data">
-<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_slice</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#PyDAP.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.PyDAP.get_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>This should return an UnitsDataArray
-coordinates and coordinates slice may be strided or subsets of the 
-source data, but all coordinates will match 1:1 with the subset data</p>
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#PyDAP.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.PyDAP.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is must be defined by the data source implementing the DataSource class.
+When data source nodes are executing, this method is called with request coordinates and coordinate indexes.
+The implementing method can choose which input provides the most efficient method of getting data
+(i.e via coordinates or via the index of the coordinates).</p>
+<p>Coordinates and coordinate indexes may be strided or subsets of the
+source data, but all coordinates and coordinate indexes will match 1:1 with the subset data.</p>
+<p>Most methods generate the template UnitsDataArray using the inherited Node method :meth:initialize_coord_array.
+See :meth:podpac.Node.initialize_coord_array for more details.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
-<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data 
+<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data
 source</p>
 </dd>
-<dt><strong>coodinates_slice</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
-<dd><p class="first last">Either a list of slices or a boolean array that give the indices of the data that needs to be retrieved from
+<dt><strong>coordinates_index</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
+<dd><p class="first last">A list of slices or a boolean array that give the indices of the data that needs to be retrieved from
 the data source</p>
 </dd>
 </dl>
@@ -388,8 +400,11 @@ the data source</p>
 </tbody>
 </table>
 <p class="rubric">Notes</p>
-<p>Need to pay attention to: the order of the dimensions, the stacking of the dimension, and the type of
-coordinates for best efficiency. Also, coordinates should be non-nan and non-repeating for best compatibility.</p>
+<p>Need to pay attention to:
+- the order of the dimensions
+- the stacking of the dimension
+- the type of coordinates</p>
+<p>Coordinates should be non-nan and non-repeating for best compatibility</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -511,11 +526,11 @@ coordinates for best efficiency. Also, coordinates should be non-nan and non-rep
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>key</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Key present in the metadata of the band.</p>
+<dt><strong>key</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str / list</span></dt>
+<dd><p class="first last">Key present in the metadata of the band. Can be a single key, or a list of keys.</p>
 </dd>
-<dt><strong>value</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Value of the key that should be returned</p>
+<dt><strong>value</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str / list</span></dt>
+<dd><p class="first last">Value of the key that should be returned. Can be a single value, or a list of values</p>
 </dd>
 </dl>
 </td>
@@ -533,21 +548,26 @@ coordinates for best efficiency. Also, coordinates should be non-nan and non-rep
 
 <dl class="method">
 <dt id="podpac.core.data.type.RasterioSource.get_data">
-<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coodinates_slice</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#RasterioSource.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.RasterioSource.get_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>This should return an UnitsDataArray
-coordinates and coordinates slice may be strided or subsets of the 
-source data, but all coordinates will match 1:1 with the subset data</p>
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#RasterioSource.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.RasterioSource.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is must be defined by the data source implementing the DataSource class.
+When data source nodes are executing, this method is called with request coordinates and coordinate indexes.
+The implementing method can choose which input provides the most efficient method of getting data
+(i.e via coordinates or via the index of the coordinates).</p>
+<p>Coordinates and coordinate indexes may be strided or subsets of the
+source data, but all coordinates and coordinate indexes will match 1:1 with the subset data.</p>
+<p>Most methods generate the template UnitsDataArray using the inherited Node method :meth:initialize_coord_array.
+See :meth:podpac.Node.initialize_coord_array for more details.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
-<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data 
+<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data
 source</p>
 </dd>
-<dt><strong>coodinates_slice</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
-<dd><p class="first last">Either a list of slices or a boolean array that give the indices of the data that needs to be retrieved from
+<dt><strong>coordinates_index</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
+<dd><p class="first last">A list of slices or a boolean array that give the indices of the data that needs to be retrieved from
 the data source</p>
 </dd>
 </dl>
@@ -581,8 +601,14 @@ the data source</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>Need to pay attention to:
+- the order of the dimensions
+- the stacking of the dimension
+- the type of coordinates</p>
+<p>Coordinates should be non-nan and non-repeating for best compatibility</p>
 <p>The default implementation tries to find the lat/lon coordinates based on dataset.affine or dataset.transform
-(depending on the version of rasterio). It cannot determine the alt or time dimensions, so child classes may 
+(depending on the version of rasterio). It cannot determine the alt or time dimensions, so child classes may
 have to overload this method.</p>
 </dd></dl>
 
@@ -663,21 +689,26 @@ is not implemented</p>
 
 <dl class="method">
 <dt id="podpac.core.data.type.ReprojectedSource.get_data">
-<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_slice</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#ReprojectedSource.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.ReprojectedSource.get_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>This should return an UnitsDataArray
-coordinates and coordinates slice may be strided or subsets of the 
-source data, but all coordinates will match 1:1 with the subset data</p>
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#ReprojectedSource.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.ReprojectedSource.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is must be defined by the data source implementing the DataSource class.
+When data source nodes are executing, this method is called with request coordinates and coordinate indexes.
+The implementing method can choose which input provides the most efficient method of getting data
+(i.e via coordinates or via the index of the coordinates).</p>
+<p>Coordinates and coordinate indexes may be strided or subsets of the
+source data, but all coordinates and coordinate indexes will match 1:1 with the subset data.</p>
+<p>Most methods generate the template UnitsDataArray using the inherited Node method :meth:initialize_coord_array.
+See :meth:podpac.Node.initialize_coord_array for more details.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
-<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data 
+<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data
 source</p>
 </dd>
-<dt><strong>coodinates_slice</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
-<dd><p class="first last">Either a list of slices or a boolean array that give the indices of the data that needs to be retrieved from
+<dt><strong>coordinates_index</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
+<dd><p class="first last">A list of slices or a boolean array that give the indices of the data that needs to be retrieved from
 the data source</p>
 </dd>
 </dl>
@@ -712,8 +743,11 @@ the data source</p>
 </tbody>
 </table>
 <p class="rubric">Notes</p>
-<p>Need to pay attention to: the order of the dimensions, the stacking of the dimension, and the type of
-coordinates for best efficiency. Also, coordinates should be non-nan and non-repeating for best compatibility.</p>
+<p>Need to pay attention to:
+- the order of the dimensions
+- the stacking of the dimension
+- the type of coordinates</p>
+<p>Coordinates should be non-nan and non-repeating for best compatibility</p>
 </dd></dl>
 
 </dd></dl>
@@ -737,7 +771,7 @@ coordinates for best efficiency. Also, coordinates should be non-nan and non-rep
 <dd><p class="first last">Keyword arguments passed to <cite>node_class</cite> when automatically creating <cite>node</cite></p>
 </dd>
 <dt><strong>return_type</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">Either: ‘file_handle’ (for files downloaded to RAM); or 
+<dd><p class="first last">Either: ‘file_handle’ (for files downloaded to RAM); or
 the default option ‘path’ (for files downloaded to disk)</p>
 </dd>
 <dt><strong>s3_bucket</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
@@ -757,21 +791,26 @@ If return_type == ‘path’ returns a string to the data</p>
 </table>
 <dl class="method">
 <dt id="podpac.core.data.type.S3Source.get_data">
-<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_slice</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#S3Source.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.S3Source.get_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>This should return an UnitsDataArray
-coordinates and coordinates slice may be strided or subsets of the 
-source data, but all coordinates will match 1:1 with the subset data</p>
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#S3Source.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.S3Source.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is must be defined by the data source implementing the DataSource class.
+When data source nodes are executing, this method is called with request coordinates and coordinate indexes.
+The implementing method can choose which input provides the most efficient method of getting data
+(i.e via coordinates or via the index of the coordinates).</p>
+<p>Coordinates and coordinate indexes may be strided or subsets of the
+source data, but all coordinates and coordinate indexes will match 1:1 with the subset data.</p>
+<p>Most methods generate the template UnitsDataArray using the inherited Node method :meth:initialize_coord_array.
+See :meth:podpac.Node.initialize_coord_array for more details.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
-<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data 
+<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data
 source</p>
 </dd>
-<dt><strong>coodinates_slice</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
-<dd><p class="first last">Either a list of slices or a boolean array that give the indices of the data that needs to be retrieved from
+<dt><strong>coordinates_index</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
+<dd><p class="first last">A list of slices or a boolean array that give the indices of the data that needs to be retrieved from
 the data source</p>
 </dd>
 </dl>
@@ -866,7 +905,7 @@ be returned in.</p>
 
 <dl class="method">
 <dt id="podpac.core.data.type.WCS.get_data">
-<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coodinates_slice</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#WCS.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.WCS.get_data" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/data/type.html#WCS.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.data.type.WCS.get_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>{get_data}</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -920,6 +959,8 @@ data wrangling for us…</p>
       
         <a href="podpac.datalib.smap.html" class="btn btn-neutral float-right" title="podpac.datalib.smap" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
+      
+        <a href="podpac.core.data.interpolate.html" class="btn btn-neutral" title="podpac.core.data.interpolate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
