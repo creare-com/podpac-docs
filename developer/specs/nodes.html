@@ -258,8 +258,8 @@
 <li>Any parameters set at this stage are used as default parameters, but can be overwritten during execution. After execution, it reverts to the defaults</li>
 </ul>
 </div>
-<div class="section" id="execute-coordinates-params-none-output-none-method-none">
-<span id="execute-coordinates-params-none-output-none-method-none"></span><h4>execute(coordinates, params=None, output=None, method=None)<a class="headerlink" href="#execute-coordinates-params-none-output-none-method-none" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="execute-coordinates-params-none-output-none-method-none-tempted-to-rename-to-evaluate-or-eval">
+<span id="execute-coordinates-params-none-output-none-method-none-tempted-to-rename-to-evaluate-or-eval"></span><h4>execute(coordinates, params=None, output=None, method=None)  # Tempted to rename to evaluate or eval<a class="headerlink" href="#execute-coordinates-params-none-output-none-method-none-tempted-to-rename-to-evaluate-or-eval" title="Permalink to this headline">¶</a></h4>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Parameters</span>
@@ -436,6 +436,7 @@
 <li>Safest is just to disallow this behaviour…</li>
 </ul>
 </li>
+<li>Alternatively (Currently the favorite): WE could raise an exception, and provide a execute_group method that will do the looping for the user. This avoids any group coordinates executed within the pipeline, but still let’s a user evaluate a group in a consistent manner.</li>
 </ul>
 </li>
 <li><p class="first">The output will contain metadata on the:</p>
@@ -492,12 +493,24 @@
 <li>Note, the default or instantiated parameters are not overwritten by subsequent executes</li>
 </ul>
 </li>
+<li><p class="first">We could also suppored paths such as the following, where both are equivalent:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;input.my_param&#39;</span><span class="o">=</span><span class="mi">1</span><span class="p">}</span>
+<span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;my_param&#39;</span><span class="o">=</span><span class="mi">1</span><span class="p">}}</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">The special key <code class="docutils literal notranslate"><span class="pre">'*'</span></code> could be reserved for passing a parameter to ALL nodes in the pipeline, unless overwritten by a specific node.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;*&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">},</span> <span class="s1">&#39;input.interpolation&#39;</span><span class="o">=</span><span class="s1">&#39;bilinear&#39;</span><span class="p">},</span> 
+</pre></div>
+</div>
+</li>
 </ul>
 </div>
-<div class="section" id="find-coordinates-dims-none-bounds-none">
-<span id="find-coordinates-dims-none-bounds-none"></span><h4>find_coordinates(dims=None, bounds=None)<a class="headerlink" href="#find-coordinates-dims-none-bounds-none" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">find_coordinates</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sortby</span><span class="o">=</span><span class="s1">&#39;size&#39;</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;This is a helper function to get the largest extents, or highest resolution native coordinates within a pipeline</span>
+<div class="section" id="find-coordinates">
+<span id="find-coordinates"></span><h4>find_coordinates<a class="headerlink" href="#find-coordinates" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">find_coordinates</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sortby</span><span class="o">=</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="n">stop_types</span><span class="o">=</span><span class="p">[</span><span class="n">Compositor</span><span class="p">,</span> <span class="n">DataSource</span><span class="p">]):</span>
+    <span class="sd">&#39;&#39;&#39;This is a helper function to get all the native coordinates within a pipeline, sorted by</span>
+<span class="sd">       the largest extents, or highest resolution</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
@@ -509,6 +522,8 @@
 <span class="sd">        Default is None, in which case all coordinates found are returned. Otherwise, only the first `number` of coordinates are returned, based on the `sortby` specified. If number is &lt;0, the the last `number` of coordinates are returned. </span>
 <span class="sd">    sortby : str, optional</span>
 <span class="sd">        Default is &#39;size&#39;. `sortby` should be in [&#39;size&#39;, &#39;extents&#39;]. If &#39;size&#39;, the returned coordinates are sorted by the number of coordinates in the dimension, with the largest first. If &#39;extents&#39;, the returned coordinates are sorted by the largest geographical extent. In case of ties, the sorting looks at the other option to break the tie. </span>
+<span class="sd">    stop_type : list, optional</span>
+<span class="sd">        List of node types where search should be stopped. By default, searches stop at DataSource and Compositor nodes. Remove the compositor node to search for native coordinates of individual files, but this may take a long time.</span>
 <span class="sd">        </span>
 <span class="sd">    Returns</span>
 <span class="sd">    --------</span>
@@ -532,16 +547,127 @@
 </div>
 <div class="section" id="get-item-self">
 <span id="get-item-self"></span><h4><strong>get_item</strong>(self, …)<a class="headerlink" href="#get-item-self" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">__get__item__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="sd">&#39;&#39;&#39; Returns any slice of the data for the last execution</span>
+<span class="sd">    Paramters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    key : slice, np.ndarray, dict, list, str</span>
+<span class="sd">        * If isinstance (key, [slice, np.ndarray, dict, list]), then the keys gets passed down to the last output of the node output[key].</span>
+<span class="sd">        * If isinstance(key, str) then the string points to a path node pipeline, and the data for that node for the last execution is returned (Calls `get` function with execute=True)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    UnitsDataArray </span>
+<span class="sd">        The data from the most recent execution</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
 </div>
+</div>
+<div class="section" id="get-self-str-coordinates-params-execute-false">
+<span id="get-self-str-coordinates-params-execute-false"></span><h4>get(self, str, coordinates, params, execute=False)<a class="headerlink" href="#get-self-str-coordinates-params-execute-false" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">execute</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Retrieves execution results from the node</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    key : str</span>
+<span class="sd">       Path to the cached object (within the node pipeline). If empty or &#39;.&#39;, returns data for the current node.</span>
+<span class="sd">    coordinates: Coordinate </span>
+<span class="sd">        Coordinates for which cached data should be retrieved</span>
+<span class="sd">    params : dict</span>
+<span class="sd">        Parameters used to execute the node for which data should be retrieved. These parameters should be relative to the current node from which get is called. E.g. key = .input.source, to set a param on source, use params={&#39;input.source.param&#39;=&lt;value&gt;}</span>
+<span class="sd">    execute : bool, optional</span>
+<span class="sd">        Default is False. If True, will execute the node to retrieve data if the data is not within the cache. Otherwise, will raise an exception if data is not in the cache</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    UnitsDataArray </span>
+<span class="sd">        The cached data from the requested coordinates/params</span>
+<span class="sd">    </span>
+<span class="sd">    Raises</span>
+<span class="sd">    -------</span>
+<span class="sd">    CacheError</span>
+<span class="sd">        If the data is not in the cache and execute == False</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>This is VERY similar to the execute method… in fact, execute probably calls this function for the caching.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="definition">
+<span id="definition"></span><h3>definition<a class="headerlink" href="#definition" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dict&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns the pipeline node definition in the desired format</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    type: str, optional</span>
+<span class="sd">        Default is &#39;dict&#39;, which returns a dictionary definition of the pipeline. </span>
+<span class="sd">        &#39;json&#39;: returns a json-formatted text string of the pipeline</span>
+<span class="sd">        &#39;rich&#39;: returns a javascript widget &lt;-- should this be &#39;widget&#39; instead? </span>
+<span class="sd">        &#39;node&#39;: Returns a PipelineNode instance of this object</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    various</span>
+<span class="sd">        Depends on type, see above. </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>There are a few shortcut properties that call this function<ul>
+<li><code class="docutils literal notranslate"><span class="pre">pipeline_json</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">pipeline_rich</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">pipeline_dict</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">pipeline_node</span></code></li>
+</ul>
+</li>
+</ul>
 </div>
 </div>
 <div class="section" id="developer-interface">
 <span id="developer-interface"></span><h2>Developer interface<a class="headerlink" href="#developer-interface" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="attributes">
-<span id="attributes"></span><h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="public-attributes">
+<span id="public-attributes"></span><h3>Public Attributes<a class="headerlink" href="#public-attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">native_coordinates</span></code>: Underlying data source coordiantes, when available</li>
+<li><code class="docutils literal notranslate"><span class="pre">evaluated_coordinates</span></code>: Coordinated used for evaluating the node</li>
+<li><code class="docutils literal notranslate"><span class="pre">output_coordinates</span></code>: Coordinates present in the output from the node</li>
+<li><code class="docutils literal notranslate"><span class="pre">units</span></code>: Units associated with the output of this node</li>
+<li><code class="docutils literal notranslate"><span class="pre">interpolation</span></code>: Interpolation method used with this node</li>
+</ul>
 </div>
-<div class="section" id="methods">
-<span id="id1"></span><h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="private-attributes">
+<span id="private-attributes"></span><h3>Private Attributes<a class="headerlink" href="#private-attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_output</span></code>: Copy of last output from this node</li>
+<li><code class="docutils literal notranslate"><span class="pre">_params</span></code>: Copy of initialized/default parameters for this node</li>
+</ul>
+</div>
+<div class="section" id="additional-public-methods">
+<span id="additional-public-methods"></span><h3>Additional public methods<a class="headerlink" href="#additional-public-methods" title="Permalink to this headline">¶</a></h3>
+<p>( Some of these are already documented in the code )</p>
+<ul class="simple">
+<li>cache_obj: Used to cache an object</li>
+<li>cache_path: file where object is cached</li>
+<li>cache_dir: directory where objects are cached</li>
+<li>clear_disk_cache: utility used to clear cache for this node</li>
+<li>init: Used for initialization of derived classes</li>
+<li>_first_init: Used to do any initialization before any of the core initialization is done</li>
+<li>initialize_array</li>
+<li>initialize_coord_array</li>
+<li>initialize_output_array</li>
+<li>get_cached_object: similar go ‘get’, but specifies a particular filename? Maybe superceded by caching refactor?</li>
+<li>save_to_disk?</li>
+</ul>
+</div>
+<div class="section" id="testing">
+<span id="testing"></span><h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>I think testing should live in the common_test_utils. I.e. separate from this node.</li>
+</ul>
 </div>
 </div>
 </div>
