@@ -189,16 +189,19 @@
             
   <div class="section" id="module-podpac.datalib.smap">
 <span id="podpac-datalib-smap"></span><h1>podpac.datalib.smap<a class="headerlink" href="#module-podpac.datalib.smap" title="Permalink to this headline">¶</a></h1>
-<p>Summary</p>
+<p>Specialized PODPAC nodes use to access SMAP data via OpenDAP from nsidc.</p>
 <div class="section" id="attributes">
 <h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
 <dt>SMAP_BASE_URL <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>Description</dd>
+<dd>Url to nsidc openDAP server</dd>
 <dt>SMAP_INCOMPLETE_SOURCE_COORDINATES <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>Description</dd>
-<dt>SMAP_PRODUCT_MAP <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd>Description</dd>
+<dd>List of products whose source coordinates are incomplete. This means any shared coordinates cannot be extracted</dd>
+<dt>SMAP_PRODUCT_DICT: dict</dt>
+<dd>Mapping of important keys into the openDAP dataset that deals with inconsistencies across SMAP products. Used to add
+new SMAP products.</dd>
+<dt>SMAP_PRODUCT_MAP <span class="classifier-delimiter">:</span> <span class="classifier">xr.DataArray</span></dt>
+<dd>Same as SMAP_PRODUCT_DICT, but stored as a more convenient DataArray object</dd>
 </dl>
 <p class="rubric">Functions</p>
 <table border="1" class="longtable docutils">
@@ -208,10 +211,10 @@
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.datalib.smap.np2smap_date" title="podpac.datalib.smap.np2smap_date"><code class="xref py py-obj docutils literal notranslate"><span class="pre">np2smap_date</span></code></a>(date)</td>
-<td>Summary</td>
+<td>Convert dates using the numpy format to SMAP strings</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.datalib.smap.smap2np_date" title="podpac.datalib.smap.smap2np_date"><code class="xref py py-obj docutils literal notranslate"><span class="pre">smap2np_date</span></code></a>(date)</td>
-<td>Summary</td>
+<td>Convert dates using the format in SMAP to numpy datetime64</td>
 </tr>
 </tbody>
 </table>
@@ -223,61 +226,60 @@
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.datalib.smap.SMAP" title="podpac.datalib.smap.SMAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMAP</span></code></a>(**kwargs)</td>
-<td>Summary</td>
+<td>Compositor of all the SMAPDateFolder’s for every available SMAP date.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.datalib.smap.SMAPBestAvailable" title="podpac.datalib.smap.SMAPBestAvailable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMAPBestAvailable</span></code></a>(**kwargs)</td>
-<td>Summary</td>
+<td>Compositor of SMAP-Sentinel and the Level 4 SMAP Analysis Update soil moisture</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.datalib.smap.SMAPDateFolder" title="podpac.datalib.smap.SMAPDateFolder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMAPDateFolder</span></code></a>(**kwargs)</td>
-<td>Summary</td>
+<td>Compositor of all the SMAP source urls present in a particular folder which is defined for a particular date</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.datalib.smap.SMAPPorosity" title="podpac.datalib.smap.SMAPPorosity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMAPPorosity</span></code></a>(**kwargs)</td>
-<td>Summary</td>
+<td>Retrieve the specific SMAP property: Porosity</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.datalib.smap.SMAPProperties" title="podpac.datalib.smap.SMAPProperties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMAPProperties</span></code></a>(**kwargs)</td>
-<td>Summary</td>
+<td>Accesses properties related to the generation of SMAP products.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.datalib.smap.SMAPSource" title="podpac.datalib.smap.SMAPSource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMAPSource</span></code></a>(**kwargs)</td>
-<td>Summary</td>
+<td>Accesses SMAP data given a specific openDAP URL.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.datalib.smap.SMAPWilt" title="podpac.datalib.smap.SMAPWilt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMAPWilt</span></code></a>(**kwargs)</td>
-<td>Summary</td>
+<td>Retrieve the specific SMAP property: Wilting Point</td>
 </tr>
 </tbody>
 </table>
 <dl class="class">
 <dt id="podpac.datalib.smap.SMAP">
 <em class="property">class </em><code class="descclassname">podpac.datalib.smap.</code><code class="descname">SMAP</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAP" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Compositor of all the SMAPDateFolder’s for every available SMAP date. Essentially a compositor of all SMAP data 
+for a particular product.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>auth_class</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>auth_class</strong> <span class="classifier-delimiter">:</span> <span class="classifier">EarthDataSession (Class object)</span></dt>
+<dd><p class="first last">Class used to make an authenticated session from a username and password (both are defined in base class)</p>
 </dd>
-<dt><strong>auth_session</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>auth_session</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Instance(EarthDataSession)</span></dt>
+<dd><p class="first last">Authenticated session used to make http requests usingNASA Earth Data Login credentials</p>
 </dd>
-<dt><strong>base_url</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>base_url</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Url to nsidc openDAP server</p>
 </dd>
-<dt><strong>date_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>date_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SRE_Pattern</span></dt>
+<dd><p class="first last">Regular expression used to extract all folder dates (or folder names) for the particular SMAP product.</p>
 </dd>
-<dt><strong>layerkey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>layerkey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Key used to retrieve data from OpenDAP dataset. This specifies the key used to retrieve the data</p>
 </dd>
-<dt><strong>password</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>password</strong> <span class="classifier-delimiter">:</span> <span class="classifier">User’s EarthData password</span></dt>
+<dd></dd>
+<dt><strong>product</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">SMAP Product name</p>
 </dd>
-<dt><strong>product</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>username</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
+<dt><strong>username</strong> <span class="classifier-delimiter">:</span> <span class="classifier">User’s EarthData username</span></dt>
+<dd></dd>
 </dl>
 </td>
 </tr>
@@ -324,21 +326,24 @@
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAP.get_available_times_dates">
 <code class="descname">get_available_times_dates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAP.get_available_times_dates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAP.get_available_times_dates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Returns the available folder dates in the SMAP product</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>np.ndarray</strong></dt>
+<dd><p class="first last">Array of dates in numpy datetime64 format</p>
+</dd>
+<dt><strong>list</strong></dt>
+<dd><p class="first last">list of dates in SMAP date format</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>RuntimeError</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">If the http resource could not be accessed (check Earthdata login credentials)</p>
 </dd>
 </dl>
 </td>
@@ -350,90 +355,90 @@
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAP.get_partial_native_coordinates_sources">
 <code class="descname">get_partial_native_coordinates_sources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAP.get_partial_native_coordinates_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAP.get_partial_native_coordinates_sources" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Returns coordinates solely based on the filenames of the sources. This function was motivated by the 
+SMAP-Sentinel product, which does not have regularly stored tiles (in space and time).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>podpac.Coordinates</strong></dt>
+<dd><p class="first last">Coordinates of all the sources in the product family</p>
+</dd>
+<dt><strong>np.ndarray(dtype=object(SMAPSource))</strong></dt>
+<dd><p class="first last">Array of all the SMAPSources pointing to unique OpenDAP urls corresponding to the partial native coordinates</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>The outputs of this function can be used to find source that overlap spatially or temporally with a subset 
+region specified by the user.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAP.get_shared_coordinates">
 <code class="descname">get_shared_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAP.get_shared_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAP.get_shared_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Coordinates that are shared by all files in the SMAP product family.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>podpac.Coordinates</strong></dt>
+<dd><p class="first last">Coordinates shared by all files in the SMAP product.</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>For example, the gridded SMAP data have the same lat-lon coordinates in every file (global at some resolution), 
+and the only difference between files is the time coordinate. 
+This is not true for the SMAP-Sentinel product, in which case this function returns None</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAP.get_source_coordinates">
 <code class="descname">get_source_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAP.get_source_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAP.get_source_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
+<dd><p>{source_coordinates}</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.datalib.smap.SMAP.keys">
 <code class="descname">keys</code><a class="headerlink" href="#podpac.datalib.smap.SMAP.keys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Available layers that are in the OpenDAP dataset</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>List</strong></dt>
+<dd><p class="first last">The list of available keys from the OpenDAP dataset. Any of these keys can be set as self.datakey.</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>This function assumes that all of the keys in the available dataset are the same for every file.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.datalib.smap.SMAP.source">
 <code class="descname">source</code><a class="headerlink" href="#podpac.datalib.smap.SMAP.source" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>The source is used for a unique name to cache SMAP products.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">The SMAP product name.</p>
 </dd>
 </dl>
 </td>
@@ -447,63 +452,81 @@
 <dl class="class">
 <dt id="podpac.datalib.smap.SMAPBestAvailable">
 <em class="property">class </em><code class="descclassname">podpac.datalib.smap.</code><code class="descname">SMAPBestAvailable</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPBestAvailable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPBestAvailable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Compositor of SMAP-Sentinel and the Level 4 SMAP Analysis Update soil moisture</p>
+<dl class="method">
+<dt id="podpac.datalib.smap.SMAPBestAvailable.get_shared_coordinates">
+<code class="descname">get_shared_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPBestAvailable.get_shared_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPBestAvailable.get_shared_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates shared by each source.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>NotImplementedError</strong></dt>
+<dd><p class="first last">Description</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="podpac.datalib.smap.SMAPDateFolder">
 <em class="property">class </em><code class="descclassname">podpac.datalib.smap.</code><code class="descname">SMAPDateFolder</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPDateFolder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPDateFolder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Compositor of all the SMAP source urls present in a particular folder which is defined for a particular date</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>auth_class</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>auth_class</strong> <span class="classifier-delimiter">:</span> <span class="classifier">EarthDataSession (Class object)</span></dt>
+<dd><p class="first last">Class used to make an authenticated session from a username and password (both are defined in base class)</p>
 </dd>
-<dt><strong>auth_session</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>auth_session</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Instance(EarthDataSession)</span></dt>
+<dd><p class="first last">Authenticated session used to make http requests usingNASA Earth Data Login credentials</p>
 </dd>
-<dt><strong>base_url</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>base_url</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Url to nsidc openDAP server</p>
 </dd>
-<dt><strong>cache_native_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>cache_native_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd><p class="first last">Default is False. If True, the native_coordinates will be cached to disk after being computed the first time</p>
 </dd>
-<dt><strong>date_time_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>date_time_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SRE_Pattern</span></dt>
+<dd><p class="first last">Regular expression used to retrieve the date and time from the filename if file_url_re matches</p>
 </dd>
-<dt><strong>date_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>date_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SRE_Pattern</span></dt>
+<dd><p class="first last">Regular expression used to retrieve the date from the filename if file_url_re2 matches</p>
 </dd>
-<dt><strong>file_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>file_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SRE_Pattern</span></dt>
+<dd><p class="first last">Regular expression used to find files in a folder that match the expected format of a SMAP source file</p>
 </dd>
-<dt><strong>file_url_re2</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>file_url_re2</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SRE_Pattern</span></dt>
+<dd><p class="first last">Same as file_url_re, but for variation of SMAP files that do not contain time in the filename</p>
 </dd>
-<dt><strong>folder_date</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>folder_date</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">The name of the folder. This is used to construct the OpenDAP URL from the base_url</p>
 </dd>
-<dt><strong>latlon_delta</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>latlon_delta</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
+<dd><p class="first last">Default is 1.5 degrees. For SMAP files that contain LAT-LON data (i.e. SMAP-Sentinel), how many degrees does the
+tile cover?</p>
 </dd>
-<dt><strong>latlon_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>latlon_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SRE_Pattern</span></dt>
+<dd><p class="first last">Regular expression used to find the lat-lon coordinates associated with the file from the file name</p>
 </dd>
-<dt><strong>layerkey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>layerkey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Key used to retrieve data from OpenDAP dataset. This specifies the key used to retrieve the data</p>
 </dd>
-<dt><strong>password</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>password</strong> <span class="classifier-delimiter">:</span> <span class="classifier">User’s EarthData password</span></dt>
+<dd></dd>
+<dt><strong>product</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">SMAP Product name</p>
 </dd>
-<dt><strong>product</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>username</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
+<dt><strong>username</strong> <span class="classifier-delimiter">:</span> <span class="classifier">User’s EarthData username</span></dt>
+<dd></dd>
 </dl>
 </td>
 </tr>
@@ -518,15 +541,21 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>np.ndarray</strong></dt>
+<dd><p class="first last">Available times of sources in the folder</p>
+</dd>
+<dt><strong>np.ndarray</strong></dt>
+<dd><p class="first last">Available lat lon coordinates of sources in the folder, None if empty</p>
+</dd>
+<dt><strong>np.ndarray</strong></dt>
+<dd><p class="first last">The url’s of the sources</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>RuntimeError</strong></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">If the NSIDC website cannot be accessed</p>
 </dd>
 </dl>
 </td>
@@ -538,14 +567,14 @@
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAPDateFolder.get_shared_coordinates">
 <code class="descname">get_shared_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPDateFolder.get_shared_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPDateFolder.get_shared_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Coordinate that are shared by all files in the folder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>podpac.Coordinates</strong></dt>
+<dd><p class="first last">Coordinates shared by all files in the folder</p>
 </dd>
 </dl>
 </td>
@@ -557,52 +586,41 @@
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAPDateFolder.get_source_coordinates">
 <code class="descname">get_source_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPDateFolder.get_source_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPDateFolder.get_source_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
+<dd><p>{source_coordinates}</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.datalib.smap.SMAPDateFolder.keys">
 <code class="descname">keys</code><a class="headerlink" href="#podpac.datalib.smap.SMAPDateFolder.keys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Available layers that are in the OpenDAP dataset</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>List</strong></dt>
+<dd><p class="first last">The list of available keys from the OpenDAP dataset. Any of these keys can be set as self.datakey.</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>This function assumes that all of the keys in the available dataset are the same for every file.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.datalib.smap.SMAPDateFolder.source">
 <code class="descname">source</code><a class="headerlink" href="#podpac.datalib.smap.SMAPDateFolder.source" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>URL to OpenDAP dataset folder</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">URL to OpenDAP dataset folder</p>
 </dd>
 </dl>
 </td>
@@ -616,14 +634,14 @@
 <dl class="class">
 <dt id="podpac.datalib.smap.SMAPPorosity">
 <em class="property">class </em><code class="descclassname">podpac.datalib.smap.</code><code class="descname">SMAPPorosity</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPPorosity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPPorosity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Retrieve the specific SMAP property: Porosity</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>property</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>property</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, Optional</span></dt>
+<dd><p class="first last">Uses ‘clsm_poros’</p>
 </dd>
 </dl>
 </td>
@@ -635,17 +653,35 @@
 <dl class="class">
 <dt id="podpac.datalib.smap.SMAPProperties">
 <em class="property">class </em><code class="descclassname">podpac.datalib.smap.</code><code class="descname">SMAPProperties</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPProperties" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Accesses properties related to the generation of SMAP products.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>property</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>property</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><dl class="first last docutils">
+<dt>A SMAP property, which includes: </dt>
+<dd><p class="first last">‘clsm_dzsf’, ‘mwrtm_bh’, ‘clsm_cdcr2’, ‘mwrtm_poros’,
+‘clsm_dzgt3’, ‘clsm_dzgt2’, ‘mwrtm_rghhmax’,
+‘mwrtm_rghpolmix’, ‘clsm_dzgt1’, ‘clsm_wp’, ‘mwrtm_lewt’,
+‘clsm_dzgt4’, ‘clsm_cdcr1’, ‘cell_elevation’,
+‘mwrtm_rghwmin’, ‘clsm_dzrz’, ‘mwrtm_vegcls’, ‘mwrtm_bv’,
+‘mwrtm_rghwmax’, ‘mwrtm_rghnrh’, ‘clsm_dztsurf’,
+‘mwrtm_rghhmin’, ‘mwrtm_wangwp’, ‘mwrtm_wangwt’,
+‘clsm_dzgt5’, ‘clsm_dzpr’, ‘clsm_poros’,
+‘cell_land_fraction’, ‘mwrtm_omega’, ‘mwrtm_soilcls’,
+‘clsm_dzgt6’, ‘mwrtm_rghnrv’, ‘mwrtm_clay’, ‘mwrtm_sand’</p>
 </dd>
-<dt><strong>source</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+</dl>
+</dd>
+<dt><strong>source</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><dl class="first last docutils">
+<dt>Source OpenDAP url for SMAP properties. Default is (‘<a class="reference external" href="https://n5eil01u.ecs.nsidc.org/opendap/SMAP/">https://n5eil01u.ecs.nsidc.org/opendap/SMAP/</a>’</dt>
+<dd><p class="first last">‘SPL4SMLM.003/2015.03.31/’
+‘SMAP_L4_SM_lmc_00000000T000000_Vv3030_001.h5’)</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </td>
@@ -655,20 +691,26 @@
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAPProperties.get_native_coordinates">
 <code class="descname">get_native_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPProperties.get_native_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPProperties.get_native_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>This should return a podpac.Coordinate object that describes the coordinates of the data source.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>podpac.Coordinate</strong></dt>
+<dd><p class="first last">The coordinates describing the data source array.</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>Need to pay attention to:
+- the order of the dimensions
+- the stacking of the dimension
+- the type of coordinates</p>
+<p>Coordinates should be non-nan and non-repeating for best compatibility</p>
 </dd></dl>
 
 </dd></dl>
@@ -676,35 +718,33 @@
 <dl class="class">
 <dt id="podpac.datalib.smap.SMAPSource">
 <em class="property">class </em><code class="descclassname">podpac.datalib.smap.</code><code class="descname">SMAPSource</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPSource" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Accesses SMAP data given a specific openDAP URL. This is the base class giving access to SMAP data, and knows how 
+to extract the correct coordinates and data keys for the soil moisture data.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>auth_class</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>auth_class</strong> <span class="classifier-delimiter">:</span> <span class="classifier">EarthDataSession (Class object)</span></dt>
+<dd><p class="first last">Class used to make an authenticated session from a username and password (both are defined in base class)</p>
 </dd>
-<dt><strong>auth_session</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>auth_session</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Instance(EarthDataSession)</span></dt>
+<dd><p class="first last">Authenticated session used to make http requests usingNASA Earth Data Login credentials</p>
 </dd>
-<dt><strong>date_file_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>date_file_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SRE_Pattern</span></dt>
+<dd><p class="first last">Regular expression used to retrieve date from self.source (OpenDAP Url)</p>
 </dd>
-<dt><strong>date_time_file_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>date_time_file_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">SRE_Pattern</span></dt>
+<dd><p class="first last">Regular expression used to retrieve date and time from self.source (OpenDAP Url)</p>
 </dd>
-<dt><strong>date_url_re</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
-</dd>
-<dt><strong>layerkey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>layerkey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Key used to retrieve data from OpenDAP dataset. This specifies the key used to retrieve the data</p>
 </dd>
 <dt><strong>no_data_vals</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd><p class="first last">Description</p>
+<dd><p class="first last">List of values that should be treated as no-data (these are replaced by np.nan)</p>
 </dd>
-<dt><strong>rootdatakey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>rootdatakey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">String the prepends every or most keys for data in the OpenDAP dataset</p>
 </dd>
 </dl>
 </td>
@@ -714,14 +754,15 @@
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAPSource.get_available_times">
 <code class="descname">get_available_times</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPSource.get_available_times"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPSource.get_available_times" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Retrieve the available times from the SMAP file. This is primarily based on the filename, but some products 
+have multiple times stored in a single file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>np.ndarray(dtype=np.datetime64)</strong></dt>
+<dd><p class="first last">Available times in the SMAP source</p>
 </dd>
 </dl>
 </td>
@@ -733,24 +774,33 @@
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAPSource.get_data">
 <code class="descname">get_data</code><span class="sig-paren">(</span><em>coordinates</em>, <em>coordinates_index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPSource.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPSource.get_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>This method must be defined by the data source implementing the DataSource class.
+When data source nodes are executing, this method is called with request coordinates and coordinate indexes.
+The implementing method can choose which input provides the most efficient method of getting data
+(i.e via coordinates or via the index of the coordinates).</p>
+<p>Coordinates and coordinate indexes may be strided or subsets of the
+source data, but all coordinates and coordinate indexes will match 1:1 with the subset data.</p>
+<p>Most methods generate the template UnitsDataArray using the inherited Node method :meth:initialize_coord_array.
+See :meth:podpac.Node.initialize_coord_array for more details.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
+<dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data
+source</p>
 </dd>
-<dt><strong>coordinates_index</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>coordinates_index</strong> <span class="classifier-delimiter">:</span> <span class="classifier">List</span></dt>
+<dd><p class="first last">A list of slices or a boolean array that give the indices of the data that needs to be retrieved from
+the data source</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>UnitsDataArray</strong></dt>
+<dd><p class="first last">A subset of the returned data</p>
 </dd>
 </dl>
 </td>
@@ -762,33 +812,39 @@
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAPSource.get_native_coordinates">
 <code class="descname">get_native_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPSource.get_native_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPSource.get_native_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>This should return a podpac.Coordinate object that describes the coordinates of the data source.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>podpac.Coordinate</strong></dt>
+<dd><p class="first last">The coordinates describing the data source array.</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>Need to pay attention to:
+- the order of the dimensions
+- the stacking of the dimension
+- the type of coordinates</p>
+<p>Coordinates should be non-nan and non-repeating for best compatibility</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.datalib.smap.SMAPSource.latkey">
 <code class="descname">latkey</code><a class="headerlink" href="#podpac.datalib.smap.SMAPSource.latkey" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>The key used to retrieve the latitude</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">OpenDap dataset key for latitude</p>
 </dd>
 </dl>
 </td>
@@ -800,14 +856,14 @@
 <dl class="attribute">
 <dt id="podpac.datalib.smap.SMAPSource.lonkey">
 <code class="descname">lonkey</code><a class="headerlink" href="#podpac.datalib.smap.SMAPSource.lonkey" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>The key used to retrieve the latitude</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">OpenDap dataset key for longitude</p>
 </dd>
 </dl>
 </td>
@@ -819,14 +875,14 @@
 <dl class="attribute">
 <dt id="podpac.datalib.smap.SMAPSource.product">
 <code class="descname">product</code><a class="headerlink" href="#podpac.datalib.smap.SMAPSource.product" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Returns the SMAP product from the OpenDAP Url</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">{product}</p>
 </dd>
 </dl>
 </td>
@@ -840,14 +896,14 @@
 <dl class="class">
 <dt id="podpac.datalib.smap.SMAPWilt">
 <em class="property">class </em><code class="descclassname">podpac.datalib.smap.</code><code class="descname">SMAPWilt</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPWilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPWilt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Retrieve the specific SMAP property: Wilting Point</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>property</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>property</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, Optional</span></dt>
+<dd><p class="first last">Uses ‘clsm_wp’</p>
 </dd>
 </dl>
 </td>
@@ -859,21 +915,21 @@
 <dl class="function">
 <dt id="podpac.datalib.smap.np2smap_date">
 <code class="descclassname">podpac.datalib.smap.</code><code class="descname">np2smap_date</code><span class="sig-paren">(</span><em>date</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#np2smap_date"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.np2smap_date" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Convert dates using the numpy format to SMAP strings</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>date</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>date</strong> <span class="classifier-delimiter">:</span> <span class="classifier">np.datetime64</span></dt>
+<dd><p class="first last">Numpy date object</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>str</strong></dt>
+<dd><p class="first last">SMAP date string</p>
 </dd>
 </dl>
 </td>
@@ -885,21 +941,21 @@
 <dl class="function">
 <dt id="podpac.datalib.smap.smap2np_date">
 <code class="descclassname">podpac.datalib.smap.</code><code class="descname">smap2np_date</code><span class="sig-paren">(</span><em>date</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#smap2np_date"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.smap2np_date" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd><p>Convert dates using the format in SMAP to numpy datetime64</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>date</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TYPE</span></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>date</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">SMAP date string</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>TYPE</strong></dt>
-<dd><p class="first last">Description</p>
+<dt><strong>np.datetime64</strong></dt>
+<dd><p class="first last">Numpy date object</p>
 </dd>
 </dl>
 </td>
