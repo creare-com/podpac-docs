@@ -207,6 +207,8 @@
 <span class="sd">        coordinates could include the year-month-day of the source, but the actual source also has hour-minute-second</span>
 <span class="sd">        information. In that case, source_coordinates is incomplete. This flag is used to automatically construct </span>
 <span class="sd">        native_coordinates</span>
+<span class="sd">    source: str</span>
+<span class="sd">        The source is used for a unique name to cache composited products. </span>
 <span class="sd">    sources : np.ndarray</span>
 <span class="sd">        An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to </span>
 <span class="sd">        subselect the nodes that will be evaluated.</span>
@@ -240,6 +242,7 @@
               <span class="s2">&quot;native_coordinates=source_coordinate + shared_coordinate &quot;</span>
               <span class="s2">&quot;IN THAT ORDER&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+    <span class="n">sources</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">sources</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
     <span class="n">cache_native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     
@@ -247,6 +250,14 @@
    
     <span class="n">threaded</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">n_threads</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_source_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        
     
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;source_coordinates&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_source_coordinates_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
