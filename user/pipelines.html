@@ -110,24 +110,36 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#datasource">DataSource</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sample">Sample</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#compositor">Compositor</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#additional-attributes">Additional Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sample">Sample</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#algorithm">Algorithm</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#additional-attributes">Additional Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#output-definitions">Output Definitions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common-attributes">Common Attributes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#files">Files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sample">Sample</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#pipeline">Pipeline</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#additional-attributes">Additional Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#images">Images</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sample">Sample</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#aws">AWS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ftp">FTP</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="earthdata.html">NASA Earth Data</a></li>
@@ -206,12 +218,12 @@
             
   <div class="section" id="pipelines">
 <span id="pipelines"></span><h1>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">¶</a></h1>
-<p>A podpac pipeline can be defined using JSON. The pipeline definition describes the <em>nodes</em> used in the pipeline and the <em>output</em> for the pipeline.</p>
+<p>A podpac pipeline can be defined using JSON. The pipeline definition describes the <em>nodes</em> used in the pipeline and, optionally, <em>outputs</em> to produce when executing the pipeline.</p>
 <div class="section" id="attributes">
 <span id="attributes"></span><h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">nodes</span></code>: node definitions  <em>(object, required)</em></li>
-<li><code class="docutils literal notranslate"><span class="pre">output</span></code>: output definition <em>(object, optional)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">outputs</span></code>: output definitions <em>(list, optional)</em></li>
 </ul>
 </div>
 <div class="section" id="sample">
@@ -220,37 +232,39 @@
     <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;myNode&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
         <span class="s2">&quot;myOtherNode&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
-        <span class="o">...</span>
-        <span class="s2">&quot;myResult&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
     <span class="p">},</span>
-    <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="s2">&quot;myResult&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
-        <span class="o">...</span>
-    <span class="p">}</span>
+    <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+    <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="node-definitions">
 <span id="node-definitions"></span><h2>Node definitions<a class="headerlink" href="#node-definitions" title="Permalink to this headline">¶</a></h2>
-<p>A node definition defines the node and its inputs, attributes, and default execution parameters. It also names the node so that it can be used as an input to other nodes in the pipeline. Nodes must be defined before they are referenced in a later node.</p>
-<p>The podpac core library includes three basic types of nodes: <em>DataSource</em>, <em>Compositor</em>, and <em>Algorithm</em>. A <em>Pipeline</em> node can also be used an an input to a pipeline. These nodes and their additional attributes are described below.</p>
+<p>A node definition defines the node and its inputs and parameters. It also names the node so that it can be used as an input to other nodes in the pipeline. Nodes must be defined before they are referenced in a later node.</p>
+<p>All nodes must be one of these three basic types: <em>DataSource</em>, <em>Compositor</em>, and <em>Algorithm</em>.</p>
 <div class="section" id="common-attributes">
 <span id="common-attributes"></span><h3>Common Attributes<a class="headerlink" href="#common-attributes" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">node</span></code>: a path to the node class. The path is relative to the podpac module, unless <code class="docutils literal notranslate"><span class="pre">plugin</span></code> is defined. See Notes. <em>(string, required)</em></li>
 <li><code class="docutils literal notranslate"><span class="pre">plugin</span></code>: a path to a plugin module to use (prepended node path). See Notes. <em>(string, optional)</em></li>
-<li><code class="docutils literal notranslate"><span class="pre">attrs</span></code>: set attributes in the node for custom behavior. Each value can be a number, string, boolean, dictionary, or list. <em>(object, optional)</em></li>
-<li><code class="docutils literal notranslate"><span class="pre">params</span></code>: set default execution parameters. Each value can be a number, string, boolean, dictionary, or list. <em>(object, optional)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">attrs</span></code>: explicitly set attributes in the node for custom behavior. Each value can be a number, string, boolean, dictionary, or list. <em>(object, optional)</em></li>
 <li><code class="docutils literal notranslate"><span class="pre">evaluate</span></code>: execute this node automatically. Setting this to <code class="docutils literal notranslate"><span class="pre">false</span></code> is useful for nodes that will be executed implicitly by a later node. <em>(bool, optional, default <code class="docutils literal notranslate"><span class="pre">true</span></code>)</em></li>
 </ul>
 </div>
 </div>
 <div class="section" id="datasource">
 <span id="datasource"></span><h2>DataSource<a class="headerlink" href="#datasource" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="attributes">
+<span id="id1"></span><h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: the dataset source <em>(string, required)</em></li>
+</ul>
+</div>
 <div class="section" id="sample">
-<span id="id1"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;sm&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -268,14 +282,14 @@
 </div>
 <div class="section" id="compositor">
 <span id="compositor"></span><h2>Compositor<a class="headerlink" href="#compositor" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="additional-attributes">
-<span id="additional-attributes"></span><h3>Additional Attributes<a class="headerlink" href="#additional-attributes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="attributes">
+<span id="id3"></span><h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">sources</span></code>: nodes to composite <em>(list, required)</em></li>
 </ul>
 </div>
 <div class="section" id="sample">
-<span id="id2"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
+<span id="id4"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;SourceA&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
@@ -294,14 +308,12 @@
 </div>
 <div class="section" id="algorithm">
 <span id="algorithm"></span><h2>Algorithm<a class="headerlink" href="#algorithm" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="additional-attributes">
-<span id="id3"></span><h3>Additional Attributes<a class="headerlink" href="#additional-attributes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="attributes">
+<span id="id5"></span><h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: node inputs to the algorithm. <em>(object, required)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">params</span></code>: non-node inputs to the algorithm. Each value can be a number, string, boolean, dictionary, or list. <em>(object, optional)</em></li>
 </ul>
-</div>
-<div class="section" id="sample">
-<span id="id4"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;MyNode&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
@@ -326,123 +338,105 @@
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="pipeline">
-<span id="pipeline"></span><h2>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="additional-attributes">
-<span id="id5"></span><h3>Additional Attributes<a class="headerlink" href="#additional-attributes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="notes">
+<span id="notes"></span><h3>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">path</span></code>: path to another pipeline JSON definition. <em>(string, required)</em></li>
+<li>The <code class="docutils literal notranslate"><span class="pre">node</span></code> path should include the submodule path and the node class. The submodule path is omitted for top-level classes. For example:<ul>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;datalib.smap.SMAP&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">podpac.datalib.smap</span> <span class="pre">import</span> <span class="pre">SMAP</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;OrderedCompositor&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">podpac</span> <span class="pre">import</span> <span class="pre">OrderedCompositor</span></code>.</li>
+</ul>
+</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">plugin</span></code> path replaces ‘podpac’ in the full node path. For example<ul>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;plugin&quot;:</span> <span class="pre">&quot;path.to.myplugin&quot;,</span> <span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;mymodule.MyCustomNode&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">path.to.myplugin.mymodule</span> <span class="pre">import</span> <span class="pre">MyCustomNode</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;plugin&quot;:</span> <span class="pre">&quot;myplugin&quot;,</span> <span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;MyCustomNode&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">myplugin</span> <span class="pre">import</span> <span class="pre">MyCustomNode</span></code></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="output-definitions">
+<span id="output-definitions"></span><h2>Output Definitions<a class="headerlink" href="#output-definitions" title="Permalink to this headline">¶</a></h2>
+<p>An output definition defines a type of output, the nodes to output, and other parameters such as output location. Outputs are not required, but each output definition should contain a list of one or more nodes (by name) to output.</p>
+<p>Podpac provides several output types: <em>file</em>, <em>image</em>, <em>ftp</em>, and <em>aws</em>. Currently custom output types are not supported.</p>
+<div class="section" id="common-attributes">
+<span id="id6"></span><h3>Common Attributes<a class="headerlink" href="#common-attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">mode</span></code>: The output type, options are ‘file’, ‘image’, ‘ftp’, and ‘aws’. <em>(string, required)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">nodes</span></code>: The nodes to output. <em>(list, required)</em></li>
+</ul>
+</div>
+</div>
+<div class="section" id="files">
+<span id="files"></span><h2>Files<a class="headerlink" href="#files" title="Permalink to this headline">¶</a></h2>
+<p>Nodes can be output to file in a variety of formats.</p>
+<div class="section" id="attributes">
+<span id="id7"></span><h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">format</span></code>: file format, options are ‘pickle’ (default), ‘geotif’, ‘png’. <em>(string, optional)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">outdir</span></code>: destination path for the output file <em>(string, required)</em></li>
 </ul>
 </div>
 <div class="section" id="sample">
-<span id="id6"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{
-    &quot;nodes&quot;: {
-        &quot;MyDataSource&quot;: {
-            ...
-        },
-        
-        &quot;MyOtherPipeline&quot;: {
-            &quot;path&quot;: &quot;path to pipeline&quot;
-        },
-        
-        &quot;result&quot;: {
-            &quot;node&quot;: &quot;Arithmetic&quot;,
-            &quot;inputs&quot;: {
-                &quot;A&quot;: &quot;MyDataSource&quot;,
-                &quot;B&quot;: &quot;MyOtherPipeline&quot;,
-            },
-            &quot;params&quot;: {
-                &quot;eqn&quot;: &quot;A + B&quot;
-            }
-        }
-    }
-}
+<span id="id8"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;MyNode1&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+        <span class="s2">&quot;MyNode2&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+    <span class="p">},</span>
 
-### Notes
-
- * The `node` path should include the submodule path and the node class. The submodule path is omitted for top-level classes. For example:
-   - `&quot;node&quot;: &quot;datalib.smap.SMAP&quot;` is equivalent to `from podpac.datalib.smap import SMAP`.
-   - `&quot;node&quot;: &quot;OrderedCompositor&quot;` is equivalent to `from podpac import OrderedCompositor`.
- * The `plugin` path replaces &#39;podpac&#39; in the full node path. For example
-   - `&quot;plugin&quot;: &quot;path.to.myplugin&quot;, &quot;node&quot;: &quot;mymodule.MyCustomNode&quot;` is equivalent to `from path.to.myplugin.mymodule import MyCustomNode`.
-   - `&quot;plugin&quot;: &quot;myplugin&quot;, &quot;node&quot;: &quot;MyCustomNode&quot;` is equivalent to `from myplugin import MyCustomNode`
-
-## Output Definition
-
-The output definition defines the node to output and, optionally, an additional output mode along with associated parameters. If an output definition is not supplied, the last defined node is used.
-
-Podpac provides several output types: *file* and *image*. Currently custom output types are not supported.
-
-### Common Attributes
-
- * `node`: The nodes to output. *(list, required)*
- * `mode`: The output mode, options are &#39;none&#39; (default), &#39;file&#39;, &#39;image&#39;. *(string, optional)*
-
-## None (default)
-
-No additional output. The output will be returned from the `Pipeline.execute` method.
-
-## Files
-
-Nodes can be output to file in a variety of formats.
-
-### Attributes
-
- * `format`: file format, options are &#39;pickle&#39; (default), &#39;geotif&#39;, &#39;png&#39;. *(string, optional)*
- * `outdir`: destination path for the output file *(string, required)*
-
-### Sample
-</pre></div>
-</div>
-<p>{
-“nodes”: {
-“MyNode1”: { … },
-“MyNode2”: { … }
-},</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="s2">&quot;MyNode2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="s2">&quot;C:\Path\To\OutputData&quot;</span>
+    <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="s2">&quot;C:\Path\To\OutputData&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;MyNode2&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>}</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-## Images
-
-Nodes can be output to a png image (in memory).
-
-### Attributes
-
- * `format`: image format, options are &#39;png&#39; (default). *(string, optional)*
- * `vmin`: min value for the colormap *(number, optional)*
- * `vmax`: max value for the colormap *(number, optional)*
-
-### Sample
-</pre></div>
 </div>
-<p>{
-“nodes”: {
-“MyNode1”: { … },
-“MyNode2”: { … }
-},</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="s2">&quot;MyNode2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;vmin&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
-    <span class="s2">&quot;vmax&quot;</span><span class="p">:</span> <span class="mf">0.35</span>
+</div>
+<div class="section" id="images">
+<span id="images"></span><h2>Images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h2>
+<p>Nodes can be output to a png image (in memory).</p>
+<div class="section" id="attributes">
+<span id="id9"></span><h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">format</span></code>: image format, options are ‘png’ (default). <em>(string, optional)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">vmin</span></code>: min value for the colormap <em>(number, optional)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">vmax</span></code>: max value for the colormap <em>(number, optional)</em></li>
+</ul>
+</div>
+<div class="section" id="sample">
+<span id="id10"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;MyNode1&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+        <span class="s2">&quot;MyNode2&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span>
+            <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;vmin&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+            <span class="s2">&quot;vmax&quot;</span><span class="p">:</span> <span class="mf">0.35</span><span class="p">,</span>
+            <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;MyNode1&quot;</span><span class="p">,</span> <span class="s2">&quot;MyNode2&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>}</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
 </div>
 </div>
+<div class="section" id="aws">
+<span id="aws"></span><h2>AWS<a class="headerlink" href="#aws" title="Permalink to this headline">¶</a></h2>
+<p><em>Not yet implemented</em></p>
+</div>
+<div class="section" id="ftp">
+<span id="ftp"></span><h2>FTP<a class="headerlink" href="#ftp" title="Permalink to this headline">¶</a></h2>
+<p><em>Not yet implemented</em></p>
 </div>
 </div>
 
