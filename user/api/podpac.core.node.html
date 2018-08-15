@@ -258,10 +258,6 @@ the root node is evaluated. This attribute is planned for deprecation in the fut
 <dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.UnitsDataArray</span></dt>
 <dd><p class="first last">Output data from the last evaluation of the node.</p>
 </dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd><p class="first last">Dictionary of parameters that control the output of a node. For example, these can be coefficients in an 
-equation, or the interpolation type. This attribute is planned for deprecation in the future.</p>
-</dd>
 <dt><strong>style</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Style</span></dt>
 <dd><p class="first last">Object discribing how the output of a node should be displayed. This attribute is planned for deprecation in the
 future.</p>
@@ -456,7 +452,7 @@ data: uses the fillval as the input array</p>
 <code class="descname">definition</code><a class="headerlink" href="#podpac.core.node.Node.definition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pipeline node definition.</p>
 <p>This property is implemented in the primary base nodes (DataSource, Algorithm, and Compositor). Node
-subclasses with additional params or attrs will need to extend this property.</p>
+subclasses with additional attrs will need to extend this property.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -511,7 +507,7 @@ subclasses with additional params or attrs will need to extend this property.</p
 
 <dl class="method">
 <dt id="podpac.core.node.Node.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>coordinates</em>, <em>params=None</em>, <em>output=None</em>, <em>method=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.execute" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute</code><span class="sig-paren">(</span><em>coordinates</em>, <em>output=None</em>, <em>method=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the common interface used for ALL nodes. Pipelines only
 understand this method and get_description.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -521,9 +517,6 @@ understand this method and get_description.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
 <dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.</p>
-</dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional</span></dt>
-<dd><p class="first last">Default is None. Runtime parameters that modify any default node parameters.</p>
 </dd>
 <dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.UnitsDataArray, optional</span></dt>
 <dd><p class="first last">Default is None. Optional input array used to store the output data. When supplied, the node will not 
@@ -550,7 +543,7 @@ execution is supported.</p>
 
 <dl class="method">
 <dt id="podpac.core.node.Node.get_hash">
-<code class="descname">get_hash</code><span class="sig-paren">(</span><em>coordinates=None</em>, <em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_hash" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_hash</code><span class="sig-paren">(</span><em>coordinates=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_hash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hash used for caching node outputs.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -559,9 +552,6 @@ execution is supported.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
 <dd><p class="first last">{evaluated_coordinates}</p>
-</dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
-<dd><p class="first last">{params}</p>
 </dd>
 </dl>
 </td>
@@ -723,32 +713,6 @@ supplied.</p>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>NodeException</strong></dt>
 <dd><p class="first last">If the shape cannot be automatically determined, this exception is raised.</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="podpac.core.node.Node.get_params">
-<code class="descname">get_params</code><span class="sig-paren">(</span><em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to update default parameters with runtime parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>params: dict</strong></dt>
-<dd><p class="first last">{execute_params}</p>
-</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>dict</strong></dt>
-<dd><p class="first last">The set of parameters that will be used for the execution of the node.</p>
 </dd>
 </dl>
 </td>
@@ -971,7 +935,7 @@ data: uses the fillval as the input array</p>
 
 <dl class="method">
 <dt id="podpac.core.node.Node.load">
-<code class="descname">load</code><span class="sig-paren">(</span><em>name</em>, <em>coordinates</em>, <em>params</em>, <em>outdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.load" title="Permalink to this definition">¶</a></dt>
+<code class="descname">load</code><span class="sig-paren">(</span><em>name</em>, <em>coordinates</em>, <em>outdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves a cached output from disk and assigns it to self.output</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -983,9 +947,6 @@ data: uses the fillval as the input array</p>
 </dd>
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
 <dd><p class="first last">{evaluated_coordinates}</p>
-</dd>
-<dt><strong>params</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd><p class="first last">{params}</p>
 </dd>
 <dt><strong>outdir</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
 <dd><p class="first last">{outdir}</p>

@@ -214,7 +214,6 @@
         <span class="sd">&#39;&#39;&#39;The native set of coordinates for a node. This attribute may be `None` for some nodes.&#39;&#39;&#39;</span><span class="p">,</span>
     <span class="s1">&#39;evaluated_coordinates&#39;</span><span class="p">:</span> 
         <span class="sd">&#39;&#39;&#39;The set of coordinates requested by a user. The Node will be executed using these coordinates.&#39;&#39;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;execute_params&#39;</span><span class="p">:</span> <span class="s1">&#39;Default is None. Runtime parameters that modify any default node parameters.&#39;</span><span class="p">,</span>
     <span class="s1">&#39;execute_out&#39;</span><span class="p">:</span> 
         <span class="sd">&#39;&#39;&#39;Default is None. Optional input array used to store the output data. When supplied, the node will not </span>
 <span class="sd">            allocate its own memory for the output array. This array needs to have the correct dimensions and </span>
@@ -325,9 +324,6 @@
 <span class="sd">        Dictionary of defaults values for attributes of a Node. </span>
 <span class="sd">    output : podpac.UnitsDataArray</span>
 <span class="sd">        Output data from the last evaluation of the node. </span>
-<span class="sd">    params : dict</span>
-<span class="sd">        Dictionary of parameters that control the output of a node. For example, these can be coefficients in an </span>
-<span class="sd">        equation, or the interpolation type. This attribute is planned for deprecation in the future.</span>
 <span class="sd">    style : podpac.Style</span>
 <span class="sd">        Object discribing how the output of a node should be displayed. This attribute is planned for deprecation in the</span>
 <span class="sd">        future.</span>
@@ -346,7 +342,6 @@
     <span class="n">evaluated</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">implicit_pipeline_evaluation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Evaluate the pipeline implicitly (True, Default)&quot;</span><span class="p">)</span>
     <span class="n">evaluated_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="s1">&#39;podpac.core.coordinate.Coordinate&#39;</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">_params</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">Units</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">dtype</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">cache_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;disk&#39;</span><span class="p">,</span> <span class="s1">&#39;ram&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -404,7 +399,7 @@
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Node.execute"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.execute">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;This is the common interface used for ALL nodes. Pipelines only</span>
 <span class="sd">        understand this method and get_description.</span>
 
@@ -412,8 +407,6 @@
 <span class="sd">        ----------</span>
 <span class="sd">        coordinates : podpac.Coordinate</span>
 <span class="sd">            {evaluated_coordinates}</span>
-<span class="sd">        params : dict, optional</span>
-<span class="sd">            {execute_params} </span>
 <span class="sd">        output : podpac.UnitsDataArray, optional</span>
 <span class="sd">            {execute_out}</span>
 <span class="sd">        method : str, optional</span>
@@ -703,7 +696,6 @@
             <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;layer_style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">style</span>
         <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
-        <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span>
         <span class="k">return</span> <span class="n">x</span></div>
 
     <span class="nd">@property</span>
@@ -736,39 +728,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;plugin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traits</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;attr&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                 <span class="n">attrs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span>
         <span class="k">if</span> <span class="n">attrs</span><span class="p">:</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;attrs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attrs</span>
         <span class="k">return</span> <span class="n">d</span></div>
-
-<div class="viewcode-block" id="Node.get_params"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Helper function to update default parameters with runtime parameters. </span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
-<span class="sd">        params: dict</span>
-<span class="sd">            {execute_params}</span>
-<span class="sd">            </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        dict</span>
-<span class="sd">            The set of parameters that will be used for the execution of the node.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traits</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;param&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="n">p</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">params</span><span class="p">:</span> 
-            <span class="n">p</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">p</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -776,7 +742,7 @@
 <span class="sd">        Pipeline node definition.</span>
 
 <span class="sd">        This property is implemented in the primary base nodes (DataSource, Algorithm, and Compositor). Node</span>
-<span class="sd">        subclasses with additional params or attrs will need to extend this property.</span>
+<span class="sd">        subclasses with additional attrs will need to extend this property.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -837,32 +803,22 @@
         <span class="kn">from</span> <span class="nn">podpac.core.pipeline</span> <span class="k">import</span> <span class="n">Pipeline</span>
         <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_definition</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Node.get_hash"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_hash">[docs]</a>    <span class="k">def</span> <span class="nf">get_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.get_hash"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_hash">[docs]</a>    <span class="k">def</span> <span class="nf">get_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Hash used for caching node outputs.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        coordinates : None, optional</span>
 <span class="sd">            {evaluated_coordinates}</span>
-<span class="sd">        params : None, optional</span>
-<span class="sd">            {params}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">            {hash_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># convert to OrderedDict with consistent keys</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
-
-            <span class="c1"># convert dict values to OrderedDict with consistent keys</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
-                    <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
-
-        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">coordinates</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">params</span><span class="p">)))</span></div>
+        
+        <span class="c1"># TODO this needs to include the tagged node attrs</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">coordinates</span><span class="p">))</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">evaluated_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -881,7 +837,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;node not evaluated&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluated_coordinates</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">latlon_bounds_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -958,7 +914,7 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span>
         <span class="k">return</span> <span class="n">path</span></div>
 
-<div class="viewcode-block" id="Node.load"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.load"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieves a cached output from disk and assigns it to self.output</span>
 
 <span class="sd">        Parameters</span>
@@ -967,8 +923,6 @@
 <span class="sd">            Name of the file prefix.</span>
 <span class="sd">        coordinates : podpac.Coordinate</span>
 <span class="sd">            {evaluated_coordinates}</span>
-<span class="sd">        params : dict</span>
-<span class="sd">            {params}</span>
 <span class="sd">        outdir : str, optional</span>
 <span class="sd">            {outdir}</span>
 <span class="sd">            </span>
@@ -977,10 +931,7 @@
 <span class="sd">        str</span>
 <span class="sd">            The path of the loaded file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="n">name</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">params</span><span class="p">),</span>
-            <span class="n">coordinates</span><span class="o">.</span><span class="n">latlon_bounds_str</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="n">coordinates</span><span class="p">),</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">latlon_bounds_str</span><span class="p">)</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_output_path</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="n">outdir</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
