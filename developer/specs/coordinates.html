@@ -240,7 +240,7 @@
 <li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Enum(‘lat’, ‘lon’, ‘time’, ‘alt’), required, <em>read-only</em></li>
 <li><code class="docutils literal notranslate"><span class="pre">units</span></code>: Units, <em>read-only</em></li>
 <li><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: Unicode, <em>read-only</em></li>
-<li><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘segment’, ‘point’), default: ‘segment’, <em>read-only</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘segment’, ‘point’), default: ‘segment’ for numerical, ‘point’ for datetime, <em>read-only</em></li>
 <li><code class="docutils literal notranslate"><span class="pre">segment_position</span></code>: Float, default: 0.5 for ‘segment’ and None for ‘point’, <em>read-only</em></li>
 <li><code class="docutils literal notranslate"><span class="pre">extents</span></code>: shape (2,), optional, <em>read-only</em></li>
 </ul>
@@ -250,13 +250,10 @@
 <li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only array</li>
 <li><code class="docutils literal notranslate"><span class="pre">dtype</span></code>: <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code> or <code class="docutils literal notranslate"><span class="pre">np.float64</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">size</span></code>: Int</li>
-<li><code class="docutils literal notranslate"><span class="pre">bounds</span></code>: read-only array, [Float, Float]</li>
-<li><code class="docutils literal notranslate"><span class="pre">area_bounds</span></code>: read-only array, [Float, Float]</li>
+<li><code class="docutils literal notranslate"><span class="pre">bounds</span></code>: read-only array, [Float, Float]. Coordinate values min and max.</li>
+<li><code class="docutils literal notranslate"><span class="pre">area_bounds</span></code>: read-only array, [Float, Float]. For point coordinates, this is just the <code class="docutils literal notranslate"><span class="pre">bounds</span></code>. For segmentment coordinates, use <code class="docutils literal notranslate"><span class="pre">extents</span></code> when available, otherwise calculated from the segment position.</li>
 <li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: Boolean</li>
 <li><code class="docutils literal notranslate"><span class="pre">is_descending</span></code>: Boolean</li>
-<li>~~<code class="docutils literal notranslate"><span class="pre">is_datetime</span></code>: Boolean~~ <em>just using dtype instead</em></li>
-<li>~~<code class="docutils literal notranslate"><span class="pre">rasterio_regularity</span></code>: Boolean~~ <em>handle this in the interpolation</em></li>
-<li>~~<code class="docutils literal notranslate"><span class="pre">scipy_regularity</span></code>: Boolean~~ <em>handle this in the interpolation</em></li>
 </ul>
 <p>Methods</p>
 <ul class="simple">
@@ -296,17 +293,25 @@
 </div>
 <div class="section" id="arraycoordinates1d-coordinates1d">
 <span id="arraycoordinates1d-coordinates1d"></span><h3>ArrayCoordinates1D(Coordinates1D)<a class="headerlink" href="#arraycoordinates1d-coordinates1d" title="Permalink to this headline">¶</a></h3>
-<p>An arbitrary list of coordinates, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is array-like.</p>
+<p>An arbitrary list of coordinates, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is array-like. The <code class="docutils literal notranslate"><span class="pre">ctype</span></code> must be ‘point’.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ArrayCoordinates1D</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Notes:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">ctype</span></code> must be ‘point’</li>
+</ul>
 </div>
-<div class="section" id="monotoniccoordinates1d-coordinates1d">
-<span id="monotoniccoordinates1d-coordinates1d"></span><h3>MonotonicCoordinates1D(Coordinates1D)<a class="headerlink" href="#monotoniccoordinates1d-coordinates1d" title="Permalink to this headline">¶</a></h3>
-<p>A sorted list of coordinates, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is array-like and sorted (in either direction)</p>
+<div class="section" id="monotoniccoordinates1d-arraycoordinates1d">
+<span id="monotoniccoordinates1d-arraycoordinates1d"></span><h3>MonotonicCoordinates1D(ArrayCoordinates1D)<a class="headerlink" href="#monotoniccoordinates1d-arraycoordinates1d" title="Permalink to this headline">¶</a></h3>
+<p>A sorted list of coordinates, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is array-like and sorted (in either direction).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MonotonicCoordinates1D</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Notes:</p>
+<ul class="simple">
+<li><em>TODO <code class="docutils literal notranslate"><span class="pre">area_bounds</span></code> calculation for segment coordinates without explicit extents</em></li>
+</ul>
 </div>
 <div class="section" id="uniformcoordinates1d-coordinates1d">
 <span id="uniformcoordinates1d-coordinates1d"></span><h3>UniformCoordinates1D(Coordinates1D)<a class="headerlink" href="#uniformcoordinates1d-coordinates1d" title="Permalink to this headline">¶</a></h3>
@@ -314,6 +319,10 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Notes:</p>
+<ul class="simple">
+<li>use <code class="docutils literal notranslate"><span class="pre">segment_position</span></code> and <code class="docutils literal notranslate"><span class="pre">step</span></code> for the <code class="docutils literal notranslate"><span class="pre">area_bounds</span></code> calculation for segment coordinates without explicit extents</li>
+</ul>
 </div>
 <div class="section" id="shorthand">
 <span id="shorthand"></span><h3>Shorthand<a class="headerlink" href="#shorthand" title="Permalink to this headline">¶</a></h3>
