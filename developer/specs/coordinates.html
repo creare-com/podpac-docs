@@ -237,22 +237,22 @@
 <p><code class="docutils literal notranslate"><span class="pre">Coordinates1D</span></code> is the base class for coordinates in a single dimension and defines the common interface.</p>
 <p>Traits:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Enum(‘lat’, ‘lon’, ‘time’, ‘alt’), required</li>
+<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Enum(‘lat’, ‘lon’, ‘time’, ‘alt’)</li>
 <li><code class="docutils literal notranslate"><span class="pre">units</span></code>: Units</li>
-<li><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: Unicode</li>
-<li><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘point’, ‘left’, ‘rigth’, ‘midpoint’), default: ‘segment’</li>
-<li><code class="docutils literal notranslate"><span class="pre">extents</span></code>: shape (2,), optional</li>
+<li><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: string, default: ‘WGS84</li>
+<li><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘point’, ‘left’, ‘rigth’, ‘midpoint’), default: ‘midpoint’</li>
+<li><code class="docutils literal notranslate"><span class="pre">extents</span></code>: array, shape (2,), optional</li>
 </ul>
 <p>Properties</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">properties</span></code>: dictionary of coordinate properties</li>
 <li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only array</li>
-<li><code class="docutils literal notranslate"><span class="pre">dtype</span></code>: <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code> or <code class="docutils literal notranslate"><span class="pre">np.float64</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: Int</li>
-<li><code class="docutils literal notranslate"><span class="pre">bounds</span></code>: read-only array, [Float, Float]. Coordinate values min and max.</li>
-<li><code class="docutils literal notranslate"><span class="pre">area_bounds</span></code>: read-only array, [Float, Float]. For point coordinates, this is just the <code class="docutils literal notranslate"><span class="pre">bounds</span></code>. Otherwise, use <code class="docutils literal notranslate"><span class="pre">extents</span></code> when available, otherwise calculated depending on the ctype mode.</li>
-<li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: Boolean</li>
-<li><code class="docutils literal notranslate"><span class="pre">is_descending</span></code>: Boolean</li>
+<li><code class="docutils literal notranslate"><span class="pre">dtype</span></code>: <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code> or <code class="docutils literal notranslate"><span class="pre">float</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: int</li>
+<li><code class="docutils literal notranslate"><span class="pre">bounds</span></code>: read-only array, <code class="docutils literal notranslate"><span class="pre">[float,</span> <span class="pre">float]</span></code>. Coordinate values min and max.</li>
+<li><code class="docutils literal notranslate"><span class="pre">area_bounds</span></code>: read-only array, <code class="docutils literal notranslate"><span class="pre">[float,</span> <span class="pre">float]</span></code>. For point coordinates, this is just the <code class="docutils literal notranslate"><span class="pre">bounds</span></code>. Otherwise, use <code class="docutils literal notranslate"><span class="pre">extents</span></code> when available, otherwise calculated depending on the ctype mode.</li>
+<li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: bool</li>
+<li><code class="docutils literal notranslate"><span class="pre">is_descending</span></code>: bool</li>
 </ul>
 <p>Methods</p>
 <ul class="simple">
@@ -282,7 +282,7 @@
 <li><code class="docutils literal notranslate"><span class="pre">len</span></code>: size</li>
 <li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: index the coordinate values<ul>
 <li>returns a new Coordinates1D object</li>
-<li>supports a single index, a slice, an index array, or a boolean array</li>
+<li>supports an integer, a slice, an index array, or a boolean array</li>
 </ul>
 </li>
 <li><code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">+=</span></code>: either concat Coordinates1D or add value</li>
@@ -307,10 +307,6 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MonotonicCoordinates1D</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Notes:</p>
-<ul class="simple">
-<li><em>TODO <code class="docutils literal notranslate"><span class="pre">area_bounds</span></code> calculation for segment coordinates without explicit extents</em></li>
-</ul>
 </div>
 <div class="section" id="uniformcoordinates1d-coordinates1d">
 <span id="uniformcoordinates1d-coordinates1d"></span><h3>UniformCoordinates1D(Coordinates1D)<a class="headerlink" href="#uniformcoordinates1d-coordinates1d" title="Permalink to this headline">¶</a></h3>
@@ -318,10 +314,6 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1D</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Notes:</p>
-<ul class="simple">
-<li>use <code class="docutils literal notranslate"><span class="pre">segment_position</span></code> and <code class="docutils literal notranslate"><span class="pre">step</span></code> for the <code class="docutils literal notranslate"><span class="pre">area_bounds</span></code> calculation for segment coordinates without explicit extents</li>
-</ul>
 </div>
 <div class="section" id="shorthand">
 <span id="shorthand"></span><h3>Shorthand<a class="headerlink" href="#shorthand" title="Permalink to this headline">¶</a></h3>
@@ -332,7 +324,7 @@
 <li><code class="docutils literal notranslate"><span class="pre">_cu</span></code>: UniformCoordinates1D(start, stop, step)</li>
 <li><code class="docutils literal notranslate"><span class="pre">_cl</span></code>: UniformCoordinates1D(start, stop, size=size)</li>
 </ul>
-<p>16 shortcut functions will also be defined, e.g.</p>
+<p>16 shortcut functions <em>may</em> also be defined, e.g.</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">_cu_lat</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">_cm_time</span></code></li>
@@ -358,8 +350,10 @@
 <p>Coordinates for two or more physical dimensions that are indexed together (aligned, as opposed to defining a grid). This class should be considered an implementation detail that behaves like a tuple (is iterable) but also facilitates a common interface with Coordinates1D by mapping indexing and other methods to its Coordinates1D objects.</p>
 <p>Properties</p>
 <ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">coords1d</span></code>: Tuple(trait=Coordinate1d), len &gt;= 2, all the <code class="docutils literal notranslate"><span class="pre">size</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple of dimension names</li>
 <li><code class="docutils literal notranslate"><span class="pre">name</span></code>: dimension names joined by an underscore, e.g. <code class="docutils literal notranslate"><span class="pre">'lat_lon'</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only DataArray or MultiIndex</li>
+<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only DataArray with MultiIndex</li>
 <li><code class="docutils literal notranslate"><span class="pre">size</span></code>: Int</li>
 </ul>
 <p>Methods</p>
@@ -384,7 +378,7 @@
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: index each of coordinates values<ul>
 <li>returns a new StackedCoordinates object</li>
-<li>supports a single index, a slice, an index array, or a boolean array</li>
+<li>supports an integer, a slice, an index array, or a boolean array</li>
 </ul>
 </li>
 </ul>
@@ -449,8 +443,8 @@
 <li><code class="docutils literal notranslate"><span class="pre">distance_units</span></code>: Units</li>
 <li><code class="docutils literal notranslate"><span class="pre">segment_position</span></code>: Float</li>
 <li><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘segment’, ‘point’)</li>
+<li><code class="docutils literal notranslate"><span class="pre">coords1d</span></code>: OrderedDict mapping dimension names to 1d coordinates (Coordinate1D or StackedCoordinates)</li>
 </ul>
-<p><em>TODO: defaults, passing on to Coordinates1D, overriding with Coordinates1D</em></p>
 </div>
 <div class="section" id="properties">
 <span id="properties"></span><h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
@@ -458,16 +452,17 @@
 <li><code class="docutils literal notranslate"><span class="pre">ndim</span></code>: Int</li>
 <li><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple(str, str, …)</li>
 <li><code class="docutils literal notranslate"><span class="pre">shape</span></code>: tuple(int, int, …)</li>
-<li><code class="docutils literal notranslate"><span class="pre">coords</span></code>: OrderedDict mapping dimension names to Coordinate1D or StackedCoordinates</li>
-<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: xarray Coordinates (dictionary-like mapping dimension names to named DataArrays)</li>
+</ul>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">coords</span></code>: xarray.core.DataArrayCoordinates type (dictionary-like mapping dimension names to named DataArrays)</li>
 </ul>
 <p>For stacked dimensions, the dimension names are combined by an underscore, and the coordinates are implemented as a pandas MultiIndex:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span><span class="o">.</span><span class="n">dims</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">UniformCoordinates1D</span><span class="p">,</span> <span class="n">UniformCoordinates1D</span><span class="p">)</span> <span class="c1"># this is actually a StackedCoordinates object</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="k">with</span> <span class="n">MultiIndex</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="c1"># we get this for free due to the MultiIndex</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">UniformCoordinates1D</span><span class="p">,</span> <span class="n">UniformCoordinates1D</span><span class="p">)</span> <span class="c1"># this is actually a StackedCoordinates object</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="k">with</span> <span class="n">MultiIndex</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="c1"># we get this for free due to the MultiIndex</span>
 </pre></div>
 </div>
 </div>
@@ -524,28 +519,28 @@
 <span id="miscellaneous-examples"></span><h3>Miscellaneous Examples<a class="headerlink" href="#miscellaneous-examples" title="Permalink to this headline">¶</a></h3>
 <p>Some equivalent ways to copy:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="c1"># I&#39;m not sure we need this one</span>
-<span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
-<span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="p">)</span>
+<span class="n">coords_copy</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 </pre></div>
 </div>
 <p>Select specific dimensions</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">]</span>
-<span class="n">c1</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">])</span>
+<span class="n">c1</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>Downsample (even if some dimensions are stacked)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c2</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span><span class="p">[::</span><span class="mi">10</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c2</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span><span class="p">[::</span><span class="mi">10</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 </pre></div>
 </div>
 <p>Downsample only the time dimension (only works if time is not stacked)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 <span class="n">d</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">][::</span><span class="mi">10</span><span class="p">]</span>
 <span class="n">c3</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The safe way would would be:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">k</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_dim</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">coords1d</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
 <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">][::</span><span class="mi">10</span><span class="p">]</span>
 <span class="n">c3</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 </pre></div>
