@@ -33,8 +33,7 @@
   <link rel="stylesheet" href="../../_static/style.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="podpac.datalib.airmoss" href="podpac.datalib.airmoss.html" />
-    <link rel="prev" title="podpac.core.data.type" href="podpac.core.data.type.html" /> 
+    <link rel="next" title="podpac.datalib.airmoss" href="podpac.datalib.airmoss.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -694,13 +693,13 @@ tile cover?</p>
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAPProperties.get_native_coordinates">
 <code class="descname">get_native_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPProperties.get_native_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPProperties.get_native_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>This should return a podpac.Coordinate object that describes the coordinates of the data source.</p>
+<dd><p>This should return a Coordinate object that describes the coordinates of the data source.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>podpac.Coordinate</strong></dt>
+<dt><strong>podpac.core.coordinate.Coordinate</strong></dt>
 <dd><p class="first last">The coordinates describing the data source array.</p>
 </dd>
 </dl>
@@ -743,7 +742,7 @@ to extract the correct coordinates and data keys for the soil moisture data.</p>
 <dt><strong>layerkey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd><p class="first last">Key used to retrieve data from OpenDAP dataset. This specifies the key used to retrieve the data</p>
 </dd>
-<dt><strong>no_data_vals</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dt><strong>nan_vals</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
 <dd><p class="first last">List of values that should be treated as no-data (these are replaced by np.nan)</p>
 </dd>
 <dt><strong>rootdatakey</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
@@ -783,14 +782,20 @@ The implementing method can choose which input provides the most efficient metho
 (i.e via coordinates or via the index of the coordinates).</p>
 <p>Coordinates and coordinate indexes may be strided or subsets of the
 source data, but all coordinates and coordinate indexes will match 1:1 with the subset data.</p>
-<p>Most methods generate the template UnitsDataArray using the inherited Node method :meth:initialize_coord_array.
-See :meth:podpac.Node.initialize_coord_array for more details.</p>
+<p>This method may return a numpy array, an xarray DaraArray, or a podpac UnitsDataArray.
+If a numpy array or xarray DataArray is returned, :meth:podpac.core.data.datasource.DataSource.evaluate will
+cast the data into a <cite>UnitsDataArray</cite> using the requested source coordinates.
+If a podpac UnitsDataArray is passed back, the :meth:podpac.core.data.datasource.DataSource.evaluate
+method will not do any further processing.
+The inherited Node method <cite>initialize_coord_array</cite> can be used to generate the template UnitsDataArray 
+in your DataSource.
+See :meth:podpac.core.node.Node.initialize_coord_array for more details.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.core.coordinate.Coordinate</span></dt>
 <dd><p class="first last">The coordinates that need to be retrieved from the data source using the coordinate system of the data
 source</p>
 </dd>
@@ -802,8 +807,10 @@ the data source</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>UnitsDataArray</strong></dt>
-<dd><p class="first last">A subset of the returned data</p>
+<dt><strong>np.ndarray, xr.DataArray, podpac.core.units.UnitsDataArray</strong></dt>
+<dd><p class="first last">A subset of the returned data. If a numpy array or xarray DataArray is returned,
+the data will be cast into  UnitsDataArray using the returned data as the fill value
+at the requested source coordinates.</p>
 </dd>
 </dl>
 </td>
@@ -815,13 +822,13 @@ the data source</p>
 <dl class="method">
 <dt id="podpac.datalib.smap.SMAPSource.get_native_coordinates">
 <code class="descname">get_native_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/datalib/smap.html#SMAPSource.get_native_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.smap.SMAPSource.get_native_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>This should return a podpac.Coordinate object that describes the coordinates of the data source.</p>
+<dd><p>This should return a Coordinate object that describes the coordinates of the data source.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>podpac.Coordinate</strong></dt>
+<dt><strong>podpac.core.coordinate.Coordinate</strong></dt>
 <dd><p class="first last">The coordinates describing the data source array.</p>
 </dd>
 </dl>
@@ -980,8 +987,6 @@ the data source</p>
       
         <a href="podpac.datalib.airmoss.html" class="btn btn-neutral float-right" title="podpac.datalib.airmoss" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-      
-        <a href="podpac.core.data.type.html" class="btn btn-neutral" title="podpac.core.data.type" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

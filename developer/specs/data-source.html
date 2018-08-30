@@ -198,101 +198,140 @@
 <div class="section" id="datasource-class">
 <span id="datasource-class"></span><h2>DataSource Class<a class="headerlink" href="#datasource-class" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">DataSource(Node)</span></code> is the base class from which all data other data sources are implemented. Extends the <code class="docutils literal notranslate"><span class="pre">Node</span></code> base class.</p>
-<p>Potentailly execute datasource &#64; native_coordinates</p>
-<p>Traits:</p>
+<div class="section" id="traits">
+<span id="traits"></span><h3>Traits<a class="headerlink" href="#traits" title="Permalink to this headline">¶</a></h3>
+<p>(See <a class="reference external" href="https://creare-com.github.io/podpac-docs/user/api/podpac.core.node.html#podpac.core.node.Node">Node documentation</a> for nodes attributes)</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">source</span></code>: Any, required<ul>
 <li>The location of the source. Depending on the child node this can be a filepath, numpy array, or dictionary as a few examples.</li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">interpolation</span></code>: Enum(‘nearest’, ‘nearest_preview’, ‘bilinear’, ‘cubic’, ‘cubic_spline’, ‘lanczos’, ‘average’, ‘mode’, ‘gauss’, ‘max’, ‘min’, ‘med’, ‘q1’, ‘q3’), Default: <code class="docutils literal notranslate"><span class="pre">nearest</span></code><ul>
-<li>Type of interpolation</li>
-</ul>
-</li>
-<li><code class="docutils literal notranslate"><span class="pre">params</span></code>: Any<ul>
-<li>Includes <code class="docutils literal notranslate"><span class="pre">interpolation_param</span></code> and any other kwargs that are necessary for the DataSource</li>
-</ul>
-</li>
-<li>pick one of (<code class="docutils literal notranslate"><span class="pre">nodata</span></code>, <code class="docutils literal notranslate"><span class="pre">nonevals</span></code>, <code class="docutils literal notranslate"><span class="pre">none_vals</span></code>, <code class="docutils literal notranslate"><span class="pre">nan</span></code>, <code class="docutils literal notranslate"><span class="pre">nanvals</span></code>, <code class="docutils literal notranslate"><span class="pre">nan_vals</span></code>): List<ul>
-<li>list of values from source data that should be interpreted as ‘no data’ or ‘nans’</li>
+<li><code class="docutils literal notranslate"><span class="pre">interpolation</span></code>: <code class="docutils literal notranslate"><span class="pre">Interpolator()</span></code>  class</li>
+<li><code class="docutils literal notranslate"><span class="pre">coordinate_index_type</span></code>: Enum(‘list’,’numpy’,’xarray’,’pandas’). By default this is <code class="docutils literal notranslate"><span class="pre">numpy</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">nan_vals</span></code>: List<ul>
+<li>list of values from source data that should be interpreted as ‘no data’ or ‘nans’ (replaces <code class="docutils literal notranslate"><span class="pre">no_data_vals</span></code>)</li>
 </ul>
 </li>
 </ul>
-<p>Properties</p>
-<p>Contructor</p>
+</div>
+<div class="section" id="properties">
+<span id="properties"></span><h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="contructor">
+<span id="contructor"></span><h3>Contructor<a class="headerlink" href="#contructor" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Take one input (i.e. <code class="docutils literal notranslate"><span class="pre">auto</span></code>) that will automatically execute the datasource at the native_coordinates on contruction. This will allow a shortcut when you just want to load a simple data source for processing with other more complication data sources</li>
+<li>FUTURE: After implementing a limiter on the request size, implement:<ul>
+<li>Take one input (i.e. <code class="docutils literal notranslate"><span class="pre">evaluate</span></code>) that will automatically execute the datasource at the native_coordinates on contruction. This will allow a shortcut when you just want to load a simple data source for processing with other more complication data sources</li>
 </ul>
-<p>Methods</p>
+</li>
+</ul>
+</div>
+<div class="section" id="methods">
+<span id="methods"></span><h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">execute(coordinates,</span> <span class="pre">params=None,</span> <span class="pre">output=None,</span> <span class="pre">method=None)</span></code> (potentially rename to or provide alias as <code class="docutils literal notranslate"><span class="pre">request(...)</span></code>): Execute this node using the supplied coordinates<ul>
-<li><code class="docutils literal notranslate"><span class="pre">self.requested_coordinates</span></code> gets set to the input coordinates</li>
+<li><code class="docutils literal notranslate"><span class="pre">eval(coordinates,</span> <span class="pre">output=None,</span> <span class="pre">method=None)</span></code>: Evaluate this node using the supplied coordinates<ul>
+<li><code class="docutils literal notranslate"><span class="pre">self.requested_coordinates</span></code> gets set to the coordinates that are input</li>
 <li>remove dims that don’t exist in native coordinates</li>
-<li><code class="docutils literal notranslate"><span class="pre">_determine_source_coordinates()</span></code> translates the requested coordinates into coordinates to get requested via <code class="docutils literal notranslate"><span class="pre">get_data</span></code></li>
+<li>intersect the <code class="docutils literal notranslate"><span class="pre">self.requested_coordinates</span></code> with <code class="docutils literal notranslate"><span class="pre">self.native_coordinates</span></code> to create <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> and <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates_index</span></code> to get requested via <code class="docutils literal notranslate"><span class="pre">get_data</span></code>.  DataSource <code class="docutils literal notranslate"><span class="pre">coordinate_index_type</span></code> informs <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates_index</span></code> (Array[int], Array[boolean], List[slices])</li>
+<li>interpolate requested coordinates <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> using <code class="docutils literal notranslate"><span class="pre">_interpolate_requested_coordinates()</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> coordinates MUST exists exactly in the data source native coordinates.</li>
+<li>run <code class="docutils literal notranslate"><span class="pre">_get_data</span></code> which runs the user defined <code class="docutils literal notranslate"><span class="pre">get_data()</span></code> and check/fix order of dims when UnitsDataArray or Xarray is returned from get_data. Otherwise create UnitsDataArray using values from get_data and requested_source_coordinates. This return from <code class="docutils literal notranslate"><span class="pre">_get_data()</span></code> sets <code class="docutils literal notranslate"><span class="pre">self.requested_source_data</span></code></li>
+<li>Run <code class="docutils literal notranslate"><span class="pre">_interpolate()</span></code></li>
+<li>Set <code class="docutils literal notranslate"><span class="pre">self.evaluated</span></code> to True</li>
+<li>Output the user the UnitsDataArray passed back from interpolate</li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">get_data(coordinates,</span> <span class="pre">coordinates_index=None)</span></code>:<ul>
-<li>by default, try returning the data source at the the coordinates_index. If this fails, raise a <code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code> and <code class="docutils literal notranslate"><span class="pre">coordinates_index</span></code> are guarenteed to exists in the datasource as calculated by <code class="docutils literal notranslate"><span class="pre">_determine_source_coordinates</span></code></li>
-<li>potentially remove inputs and advice use of <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> and <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates_index</span></code></li>
-<li>returns a UnitsDataArray of data subset at the source coordinates</li>
+<li><code class="docutils literal notranslate"><span class="pre">get_data(coordinates,</span> <span class="pre">coordinates_index)</span></code>:<ul>
+<li>Raise a <code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code> and <code class="docutils literal notranslate"><span class="pre">coordinates_index</span></code> are guarenteed to exists in the datasource</li>
+<li>return an UnitsDataArray, numpy array, or xarray of values. this will get turned into a UnitsDataArray aftwards using <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> even if the xarray passes back coordinates<ul>
+<li>Need to check/fix order of dims in UnitsDataArray and Xarray case</li>
+</ul>
+</li>
 </ul>
 </li>
 <li><code class="docutils literal notranslate"><span class="pre">get_native_coordinates()</span></code>: return the native coordinates from the data source. By default, this should return <code class="docutils literal notranslate"><span class="pre">self.native_coordinates</span></code> if defined, otherwise raise a <code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">definition()</span></code>: Pipeline node definition for DataSource nodes.</li>
+<li><code class="docutils literal notranslate"><span class="pre">definition()</span></code>: Pipeline node definition for DataSource nodes.<ul>
+<li>Transport mechanism for going to the cloud</li>
+<li>Leave as is</li>
 </ul>
-<p>Private Methods</p>
+</li>
+</ul>
+</div>
+<div class="section" id="private-methods">
+<span id="private-methods"></span><h3>Private Methods<a class="headerlink" href="#private-methods" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">_determine_source_coordinates()</span></code>: Use <code class="docutils literal notranslate"><span class="pre">self.requested_coordinates</span></code>, <code class="docutils literal notranslate"><span class="pre">self.interpolate</span></code>, and <code class="docutils literal notranslate"><span class="pre">self.params</span></code> to determine the requested coordinates translated into the source coordinates. This could also be a non-class method that takes inputs <code class="docutils literal notranslate"><span class="pre">(requested_coordinates,</span> <span class="pre">native_coordinates,</span> <span class="pre">interpolate,</span> <span class="pre">params)</span></code>. Alternate names: <code class="docutils literal notranslate"><span class="pre">translate_requested_coordinates</span></code>, <code class="docutils literal notranslate"><span class="pre">_interpolate_coordinates</span></code>, <code class="docutils literal notranslate"><span class="pre">_intersect_coordinates</span></code><ul>
-<li>sets <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> (Coordinates) to the coordinates that need to get requested from the data source via <code class="docutils literal notranslate"><span class="pre">get_data</span></code>. These coordinates MUST exists exactly in the data source native coordinates. They coordinates that get returned may be affected by the type of interpolate requested.</li>
-<li>(optionally) sets <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates_index</span></code> (Array[int])</li>
-<li>If we use a non-class method, this would return <code class="docutils literal notranslate"><span class="pre">requested_source_coordinates</span></code> and <code class="docutils literal notranslate"><span class="pre">requested_source_coordinates_index</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">_interpolate_requested_coordinates()</span></code>: Use <code class="docutils literal notranslate"><span class="pre">self.requested_coordinates</span></code>, <code class="docutils literal notranslate"><span class="pre">self.native_coordinates</span></code>, <code class="docutils literal notranslate"><span class="pre">self.interpolate</span></code> to determine the requested coordinates interpolated into the source coordinates.<ul>
+<li>overwrites <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> (Coordinates) to interpolated coordinates that need to get requested from the data source via <code class="docutils literal notranslate"><span class="pre">get_data</span></code>.</li>
+<li>These coordinates MUST exists exactly in the data source native coordinates</li>
+<li>Returns None</li>
 </ul>
 </li>
-<li>Potential: <code class="docutils literal notranslate"><span class="pre">_pre_get_data()</span></code>: method that gets called before <code class="docutils literal notranslate"><span class="pre">get_data()</span></code></li>
-<li>Potential: <code class="docutils literal notranslate"><span class="pre">_post_get_data()</span></code>: method that gets called after <code class="docutils literal notranslate"><span class="pre">get_data()</span></code><ul>
-<li>if the output from get_data is an numpy array, then try to create a UnitsDataArray from the numpy array, the source coordinates, and the source coordinates index.</li>
-<li>Returns a UnitsDataArray for the data subset</li>
+<li><code class="docutils literal notranslate"><span class="pre">_interpolate()</span></code>: Use <code class="docutils literal notranslate"><span class="pre">self.interpolate</span></code> and call the appropriate functions in the <code class="docutils literal notranslate"><span class="pre">interpolate</span></code> module<ul>
+<li>Returns a UnitDataArray which becomes the output of the eval method</li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">_interpolate(data_subset)</span></code>: Use <code class="docutils literal notranslate"><span class="pre">self.interpolate</span></code> and call the appropriate functions in the <code class="docutils literal notranslate"><span class="pre">interpolate</span></code> module</li>
 </ul>
-<p>Operators</p>
+</div>
+<div class="section" id="operators">
+<span id="operators"></span><h3>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h3>
+</div>
 </div>
 <div class="section" id="user-interface">
 <span id="user-interface"></span><h2>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h2>
 <p>Simple datasource that doesn’t need its own subclass</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">101</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
-<span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-<span class="n">node</span> <span class="o">=</span> <span class="n">DataSource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">native_coordinates</span><span class="o">=</span><span class="n">source_coordinates</span><span class="p">)</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">native_coordinates</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>automatically execute:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">101</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
-<span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-<span class="n">ds</span> <span class="o">=</span> <span class="n">DataSource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">native_coordinates</span><span class="o">=</span><span class="n">source_coordinates</span><span class="p">,</span> <span class="n">execute</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Basic subclass datasource</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MockDataSource</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Mock Data Source for testing &quot;&quot;&quot;</span>
-    <span class="n">source</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">101</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
-    <span class="n">native_coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-    <span class="n">interpolate</span> <span class="o">=</span> <span class="s1">&#39;bilinear&#39;</span>
-
-    <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; see DataSource &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ArraySource</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; see DataSource &quot;&quot;&quot;</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">coordinates_index</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_coord_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">d</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">[</span><span class="n">coordinates_index</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>TODO: add more complicated implementations</p>
+<p>Using this basic class</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">101</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">ArraySource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">native_coordinates</span><span class="o">=</span><span class="n">source_coordinates</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">native_coordinates</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>FUTURE: automatically execute</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">101</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">ArraySource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">native_coordinates</span><span class="o">=</span><span class="n">source_coordinates</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>More Complicated Source.
+This datasource gets new <code class="docutils literal notranslate"><span class="pre">native_coordinates</span></code> every time the source updates.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RasterioSource</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
+    
+    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  <span class="c1"># specifies source MUST be a Unicode</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">band</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CInt</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    
+    <span class="nd">@tl.default</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">module</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+
+    <span class="nd">@tl.observe</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_update_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dlon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">width</span>
+        <span class="n">dlat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">height</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">bounds</span>
+
+        <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">dlat</span><span class="p">),</span>
+                                 <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">dlon</span><span class="p">),</span>
+                                 <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">coordinates_index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="developer-interface">
 <span id="developer-interface"></span><h2>Developer interface<a class="headerlink" href="#developer-interface" title="Permalink to this headline">¶</a></h2>
