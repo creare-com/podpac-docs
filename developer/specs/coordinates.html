@@ -220,8 +220,8 @@
 </div>
 <div class="section" id="specification">
 <span id="specification"></span><h1>Specification<a class="headerlink" href="#specification" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="coordinates-for-one-dimension">
-<span id="coordinates-for-one-dimension"></span><h2>Coordinates for One Dimension<a class="headerlink" href="#coordinates-for-one-dimension" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="general">
+<span id="general"></span><h2>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Coordinate values are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code></li>
 <li>Coordinate deltas are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">np.timedelta64</span></code></li>
@@ -232,6 +232,9 @@
 </ul>
 </li>
 </ul>
+</div>
+<div class="section" id="coordinates-for-one-dimension">
+<span id="coordinates-for-one-dimension"></span><h2>Coordinates for One Dimension<a class="headerlink" href="#coordinates-for-one-dimension" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="basecoordinates1d">
 <span id="basecoordinates1d"></span><h3>BaseCoordinates1d<a class="headerlink" href="#basecoordinates1d" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">BaseCoordinates1d</span></code> is the base class for Coordinates1d and StackedCoordinates.</p>
@@ -251,23 +254,13 @@
 <p>Common Operators:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">len</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">[]</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: supports integer, slice, index array, or boolean array</li>
 </ul>
 </div>
 <div class="section" id="coordinates1d-basecoordinates1d">
 <span id="coordinates1d-basecoordinates1d"></span><h3>Coordinates1d(BaseCoordinates1d)<a class="headerlink" href="#coordinates1d-basecoordinates1d" title="Permalink to this headline">¶</a></h3>
-<p>A 1d array of coordinates.</p>
-<p>Constructor:</p>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates1d()</span></code>: empty coordinates</li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates1d(value)</span></code>: a singleton array with one coordinate</li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates1d(values)</span></code>: an array of coordinates</li>
-</ul>
-<p>Alternate Constructors:</p>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates1d.from_xarray(xcoords)</span></code>: Create coordinates from an xarray dimension (a named DataArray)</li>
-</ul>
-<p>Traits:</p>
+<p>Base class for a singe dimension of coordinates.</p>
+<p>Common Traits:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Enum(‘lat’, ‘lon’, ‘time’, ‘alt’)</li>
 <li><code class="docutils literal notranslate"><span class="pre">units</span></code>: Units</li>
@@ -275,7 +268,7 @@
 <li><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘point’, ‘left’, ‘rigth’, ‘midpoint’), default: ‘midpoint’</li>
 <li><code class="docutils literal notranslate"><span class="pre">extents</span></code>: array, shape (2,), optional</li>
 </ul>
-<p>Properties</p>
+<p>Common Properties</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only array</li>
 <li><code class="docutils literal notranslate"><span class="pre">properties</span></code>: dictionary of coordinate properties</li>
@@ -291,7 +284,7 @@
 <li><code class="docutils literal notranslate"><span class="pre">is_descending</span></code>: bool</li>
 <li><code class="docutils literal notranslate"><span class="pre">is_uniform</span></code>: bool</li>
 </ul>
-<p>Methods</p>
+<p>Common Methods</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">select(bounds,</span> <span class="pre">outer=False)</span></code>: select coordinates within the given bounds<ul>
 <li>returns a new Coordinates1d</li>
@@ -317,15 +310,26 @@
 </ul>
 <p>Operators</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">len</span></code>: size</li>
-<li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: index the coordinate values<ul>
-<li>returns a new Coordinates1d object</li>
-<li>supports an integer, a slice, an index array, or a boolean array</li>
+<li><code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">+=</span></code>: wraps add</li>
+<li><code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">-=</span></code>: wraps add</li>
 </ul>
-</li>
-<li><code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">+=</span></code>: either concat Coordinates1d or add value</li>
-<li><code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">-=</span></code>: subtract value</li>
-<li><code class="docutils literal notranslate"><span class="pre">&amp;</span></code>: intersect</li>
+</div>
+<div class="section" id="arraycoordinates1d-coordinates1d">
+<span id="arraycoordinates1d-coordinates1d"></span><h3>ArrayCoordinates1d(Coordinates1d)<a class="headerlink" href="#arraycoordinates1d-coordinates1d" title="Permalink to this headline">¶</a></h3>
+<p>A 1d array of coordinates.</p>
+<p>Constructor:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d()</span></code>: empty coordinates</li>
+<li><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d(value)</span></code>: a singleton array with one coordinate</li>
+<li><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d(values)</span></code>: an array of coordinates</li>
+</ul>
+<p>Alternate Constructors:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d.from_xarray(xcoords)</span></code>: Create coordinates from an xarray dimension (a named DataArray)</li>
+</ul>
+<p>Traits:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">coords</span></code>: array</li>
 </ul>
 </div>
 <div class="section" id="uniformcoordinates1d-coordinates1d">
@@ -348,28 +352,6 @@
 <li>step: float or timedelta64</li>
 </ul>
 </div>
-<div class="section" id="shorthand">
-<span id="shorthand"></span><h3>Shorthand<a class="headerlink" href="#shorthand" title="Permalink to this headline">¶</a></h3>
-<p>For ease-of-use, the following aliases will be available in the toplevel <code class="docutils literal notranslate"><span class="pre">podpac</span></code> package:</p>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">_ca</span></code>: Coordinates1d</li>
-<li><code class="docutils literal notranslate"><span class="pre">_cu</span></code>: UniformCoordinates1d</li>
-</ul>
-<p>16 shortcut functions <em>may</em> also be defined, e.g.</p>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">_ca_lat</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">_cu_time</span></code></li>
-</ul>
-<p>So that the following are equivalent</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-<span class="n">_cu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-<span class="n">_cu_lat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="stacked-coordinates">
-<span id="stacked-coordinates"></span><h2>Stacked Coordinates<a class="headerlink" href="#stacked-coordinates" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="stackedcoordinates-basecoordinates1d">
 <span id="stackedcoordinates-basecoordinates1d"></span><h3>StackedCoordinates(BaseCoordinates1d)<a class="headerlink" href="#stackedcoordinates-basecoordinates1d" title="Permalink to this headline">¶</a></h3>
 <p>Coordinates for two or more physical dimensions that are indexed together (aligned, as opposed to defining a grid). This class should be considered an implementation detail that behaves like a tuple (is iterable) but also facilitates a common interface with Coordinates1d by mapping indexing and other methods to its Coordinates1d objects.</p>
@@ -377,7 +359,7 @@
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">name</span></code>: dimension names joined by an underscore, e.g. <code class="docutils literal notranslate"><span class="pre">'lat_lon'</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple of dimension names</li>
-<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only DataArray with MultiIndex</li>
+<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: pandas.MultiIndex</li>
 <li><code class="docutils literal notranslate"><span class="pre">size</span></code>: int</li>
 <li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: if all of its dimensions are monotonic</li>
 <li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: if all of its dimensions are uniform</li>
@@ -401,48 +383,12 @@
 </ul>
 </li>
 </ul>
-<p>Operators</p>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">len</span></code>: size</li>
-<li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: index each of coordinates values<ul>
-<li>returns a new StackedCoordinates object</li>
-<li>supports an integer, a slice, an index array, or a boolean array</li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="section" id="helper-functions">
-<span id="helper-functions"></span><h3>Helper Functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">stacked_linspace</span></code> helper function returns a uniformly spaced line as StackedCoordinates, so that the following examples are equivalent</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">stacked_linspace</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="mi">100</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">))</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
-<span class="n">alt</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">alt</span><span class="s1">&#39;)</span>
-<span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">alt</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="shorthand">
-<span id="id1"></span><h3>Shorthand<a class="headerlink" href="#shorthand" title="Permalink to this headline">¶</a></h3>
-<p>For ease-of-use, the following aliases will be defined in the toplevel podpac package:</p>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">_stacked</span></code>: StackedCoordinates</li>
-</ul>
-<p>So that the above can be rewritten:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">_stacked</span><span class="p">(</span><span class="n">_cu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">),</span> <span class="n">_cu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">),</span> <span class="n">_cu</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;alt&#39;</span><span class="p">))</span>
-<span class="n">_stacked</span><span class="p">(</span><span class="n">_culat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">_culon</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)),</span> <span class="n">_cualt</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
-</pre></div>
-</div>
 </div>
 </div>
 <div class="section" id="convenience-functions">
 <span id="convenience-functions"></span><h2>Convenience Functions<a class="headerlink" href="#convenience-functions" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
 <div class="section" id="crange">
-<span id="crange"></span><h1>crange<a class="headerlink" href="#crange" title="Permalink to this headline">¶</a></h1>
+<span id="crange"></span><h3>crange<a class="headerlink" href="#crange" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">podpac</span><span class="o">.</span><span class="n">crange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
 <span class="n">podpac</span><span class="o">.</span><span class="n">crange</span><span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-10&#39;</span><span class="p">,</span> <span class="s1">&#39;2,D&#39;</span><span class="p">)</span>
 <span class="n">podpac</span><span class="o">.</span><span class="n">crange</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="s1">&#39;2018-01-10&#39;</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">))</span>
@@ -458,7 +404,7 @@
 </ul>
 </div>
 <div class="section" id="clinspace">
-<span id="clinspace"></span><h1>clinspace<a class="headerlink" href="#clinspace" title="Permalink to this headline">¶</a></h1>
+<span id="clinspace"></span><h3>clinspace<a class="headerlink" href="#clinspace" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-09&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="s1">&#39;2018-01-09&#39;</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
@@ -474,6 +420,49 @@
 </li>
 <li>Under the hood, this is implemented by mapping to <code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">size=N)</span></code> and <code class="docutils literal notranslate"><span class="pre">StackedCoordinates</span></code></li>
 </ul>
+</div>
+<div class="section" id="shorthand-aliases">
+<span id="shorthand-aliases"></span><h3>Shorthand/aliases<a class="headerlink" href="#shorthand-aliases" title="Permalink to this headline">¶</a></h3>
+<p>For ease-of-use, the following aliases will be available in the toplevel <code class="docutils literal notranslate"><span class="pre">podpac</span></code> package:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_ca</span></code>: <code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">_cu</span></code>: <code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">_stacked</span></code>: <code class="docutils literal notranslate"><span class="pre">StackedCoordinates</span></code></li>
+</ul>
+<p>16 shortcut functions <em>may</em> also be defined, e.g. <code class="docutils literal notranslate"><span class="pre">_ca_lat</span></code>, <code class="docutils literal notranslate"><span class="pre">_cu_time</span></code>, etc</p>
+<p>So that the following single coordinates are equivalent</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">podpac</span><span class="o">.</span><span class="n">_cu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">podpac</span><span class="o">.</span><span class="n">_cu_lat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="n">podpac</span><span class="o">.</span><span class="n">crange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+
+<span class="c1"># these are also functionally equivalent to the above</span>
+<span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">podpac</span><span class="o">.</span><span class="n">_ca</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
+<span class="n">podpac</span><span class="o">.</span><span class="n">_ca_lat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>And the following stacked coordinates are equivalent</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">StackedCoordinates</span><span class="p">([</span>
+    <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">),</span>
+    <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">),</span>
+    <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-10&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">)])</span>
+    
+<span class="n">podpac</span><span class="o">.</span><span class="n">_stacked</span><span class="p">([</span>
+    <span class="n">podpac</span><span class="o">.</span><span class="n">_cu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">),</span>
+    <span class="n">podpac</span><span class="o">.</span><span class="n">_cu</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">),</span>
+    <span class="n">podaac</span><span class="o">.</span><span class="n">_cu</span><span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-10&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">)])</span>
+    
+<span class="n">podpac</span><span class="o">.</span><span class="n">_stacked</span><span class="p">([</span>
+    <span class="n">podpac</span><span class="o">.</span><span class="n">_cu_lat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+    <span class="n">podpac</span><span class="o">.</span><span class="n">_cu_lon</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">)),</span>
+    <span class="n">podpac</span><span class="o">.</span><span class="n">_cu_time</span><span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-10&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)])</span>
+    
+<span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;2018-01-01&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;2018-01-10&#39;</span><span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
 <div class="section" id="multidemensional-coordinates">
 <span id="multidemensional-coordinates"></span><h2>Multidemensional Coordinates<a class="headerlink" href="#multidemensional-coordinates" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="coordinate-creation">
@@ -500,7 +489,7 @@
 <div class="section" id="traits">
 <span id="traits"></span><h3>Traits<a class="headerlink" href="#traits" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">default_coord_ref_sys</span></code>: Unicode</li>
+<li><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: Unicode</li>
 <li><code class="docutils literal notranslate"><span class="pre">default_distance_units</span></code>: Units</li>
 <li><code class="docutils literal notranslate"><span class="pre">default_ctype</span></code>: Enum(‘left’, ‘right’, ‘midpoint’, ‘point’)</li>
 </ul>
@@ -508,70 +497,72 @@
 <div class="section" id="properties">
 <span id="properties"></span><h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">ndim</span></code>: Int</li>
 <li><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple(str, str, …)</li>
 <li><code class="docutils literal notranslate"><span class="pre">shape</span></code>: tuple(int, int, …)</li>
-<li><code class="docutils literal notranslate"><span class="pre">coords</span></code>: xarray.core.DataArrayCoordinates type (dictionary-like mapping dimension names to named DataArrays)</li>
-<li>TODO</li>
+<li><code class="docutils literal notranslate"><span class="pre">ndim</span></code>: int</li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: int</li>
+<li><code class="docutils literal notranslate"><span class="pre">udims</span></code>: tuple(str, str, …), “unstacked”</li>
+<li><code class="docutils literal notranslate"><span class="pre">coords</span></code>: <code class="docutils literal notranslate"><span class="pre">xarray.core.DataArrayCoordinates</span></code></li>
 </ul>
-<p>For stacked dimensions, the dimension names are combined by an underscore, and the coordinates are implemented as a pandas MultiIndex:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span><span class="o">.</span><span class="n">dims</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">)</span> <span class="c1"># this is actually a StackedCoordinates object</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords1d</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="k">with</span> <span class="n">MultiIndex</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">DataArray</span> <span class="c1"># we get this for free due to the MultiIndex</span>
-</pre></div>
-</div>
 </div>
 <div class="section" id="methods">
 <span id="methods"></span><h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
 <p>In general, methods will return a new Coordinates object by default, with an option to modify the Coordinates in-place.</p>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">add</span></code>: TODO</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: TODO</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">select(bounds)</span></code>: TODO</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">intersect(other):</span></code> TODO</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">drop_dims(dims)</span></code>: remove dimensions</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">dims</span></code> may be a dimension name (str) or a list of dimension names</li>
-<li>stacked dimensions can be removed together or individually</li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the folowing are equivalent</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">drop_dims</span><span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">)</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">drop_dims</span><span class="p">([</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-
-<span class="c1"># drop part of a stacked dimension</span>
-<span class="n">coords</span><span class="o">.</span><span class="n">drop_dims</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">add_dim</span></code></p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">unstack</span></code></p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">stack</span></code></p>
-</li>
+<li><code class="docutils literal notranslate"><span class="pre">keys()</span></code>: return dims, stacked</li>
+<li><code class="docutils literal notranslate"><span class="pre">values()</span></code>: returns BaseCoordinates1d, stacked</li>
+<li><code class="docutils literal notranslate"><span class="pre">items()</span></code>: zips keys and values</li>
+<li><code class="docutils literal notranslate"><span class="pre">get(key,</span> <span class="pre">default=None)</span></code>: wraps [] with fallback</li>
+<li><code class="docutils literal notranslate"><span class="pre">add</span></code>: TODO</li>
+<li><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: TODO</li>
+<li><code class="docutils literal notranslate"><span class="pre">intersect(other,</span> <span class="pre">outer=False)</span></code>: maps intersection to each dimension, returns new Coordinates object</li>
+<li><code class="docutils literal notranslate"><span class="pre">drop(dims)</span></code>: remove dimensions, stacked dimensions are removed together</li>
+<li><code class="docutils literal notranslate"><span class="pre">udrop(dims)</span></code>: remove dimensions, stacked dimensions can be removed individually</li>
+<li><code class="docutils literal notranslate"><span class="pre">transpose</span></code>: TODO</li>
+<li><code class="docutils literal notranslate"><span class="pre">iterchunks</span></code>: TODO</li>
 </ul>
 </div>
 <div class="section" id="operators">
 <span id="operators"></span><h3>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h3>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">[]</span></code>: Get or set the Coordinates1d object for the given dimension; checks the size when setting coordinates for a stacked dimension</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span><span class="o">.</span><span class="n">dims</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
-<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">UniformCoordinates1d</span>
-<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
-<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="c1"># modify the coordinates (or raise an exception for size mismatch)</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">[dim]</span> <span class="pre">=</span> <span class="pre">&lt;Coordinates1d&gt;</span></code>: Set the coordinates for this dimension. If this dimension is stacked, the size is checked.</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">[dim]</span></code>: Get the BaseCoordinates1d object for the given dimension, stacked or unstacked</li>
+<li><code class="docutils literal notranslate"><span class="pre">[dim]</span> <span class="pre">=</span> <span class="pre">&lt;Coordinates1d&gt;</span></code>: Set the coordinates for this dimension.<ul>
+<li>If this dimension is part of stacked dimensions, raises an exception (we could change this)</li>
+</ul>
 </li>
 </ul>
+</div>
+<div class="section" id="example">
+<span id="example"></span><h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">lon</span> <span class="o">=</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">time</span> <span class="o">=</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">lat_lon</span> <span class="o">=</span> <span class="n">StackedCoordinaes</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">)</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat_lon</span><span class="p">,</span> <span class="n">time</span><span class="p">])</span>
+
+<span class="n">coords</span><span class="o">.</span><span class="n">dims</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">shape</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-&gt;</span> <span class="mi">2</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">size</span> <span class="o">-&gt;</span> <span class="mi">40</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">udims</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">lat_lon</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">((</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="n">lat_lon</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">time</span><span class="p">))</span>
+<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">lat_lon</span>
+<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">time</span>
+<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">lat</span>
+<span class="n">coords</span><span class="p">[</span><span class="s1">&#39;alt&#39;</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alt&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="mi">2</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Coordinates</span> <span class="k">with</span> <span class="n">only</span> <span class="n">lat_lon</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Coordinates</span> <span class="k">with</span> <span class="n">only</span> <span class="n">time</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;alt&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">KeyError</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;lat_lon&#39;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">empty</span> <span class="n">Coordinates</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">],</span> <span class="n">ignore_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Coordinates</span> <span class="k">with</span> <span class="n">only</span> <span class="n">lat_lon</span>
+<span class="n">coords</span><span class="o">.</span><span class="n">udrop</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Coordinates</span> <span class="k">with</span> <span class="n">only</span> <span class="n">time</span> <span class="ow">and</span> <span class="n">lon</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="miscellaneous-examples">
 <span id="miscellaneous-examples"></span><h3>Miscellaneous Examples<a class="headerlink" href="#miscellaneous-examples" title="Permalink to this headline">¶</a></h3>
