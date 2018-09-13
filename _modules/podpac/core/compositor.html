@@ -186,7 +186,7 @@
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
 <span class="c1"># Internal imports</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinate</span> <span class="k">import</span> <span class="n">Coordinate</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span> 
@@ -198,9 +198,9 @@
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    shared_coordinates : podpac.Coordinate, optional</span>
+<span class="sd">    shared_coordinates : podpac.Coordinates, optional</span>
 <span class="sd">        Coordinates that are shared amongst all of the composited sources</span>
-<span class="sd">    source_coordinates = podpac.Coordinate, optional</span>
+<span class="sd">    source_coordinates = podpac.Coordinates, optional</span>
 <span class="sd">        Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the </span>
 <span class="sd">        user-requested coordinates. It is an optimization. </span>
 <span class="sd">    is_source_coordinates_complete : Bool</span>
@@ -236,8 +236,8 @@
 <span class="sd">    ------</span>
 <span class="sd">    Developers of new Compositor nodes need to implement the `composite` method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">shared_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">shared_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">is_source_coordinates_complete</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;This allows some optimizations but assumes that a node&#39;s &quot;</span>
               <span class="s2">&quot;native_coordinates=source_coordinate + shared_coordinate &quot;</span>
@@ -270,7 +270,7 @@
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        podpac.Coordinate</span>
+<span class="sd">        podpac.Coordinates</span>
 <span class="sd">            Coordinates describing each source.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">None</span></div>
@@ -315,7 +315,7 @@
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        podpac.Coordinate</span>
+<span class="sd">        podpac.Coordinates</span>
 <span class="sd">            Description</span>
 <span class="sd">            Native coordinates of the entire dataset.</span>
 <span class="sd">            </span>
@@ -366,7 +366,7 @@
             <span class="n">src_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span> <span class="c1"># all</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># intersecting sources only</span>
-            <span class="n">I</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ind</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">src_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="n">I</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_subset</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -384,13 +384,11 @@
         <span class="c1"># WARNING: this assumes</span>
         <span class="c1">#              native_coords = source_coords + shared_coordinates</span>
         <span class="c1">#         NOT  native_coords = shared_coords + source_coords</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_source_coordinates_complete</span> \
-                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">coords_subset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span>
-                    <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_source_coordinates_complete</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">coords_subset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">coords_dim</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_subset</span><span class="p">,</span> <span class="n">coords_subset</span><span class="p">):</span>
-                <span class="n">nc</span> <span class="o">=</span> <span class="n">Coordinate</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">coords_dim</span><span class="p">:</span> <span class="n">c</span><span class="p">})</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span>
+                <span class="n">nc</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">coords_dim</span><span class="p">:</span> <span class="n">c</span><span class="p">})</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span>
                 <span class="c1"># Switching from _trait_values to hasattr because &quot;native_coordinates&quot;</span>
                 <span class="c1"># sometimes not showing up in _trait_values in other locations</span>
                 <span class="c1"># Not confirmed here</span>
@@ -423,7 +421,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        coordinates : podpac.Coordinate</span>
+<span class="sd">        coordinates : podpac.Coordinates</span>
 <span class="sd">            {requested_coordinates}</span>
 <span class="sd">        output : podpac.UnitsDataArray, optional</span>
 <span class="sd">            {execute_out}</span>

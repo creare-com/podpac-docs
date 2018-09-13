@@ -203,8 +203,7 @@
 <span class="k">except</span><span class="p">:</span>
     <span class="n">scipy</span> <span class="o">=</span> <span class="kc">None</span>
 
-<span class="kn">from</span> <span class="nn">podpac.core.coordinate.coordinate</span> <span class="k">import</span> <span class="n">Coordinate</span><span class="p">,</span> <span class="n">UniformCoord</span>
-
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
 
 <div class="viewcode-block" id="InterpolationException"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.InterpolationException">[docs]</a><span class="k">class</span> <span class="nc">InterpolationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Summary</span>
@@ -244,8 +243,8 @@
                          <span class="s1">&#39;gauss&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;med&#39;</span><span class="p">,</span> <span class="s1">&#39;q1&#39;</span><span class="p">,</span> <span class="s1">&#39;q3&#39;</span><span class="p">],</span>   <span class="c1"># TODO: gauss is not supported by rasterio</span>
                         <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     
-    <span class="n">eval_coords</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">)</span>
-    <span class="n">source_coords</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">)</span>
+    <span class="n">eval_coords</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
+    <span class="n">source_coords</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
     <span class="n">pad</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">interpolation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span>
     <span class="n">valid_interpolations</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([])</span>
@@ -274,7 +273,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
     
-<div class="viewcode-block" id="Interpolator.source_coords_subset"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.source_coords_subset">[docs]</a>    <span class="k">def</span> <span class="nf">source_coords_subset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolator.source_coords_subset"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.source_coords_subset">[docs]</a>    <span class="k">def</span> <span class="nf">source_coords_subset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the subset of coordinates needed from the source data</span>
 <span class="sd">        to interpolate onto the destination data. </span>
 <span class="sd">        </span>
@@ -293,8 +292,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">pad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coords</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_coords</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">intersect_ind_slice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_coords</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">)]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coords</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_coords</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">intersect_ind_slice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_coords</span><span class="p">)]</span></div>
     
     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;should return evaluated data </span>
