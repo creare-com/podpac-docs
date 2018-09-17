@@ -100,22 +100,7 @@
 </ul>
 <p class="caption"><span class="caption-text">User Guide</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Coordinates</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#coordinate-creation">Coordinate Creation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#unstacked-coordinates">Unstacked Coordinates</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#stacked-coordinates">Stacked Coordinates</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#uniformly-spaced-coordinates">Uniformly-Spaced Coordinates</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#rotated-coordinates">Rotated Coordinates</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#coordinate-properties">Coordinate Properties</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#alternate-constructors">Alternate Constructors</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#advanced-usage">Advanced Usage</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#coordinate-api">Coordinate API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#coordinates-groups">Coordinates Groups</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Coordinates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nodes.html">Nodes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipelines.html">Pipelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="earthdata.html">NASA Earth Data</a></li>
@@ -194,164 +179,14 @@
             
   <div class="section" id="coordinates">
 <span id="coordinates"></span><h1>Coordinates<a class="headerlink" href="#coordinates" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<span id="overview"></span><h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>Coordinates are used to:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Coordinates</span></code> are used to:</p>
 <ol class="simple">
-<li>Evaluate <a class="reference external" href="nodes.md">nodes</a> which retrieve and process data</li>
-<li>Define the coordinates of <a class="reference external" href="nodes.md#datasource">data sources</a></li>
+<li>Execute nodes which retrieve and process data</li>
+<li>Define the coordinates of data sources</li>
 </ol>
-<p>Podpac Coordinates are modeled after the coords in <a class="reference external" href="http://xarray.pydata.org/en/stable/data-structures.html">xarray</a>,
-with some additional restrictions and enhancements. Coordinates are created from a list of coordinate <code class="docutils literal notranslate"><span class="pre">values</span></code> and a corresponding list of <code class="docutils literal notranslate"><span class="pre">dims</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Unlike xarray, podpac coordinate values are always either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code>. For convenience, podpac
-automatically converts datetime strings such as <code class="docutils literal notranslate"><span class="pre">'2018-01-01'</span></code> to <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code>. In addition, the allowed dimensions
-are <code class="docutils literal notranslate"><span class="pre">'lat'</span></code>, <code class="docutils literal notranslate"><span class="pre">'lon'</span></code>, <code class="docutils literal notranslate"><span class="pre">'time'</span></code>, and <code class="docutils literal notranslate"><span class="pre">'alt'</span></code>.</p>
-</div>
-<div class="section" id="coordinate-creation">
-<span id="coordinate-creation"></span><h2>Coordinate Creation<a class="headerlink" href="#coordinate-creation" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="unstacked-coordinates">
-<span id="unstacked-coordinates"></span><h3>Unstacked Coordinates<a class="headerlink" href="#unstacked-coordinates" title="Permalink to this headline">¶</a></h3>
-<p>Unstacked multidimensional coordinates form a grid of points. For example, the following Coordinates contain three dimensions and a total of 24 points.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lat</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">lon</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-02&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">time</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>You can also create coordinates with just one dimension the same way:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="p">([</span><span class="n">time</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="stacked-coordinates">
-<span id="stacked-coordinates"></span><h3>Stacked Coordinates<a class="headerlink" href="#stacked-coordinates" title="Permalink to this headline">¶</a></h3>
-<p>Coordinates from multiple dimensions can be stacked together in a list (rather than representing a grid).</p>
-<p>For example, Coordinates with stacked latitude and longitude contain one point for each (lat, lon) pair. Note
-that the name for this stacked dimension is ‘lat_lon’, using an underscore to combine the underlying dimensions.
-The following example has a single stacked dimension and a total of 3 points.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-<span class="n">lon</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">])</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">c</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">c</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-<p>Coordinates can combine stacked dimensions and unstacked dimensions. For example, in the following Coordinates the <code class="docutils literal notranslate"><span class="pre">(lat,</span> <span class="pre">lon)</span></code> values and the <code class="docutils literal notranslate"><span class="pre">time</span></code> values form a grid of 6 total points.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-<span class="n">lon</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">time</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-02&#39;</span><span class="p">]</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">time</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">c</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">c</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="uniformly-spaced-coordinates">
-<span id="uniformly-spaced-coordinates"></span><h3>Uniformly-Spaced Coordinates<a class="headerlink" href="#uniformly-spaced-coordinates" title="Permalink to this headline">¶</a></h3>
-<p>Podpac provides two convenience functions <code class="docutils literal notranslate"><span class="pre">crange</span></code> and <code class="docutils literal notranslate"><span class="pre">clinspace</span></code> for creating uniformly-spaced coordinates, similar to the <code class="docutils literal notranslate"><span class="pre">arange</span></code> and <code class="docutils literal notranslate"><span class="pre">linspace</span></code> functions provided by numpy.</p>
-<p><strong>Coordinates Range</strong></p>
-<p><code class="docutils literal notranslate"><span class="pre">podpac.crange</span></code> creates uniformly-spaced coordinates from a start, stop, and step.</p>
-<p>Unlike <code class="docutils literal notranslate"><span class="pre">np.arange</span></code>:</p>
-<ul class="simple">
-<li>string inputs are supported for datetimes and timedeltas</li>
-<li>the stop value will be included in the coordinates if it falls an exact number of steps from the start</li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">crange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span>
-<span class="go">[0.0, 2.0, 4.0, 6.0, 8.0]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">crange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span>
-<span class="go">[0.0, 2.0, 4.0, 6.0, 8.0, 10.0]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">crange</span><span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-3-01&#39;</span><span class="p">,</span> <span class="s1">&#39;1,M&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span>
-</pre></div>
-</div>
-<p><strong>Coordinates Linspace</strong></p>
-<p><code class="docutils literal notranslate"><span class="pre">podpac.clinspace</span></code> creates uniformly-spaced coordinates from a start, stop, and size.</p>
-<p>Unlike <code class="docutils literal notranslate"><span class="pre">np.linspace</span></code>:</p>
-<ul class="simple">
-<li>string inputs are supported for datetimes</li>
-<li>tuple inputs are supported for stacked coordinates</li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span>
-<span class="go">[0.0, 2.0, 4.0, 6.0, 8.0, 10.0]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-3-01&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span>
-</pre></div>
-</div>
-<p>These functions wrap UniformCoordinates1d (see Advanced Usage), which is particularly useful for coordinates with an
-extremely large number of points.</p>
-</div>
-<div class="section" id="rotated-coordinates">
-<span id="rotated-coordinates"></span><h3>Rotated Coordinates<a class="headerlink" href="#rotated-coordinates" title="Permalink to this headline">¶</a></h3>
-<p>TODO</p>
-</div>
-<div class="section" id="coordinate-properties">
-<span id="coordinate-properties"></span><h3>Coordinate Properties<a class="headerlink" href="#coordinate-properties" title="Permalink to this headline">¶</a></h3>
-<p>TODO ctype, etc</p>
-</div>
-<div class="section" id="alternate-constructors">
-<span id="alternate-constructors"></span><h3>Alternate Constructors<a class="headerlink" href="#alternate-constructors" title="Permalink to this headline">¶</a></h3>
-<p>Unstacked coordinates can also be created using the <code class="docutils literal notranslate"><span class="pre">Coordinates.grid</span></code> alternate constructor:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">lon</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">]],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>Stacked coordinates can be created using the <code class="docutils literal notranslate"><span class="pre">Coordinates.points</span></code> alternate constructor:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="o">.</span><span class="n">points</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">lon</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>For convenience, a tuple can be used to generate uniformly-spaced coordinates. If the third item is an integer, it
-is interpreted as a size, otherwise it is interpreted as a step. The following will all be equivalent:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="n">clinspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="n">clinspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="n">crange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">lon</span><span class="o">=</span><span class="n">crange</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
-</pre></div>
-</div>
-<p>Note that in Python 3.5 and below, the <code class="docutils literal notranslate"><span class="pre">order</span></code> argument is required to both <code class="docutils literal notranslate"><span class="pre">grid</span></code> and <code class="docutils literal notranslate"><span class="pre">points</span></code></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">lon</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Coordinates</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">lon</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="advanced-usage">
-<span id="advanced-usage"></span><h3>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permalink to this headline">¶</a></h3>
-<p>TODO</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-<span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
-<span class="n">time</span> <span class="o">=</span> <span class="n">ArrayCoordinates1d</span><span class="p">([</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-02-03&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
-<span class="n">Coordinates</span><span class="p">([</span><span class="n">StackedCoordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">]),</span> <span class="n">time</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>TODO mixed ctypes, etc…</p>
-</div>
-</div>
-<div class="section" id="coordinate-api">
-<span id="coordinate-api"></span><h2>Coordinate API<a class="headerlink" href="#coordinate-api" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
-<p>Coordinates contain some useful properties relating to its dimensions and underlying coordinate values.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">time</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">ndims</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">dims</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">shape</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">size</span>
-</pre></div>
-</div>
-<p>Coordinates are dict-like. The <code class="docutils literal notranslate"><span class="pre">keys()</span></code>, <code class="docutils literal notranslate"><span class="pre">values()</span></code>, and <code class="docutils literal notranslate"><span class="pre">items()</span></code></p>
-</div>
-<div class="section" id="coordinates-groups">
-<span id="coordinates-groups"></span><h2>Coordinates Groups<a class="headerlink" href="#coordinates-groups" title="Permalink to this headline">¶</a></h2>
-<p>TODO</p>
-</div>
+<p>The interface for <code class="docutils literal notranslate"><span class="pre">Coordinates</span></code> are currently unstable. To peek at what we’re thinking,
+see <a class="reference external" href="https://github.com/creare-com/podpac/blob/develop/doc/source/developer/specs/coordinates.md">Developer Coordinates Spec</a></p>
+<p>For now, see the <a class="reference external" href="https://github.com/creare-com/podpac/tree/master/doc/notebooks">Notebook Examples</a> for examples of creating <code class="docutils literal notranslate"><span class="pre">Coordinates</span></code>.</p>
 </div>
 
 

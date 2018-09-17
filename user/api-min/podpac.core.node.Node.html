@@ -210,7 +210,7 @@
 <dt><strong>evaluated</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Bool</span></dt>
 <dd><p class="first last">Flag indicating if the node has been evaluated.</p>
 </dd>
-<dt><strong>requested_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates</span></dt>
+<dt><strong>requested_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
 <dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.
 This attribute stores the coordinates that were last used to evaluate the node.</p>
 </dd>
@@ -218,7 +218,7 @@ This attribute stores the coordinates that were last used to evaluate the node.<
 <dd><p class="first last">Flag indicating if nodes as part of a pipeline should be automatically evaluated when
 the root node is evaluated. This attribute is planned for deprecation in the future.</p>
 </dd>
-<dt><strong>native_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Coordinates, optional</span></dt>
+<dt><strong>native_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate, optional</span></dt>
 <dd><p class="first last">The native set of coordinates for a node. This attribute may be <cite>None</cite> for some nodes.</p>
 </dd>
 <dt><strong>node_defaults</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
@@ -300,8 +300,14 @@ future.</p>
 <tr class="row-odd"><td><a class="reference internal" href="../api/podpac.core.node.html#podpac.core.node.Node.get_output_coords" title="podpac.core.node.Node.get_output_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_coords</span></code></a>([coords])</td>
 <td>Returns the output coordinates based on the user-requested coordinates.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.node.html#podpac.core.node.Node.get_output_path" title="podpac.core.node.Node.get_output_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_path</span></code></a>(filename[,&nbsp;outdir])</td>
+<tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.node.html#podpac.core.node.Node.get_output_dims" title="podpac.core.node.Node.get_output_dims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_dims</span></code></a>([coords])</td>
+<td>Returns the dimensions of the output coordinates based on the user-requested coordinates.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="../api/podpac.core.node.html#podpac.core.node.Node.get_output_path" title="podpac.core.node.Node.get_output_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_path</span></code></a>(filename[,&nbsp;outdir])</td>
 <td>Get the output path where data is cached to disk</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.node.html#podpac.core.node.Node.get_output_shape" title="podpac.core.node.Node.get_output_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_shape</span></code></a>([coords])</td>
+<td>Returns the shape of the output based on the evaluated coordinates.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trait</span></code>(name)</td>
 <td>Returns True if the object has a trait with the specified name.</td>
@@ -316,7 +322,7 @@ future.</p>
 <td>Initialize output data array</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="../api/podpac.core.node.html#podpac.core.node.Node.initialize_coord_array" title="podpac.core.node.Node.initialize_coord_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_coord_array</span></code></a>(coords[,&nbsp;init_type,&nbsp;…])</td>
-<td>Initialize an output array using a podpac.Coordinates object.</td>
+<td>Initialize an output array using a podpac.Coordinate object.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="../api/podpac.core.node.html#podpac.core.node.Node.initialize_output_array" title="podpac.core.node.Node.initialize_output_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initialize_output_array</span></code></a>([init_type,&nbsp;…])</td>
 <td>Initializes the UnitsDataArray with the expected output size.</td>
@@ -679,7 +685,7 @@ understand this method and get_description.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates</span></dt>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
 <dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.</p>
 </dd>
 <dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.UnitsDataArray, optional</span></dt>
@@ -781,8 +787,36 @@ not supplied.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>podpac.Coordinates</strong></dt>
+<dt><strong>podpac.Coordinate</strong></dt>
 <dd><p class="first last">The coordinates of the output if the node is executed with <cite>coords</cite></p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="podpac.core.node.Node.get_output_dims">
+<code class="descname">get_output_dims</code><span class="sig-paren">(</span><em>coords=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_output_dims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_output_dims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dimensions of the output coordinates based on the user-requested coordinates. This is jointly 
+determined by the input or evaluated coordinates and the native_coordinates (if present).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates, optional</span></dt>
+<dd><p class="first last">Requested coordinates that help determine the coordinates of the output. Uses self.requested_coordinates if 
+not supplied.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>list</strong></dt>
+<dd><p class="first last">A list of the coordinates</p>
 </dd>
 </dl>
 </td>
@@ -820,6 +854,41 @@ not supplied.</p>
 </table>
 <p class="rubric">Notes</p>
 <p>If the output directory doesn’t exist, it will be created.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="podpac.core.node.Node.get_output_shape">
+<code class="descname">get_output_shape</code><span class="sig-paren">(</span><em>coords=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.get_output_shape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.get_output_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the shape of the output based on the evaluated coordinates. This shape is jointly determined by the
+input or evaluated coordinates and the native_coordinates (if present).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>coords: podpac.Coordinates, optional</strong></dt>
+<dd><p class="first last">Requested coordinates that help determine the shape of the output. Uses self.requested_coordinates if not 
+supplied.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tuple/list</strong></dt>
+<dd><p class="first last">Size of the dimensions of the output</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>NodeException</strong></dt>
+<dd><p class="first last">If the shape cannot be automatically determined, this exception is raised.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -900,13 +969,13 @@ data: uses the fillval as the input array</p>
 <dl class="method">
 <dt id="podpac.core.node.Node.initialize_coord_array">
 <code class="descname">initialize_coord_array</code><span class="sig-paren">(</span><em>coords</em>, <em>init_type='nan'</em>, <em>fillval=0</em>, <em>style=None</em>, <em>no_style=False</em>, <em>units=None</em>, <em>dtype=&lt;class 'float'&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.initialize_coord_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.node.Node.initialize_coord_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize an output array using a podpac.Coordinates object.</p>
+<dd><p>Initialize an output array using a podpac.Coordinate object.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates</span></dt>
+<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
 <dd><p class="first last">Coordinates descriping the size of the data array that will be initialized</p>
 </dd>
 <dt><strong>init_type</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
@@ -986,7 +1055,7 @@ data: uses the fillval as the input array</p>
 <dt><strong>shape</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list/tuple, optional</span></dt>
 <dd><p class="first last">Shape of array. Uses self.shape by default.</p>
 </dd>
-<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Coordinates, optional</span></dt>
+<dt><strong>coords</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Coordinate, optional</span></dt>
 <dd><p class="first last">Input to UnitsDataArray (i.e. an xarray coords dictionary/list)</p>
 </dd>
 <dt><strong>dims</strong> <span class="classifier-delimiter">:</span> <span class="classifier">None, optional</span></dt>
@@ -1046,7 +1115,7 @@ data: uses the fillval as the input array</p>
 <dt><strong>name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
 <dd><p class="first last">Name of the file prefix.</p>
 </dd>
-<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates</span></dt>
+<dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinate</span></dt>
 <dd><p class="first last">{requested_coordinates}</p>
 </dd>
 <dt><strong>outdir</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>

@@ -206,8 +206,8 @@
 
 <span class="kn">from</span> <span class="nn">podpac</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac</span> <span class="k">import</span> <span class="n">Units</span><span class="p">,</span> <span class="n">UnitsDataArray</span>
+<span class="kn">from</span> <span class="nn">podpac</span> <span class="k">import</span> <span class="n">Coordinate</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
 
 <span class="n">COMMON_NODE_DOC</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;native_coordinates&#39;</span><span class="p">:</span> 
@@ -312,13 +312,13 @@
 <span class="sd">        The numpy datatype of the output. Currently only `float` is supported.</span>
 <span class="sd">    evaluated : Bool</span>
 <span class="sd">        Flag indicating if the node has been evaluated.</span>
-<span class="sd">    requested_coordinates : podpac.Coordinates</span>
+<span class="sd">    requested_coordinates : podpac.Coordinate</span>
 <span class="sd">        {requested_coordinates}</span>
 <span class="sd">        This attribute stores the coordinates that were last used to evaluate the node.</span>
 <span class="sd">    implicit_pipeline_evaluation : Bool</span>
 <span class="sd">        Flag indicating if nodes as part of a pipeline should be automatically evaluated when</span>
 <span class="sd">        the root node is evaluated. This attribute is planned for deprecation in the future.</span>
-<span class="sd">    native_coordinates : Coordinates, optional</span>
+<span class="sd">    native_coordinates : podpac.Coordinate, optional</span>
 <span class="sd">        {native_coordinates} </span>
 <span class="sd">    node_defaults : dict</span>
 <span class="sd">        Dictionary of defaults values for attributes of a Node. </span>
@@ -333,17 +333,17 @@
 <span class="sd">        The interpolation type to use for the node. Not all nodes use this attribute.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">output</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_output_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_output_array</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
 
-    <span class="n">native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="s1">&#39;podpac.core.coordinate.Coordinate&#39;</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">evaluated</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">implicit_pipeline_evaluation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">requested_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">implicit_pipeline_evaluation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Evaluate the pipeline implicitly (True, Default)&quot;</span><span class="p">)</span>
+    <span class="n">requested_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="s1">&#39;podpac.core.coordinate.Coordinate&#39;</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">Units</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">dtype</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="c1"># TODO JXM</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">cache_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;disk&#39;</span><span class="p">,</span> <span class="s1">&#39;ram&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">node_defaults</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">interpolation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -357,7 +357,7 @@
     <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;See `get_output_shape`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested_coordinates</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_output_shape</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Node.__init__"><a class="viewcode-back" href="../../../user/api-min/podpac.core.node.Node.html#podpac.core.compositor.Node.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Do not overwrite me &quot;&quot;&quot;</span>
@@ -405,7 +405,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        coordinates : podpac.Coordinates</span>
+<span class="sd">        coordinates : podpac.Coordinate</span>
 <span class="sd">            {requested_coordinates}</span>
 <span class="sd">        output : podpac.UnitsDataArray, optional</span>
 <span class="sd">            {execute_out}</span>
@@ -418,6 +418,80 @@
 <span class="sd">            Children need to implement this method, otherwise this error is raised. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+    
+<div class="viewcode-block" id="Node.get_output_shape"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_output_shape">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the shape of the output based on the evaluated coordinates. This shape is jointly determined by the</span>
+<span class="sd">        input or evaluated coordinates and the native_coordinates (if present).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        coords: podpac.Coordinates, optional</span>
+<span class="sd">            Requested coordinates that help determine the shape of the output. Uses self.requested_coordinates if not </span>
+<span class="sd">            supplied. </span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple/list</span>
+<span class="sd">            Size of the dimensions of the output</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NodeException</span>
+<span class="sd">            If the shape cannot be automatically determined, this exception is raised. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Changes here likely will also require changes in initialize_output_array</span>
+        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> 
+            <span class="n">ev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested_coordinates</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">ev</span> <span class="o">=</span> <span class="n">coords</span>
+        <span class="c1">#nv = self._trait_values.get(&#39;native_coordinates&#39;,  None)</span>
+        <span class="c1"># Switching from _trait_values to hasattr because &quot;native_coordinates&quot;</span>
+        <span class="c1"># not showing up in _trait_values</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;native_coordinates&#39;</span><span class="p">):</span>
+            <span class="n">nv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nv</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">ev</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nv</span><span class="o">.</span><span class="n">get_shape</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ev</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ev</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">elif</span> <span class="n">nv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nv</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cannot determine shape if &quot;</span>
+                                <span class="s2">&quot;requested_coordinates and native_coordinates&quot;</span>
+                                <span class="s2">&quot; are both None.&quot;</span><span class="p">)</span>        </div>
+
+<div class="viewcode-block" id="Node.get_output_dims"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_output_dims">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the dimensions of the output coordinates based on the user-requested coordinates. This is jointly </span>
+<span class="sd">        determined by the input or evaluated coordinates and the native_coordinates (if present).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coords : podpac.Coordinates, optional</span>
+<span class="sd">            Requested coordinates that help determine the coordinates of the output. Uses self.requested_coordinates if </span>
+<span class="sd">            not supplied.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            A list of the coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Changes here likely will also require changes in shape</span>
+        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested_coordinates</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="p">(</span><span class="n">Coordinate</span><span class="p">)):</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinate</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
+        <span class="c1">#if self._trait_values.get(&quot;native_coordinates&quot;, None) is not None:</span>
+        <span class="c1"># Switching from _trait_values to hasattr because &quot;native_coordinates&quot;</span>
+        <span class="c1"># not showing up in _trait_values</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;native_coordinates&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span><span class="o">.</span><span class="n">dims</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span>
+        <span class="k">return</span> <span class="n">dims</span></div>
 
 <div class="viewcode-block" id="Node.get_output_coords"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.get_output_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the output coordinates based on the user-requested coordinates. This is jointly determined by </span>
@@ -431,33 +505,24 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        podpac.Coordinates</span>
+<span class="sd">        podpac.Coordinate</span>
 <span class="sd">            The coordinates of the output if the node is executed with `coords`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Changes here likely will also require changes in shape</span>
         <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested_coordinates</span>
-
-        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">):</span>
-            <span class="k">assert</span> <span class="kc">False</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="p">(</span><span class="n">Coordinate</span><span class="p">)):</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinate</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
 
         <span class="c1">#if self._trait_values.get(&quot;native_coordinates&quot;, None) is not None:</span>
         <span class="c1"># Switching from _trait_values to hasattr because &quot;native_coordinates&quot;</span>
         <span class="c1"># not showing up in _trait_values</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;native_coordinates&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="kc">False</span>
-            <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="kc">False</span>
-        
-        <span class="k">return</span> <span class="n">coords</span></div>
+            <span class="n">crds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span><span class="o">.</span><span class="n">replace_coords</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">crds</span> <span class="o">=</span> <span class="n">coords</span>
+        <span class="k">return</span> <span class="n">crds</span></div>
 
 <div class="viewcode-block" id="Node.initialize_output_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.initialize_output_array">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">initialize_output_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -477,7 +542,7 @@
 <span class="sd">            {arr_no_style}</span>
 <span class="sd">        shape : list/tuple, optional</span>
 <span class="sd">            {arr_shape}</span>
-<span class="sd">        coords : Coordinates, optional</span>
+<span class="sd">        coords : Coordinate, optional</span>
 <span class="sd">            {arr_coords}</span>
 <span class="sd">        dims : None, optional</span>
 <span class="sd">            {arr_dims}</span>
@@ -492,9 +557,10 @@
 <span class="sd">        -------</span>
 <span class="sd">        {arr_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">crds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_output_coords</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_array</span><span class="p">(</span>
-            <span class="n">init_type</span><span class="p">,</span> <span class="n">fillval</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">no_style</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">crds</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">crds</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="n">crds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_output_coords</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">crds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_array</span><span class="p">(</span><span class="n">init_type</span><span class="p">,</span> <span class="n">fillval</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">no_style</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span>
+                                     <span class="n">crds</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="Node.copy_output_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.copy_output_array">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">copy_output_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">):</span>
@@ -535,11 +601,11 @@
     <span class="k">def</span> <span class="nf">initialize_coord_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">no_style</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize an output array using a podpac.Coordinates object.</span>
+        <span class="sd">&quot;&quot;&quot;Initialize an output array using a podpac.Coordinate object.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        coords : podpac.Coordinates</span>
+<span class="sd">        coords : podpac.Coordinate</span>
 <span class="sd">            Coordinates descriping the size of the data array that will be initialized</span>
 <span class="sd">        init_type : str, optional</span>
 <span class="sd">            {arr_init_type}</span>
@@ -560,8 +626,9 @@
 <span class="sd">        -------</span>
 <span class="sd">        {arr_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_array</span><span class="p">(</span>
-            <span class="n">init_type</span><span class="p">,</span> <span class="n">fillval</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">no_style</span><span class="p">,</span> <span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_array</span><span class="p">(</span><span class="n">init_type</span><span class="p">,</span> <span class="n">fillval</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">no_style</span><span class="p">,</span>
+                                     <span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">coords</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span>
+                                     <span class="n">units</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.initialize_array"><a class="viewcode-back" href="../../../user/api/podpac.core.node.html#podpac.core.compositor.Node.initialize_array">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">initialize_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_type</span><span class="o">=</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="n">fillval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -606,11 +673,7 @@
         <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">style</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span>
         <span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
-            <span class="kn">from</span> <span class="nn">xarray.core.coordinates</span> <span class="k">import</span> <span class="n">DataArrayCoordinates</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">DataArrayCoordinates</span><span class="p">):</span>
-                <span class="k">assert</span> <span class="kc">False</span>
-                <span class="n">coords</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">coords</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">init_type</span> <span class="o">==</span> <span class="s1">&#39;empty&#39;</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
@@ -858,7 +921,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        name : str</span>
 <span class="sd">            Name of the file prefix.</span>
-<span class="sd">        coordinates : podpac.Coordinates</span>
+<span class="sd">        coordinates : podpac.Coordinate</span>
 <span class="sd">            {requested_coordinates}</span>
 <span class="sd">        outdir : str, optional</span>
 <span class="sd">            {outdir}</span>
