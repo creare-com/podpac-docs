@@ -206,12 +206,31 @@
 <li>The location of the source. Depending on the child node this can be a filepath, numpy array, or dictionary as a few examples.</li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">interpolation</span></code>: <code class="docutils literal notranslate"><span class="pre">Interpolator()</span></code>  class</li>
+<li><code class="docutils literal notranslate"><span class="pre">interpolation</span></code>:<ul>
+<li><code class="docutils literal notranslate"><span class="pre">Interpolator()</span></code> - NearestNeighbor</li>
+<li>Dict({<code class="docutils literal notranslate"><span class="pre">dim</span></code> (not stacked): <code class="docutils literal notranslate"><span class="pre">Interpolator()</span></code> NearestNeighbor})</li>
+<li>string - Enum(<code class="docutils literal notranslate"><span class="pre">interpolate.INTERPOLATION_OPTIONS</span></code>)</li>
+<li>Dict({<code class="docutils literal notranslate"><span class="pre">dim</span></code> (not stacked): string - Enum(<code class="docutils literal notranslate"><span class="pre">interpolate.INTERPOLATION_OPTIONS</span></code>)})</li>
+</ul>
+</li>
 <li><code class="docutils literal notranslate"><span class="pre">coordinate_index_type</span></code>: Enum(‘list’,’numpy’,’xarray’,’pandas’). By default this is <code class="docutils literal notranslate"><span class="pre">numpy</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">nan_vals</span></code>: List<ul>
 <li>list of values from source data that should be interpreted as ‘no data’ or ‘nans’ (replaces <code class="docutils literal notranslate"><span class="pre">no_data_vals</span></code>)</li>
 </ul>
 </li>
+</ul>
+</div>
+<div class="section" id="private-members">
+<span id="private-members"></span><h3>Private Members<a class="headerlink" href="#private-members" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_interpolator</span></code> - interpolator chosen from <code class="docutils literal notranslate"><span class="pre">interpolator</span></code> and <code class="docutils literal notranslate"><span class="pre">interpolation</span></code></li>
+</ul>
+<p><em>TODO</em> : the names of these memebers will be changed</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_requested_coordinates</span></code> = tl.Instance(Coordinates, allow_none=True)</li>
+<li><code class="docutils literal notranslate"><span class="pre">_requested_source_coordinates</span></code> = tl.Instance(Coordinates)</li>
+<li><code class="docutils literal notranslate"><span class="pre">_requested_source_coordinates_index</span></code> = tl.List()</li>
+<li><code class="docutils literal notranslate"><span class="pre">_requested_source_data</span></code> = tl.Instance(UnitsDataArray)</li>
 </ul>
 </div>
 <div class="section" id="properties">
@@ -224,6 +243,7 @@
 <li>Take one input (i.e. <code class="docutils literal notranslate"><span class="pre">evaluate</span></code>) that will automatically execute the datasource at the native_coordinates on contruction. This will allow a shortcut when you just want to load a simple data source for processing with other more complication data sources</li>
 </ul>
 </li>
+<li>Choose a default interpolation option if neither interpolator or interpolation is defined</li>
 </ul>
 </div>
 <div class="section" id="methods">
@@ -231,6 +251,7 @@
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">eval(coordinates,</span> <span class="pre">output=None,</span> <span class="pre">method=None)</span></code>: Evaluate this node using the supplied coordinates<ul>
 <li><code class="docutils literal notranslate"><span class="pre">self.requested_coordinates</span></code> gets set to the coordinates that are input</li>
+<li>Instantiate <code class="docutils literal notranslate"><span class="pre">_interpolator</span></code>  classes with data sources based on input to <code class="docutils literal notranslate"><span class="pre">interpolation</span></code></li>
 <li>remove dims that don’t exist in native coordinates</li>
 <li>intersect the <code class="docutils literal notranslate"><span class="pre">self.requested_coordinates</span></code> with <code class="docutils literal notranslate"><span class="pre">self.native_coordinates</span></code> to create <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> and <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates_index</span></code> to get requested via <code class="docutils literal notranslate"><span class="pre">get_data</span></code>.  DataSource <code class="docutils literal notranslate"><span class="pre">coordinate_index_type</span></code> informs <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates_index</span></code> (Array[int], Array[boolean], List[slices])</li>
 <li>interpolate requested coordinates <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> using <code class="docutils literal notranslate"><span class="pre">_interpolate_requested_coordinates()</span></code>.</li>

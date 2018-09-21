@@ -177,46 +177,238 @@
             
   <div class="section" id="requirements">
 <span id="requirements"></span><h1>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h1>
-<p>TODO: Add requirements</p>
+<ul class="simple">
+<li>decide and run interpolate before request to <code class="docutils literal notranslate"><span class="pre">get_data</span></code> to minimize data on the wire, if possible<ul>
+<li>handle points/segments at the edge of a data source boundary</li>
+<li>handle out-of-extents cases</li>
+</ul>
+</li>
+<li>support most used geospatial temporal interpolation methods</li>
+<li>require minimal configuration for generic types of interpolation</li>
+<li>configuration works in python or in pipeline equally</li>
+<li>handle stacked and unstacked coordinates in the same pipelines</li>
+<li>specify priority for interpolators</li>
+<li>Each interpolator should know what coordinates it can interpolate to/from</li>
+<li>Each interpolator should know how to select appropriate coordinates from the datasource
+Multiple interpolators may be required for each request:<ul>
+<li>Time could use NN interpolation</li>
+<li>lat/lon could use bilinear with a specified CRS/Projection</li>
+</ul>
+</li>
+<li>The order of these multiple interpolators matters from an optimization perpsective<ul>
+<li>Consider the size of the dataset before/after interpolation</li>
+<li>Consider the cost of the interpolation operation</li>
+</ul>
+</li>
+<li><strong>TODO</strong>: support custom interpolator classes?</li>
+<li><strong>TODO</strong>: support <code class="docutils literal notranslate"><span class="pre">+</span></code> (<code class="docutils literal notranslate"><span class="pre">__add__</span></code>) for Interpolators?</li>
+</ul>
 </div>
 <div class="section" id="example-use-cases">
 <span id="example-use-cases"></span><h1>Example Use cases<a class="headerlink" href="#example-use-cases" title="Permalink to this headline">¶</a></h1>
-<p>TODO: Add example usecases</p>
+<ul class="simple">
+<li>user requests a single value at a point between coordinates in a datasource</li>
+<li>user requests an array of coordinates from a dataset from a dataset with a different coordinate system</li>
+<li>user requests data at coordinates that overlap the extent of the native dataset</li>
+<li>user requests a different type of interpolation for lat/long and time</li>
+</ul>
+</div>
+<div class="section" id="user-interface">
+<span id="user-interface"></span><h1>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h1>
+<p><strong>DataSource</strong> usage (primary):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<span class="c1"># specify method</span>
+<span class="n">DataSource</span><span class="p">(</span><span class="o">...</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+
+<span class="c1"># specify dict of methods for each dimension</span>
+<span class="c1"># value can be a method string, or a tuple which overrides the default method InterpolationMethods</span>
+<span class="n">DataSource</span><span class="p">(</span><span class="o">...</span> <span class="n">interpolation</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Nearest</span><span class="p">,</span> <span class="n">Rasterio</span><span class="p">])</span>
+    <span class="p">})</span>
+
+<span class="c1"># specify an interpolation class itself</span>
+<span class="n">DataSource</span><span class="p">(</span><span class="o">...</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">Interpolation</span><span class="p">()</span> <span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="interpolation">
+<span id="interpolation"></span><h2><code class="docutils literal notranslate"><span class="pre">Interpolation</span></code><a class="headerlink" href="#interpolation" title="Permalink to this headline">¶</a></h2>
+<p>Used to organize multiple interpolators across the dimensions of a DataSource</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># definition generally comes from DataSource `interpolation`</span>
+<span class="c1"># **kwargs will get passed on to interpolators</span>
+<span class="n">Interpolation</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="c1"># simple string definition applies to all dimensions</span>
+<span class="n">Interpolation</span><span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
+
+<span class="c1"># more complicated specify a tuple with a method name and the order of Interpolators</span>
+<span class="n">Interpolation</span><span class="p">(</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="n">Nearest</span><span class="p">]),</span> <span class="n">coordinates</span><span class="p">)</span>
+
+
+<span class="c1"># more complicated dict defines dimensions</span>
+<span class="c1"># raises Exception if dimension is not included</span>
+<span class="n">Interpolation</span><span class="p">({</span>
+    <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="s1">&#39;bilinear&#39;</span>
+    <span class="p">},</span> <span class="n">coordinates</span><span class="p">)</span>
+
+<span class="c1"># most complicated defines method and order of interpolators</span>
+<span class="n">Interpolation</span><span class="p">({</span>
+    <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="s1">&#39;nearest&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Nearest</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+    <span class="p">},</span> <span class="n">coordinates</span><span class="p">)</span>
+
+<span class="c1"># include kwargs that get passed on to inteprolation methods</span>
+<span class="n">Interpolation</span><span class="p">({</span>
+    <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="s1">&#39;nearest&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Nearest</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+    <span class="p">},</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="s1">&#39;for interpolator&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="interpolator">
+<span id="interpolator"></span><h2><code class="docutils literal notranslate"><span class="pre">Interpolator</span></code><a class="headerlink" href="#interpolator" title="Permalink to this headline">¶</a></h2>
+<p>Create Interpolator classes</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<span class="k">class</span> <span class="nc">MyInterpolator</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    class has traits </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># method = tl.Unicode() defined by Interpolator base class</span>
+    <span class="n">tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">()</span>
+    <span class="n">kwarg</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">()</span>
+
+    <span class="n">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># act on inputs after traits have been set up</span>
+    
+    <span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="c1"># validate requested coordinates and source_coordinates can </span>
+        <span class="c1"># be interpolated with current &quot;method&quot;</span>
+    
+    <span class="n">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
+        <span class="c1"># down select coordinates (if valid) based on method</span>
+    
+    <span class="n">interpolate</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="c1"># interpolate data (if valid) based on method</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="specification">
 <span id="specification"></span><h1>Specification<a class="headerlink" href="#specification" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="interpolator-class">
-<span id="interpolator-class"></span><h2>Interpolator Class<a class="headerlink" href="#interpolator-class" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="constants">
-<span id="constants"></span><h3>Constants<a class="headerlink" href="#constants" title="Permalink to this headline">¶</a></h3>
+<span id="constants"></span><h2>Constants<a class="headerlink" href="#constants" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">interpolate_options</span></code>:<ul>
-<li>Enum(‘nearest’, ‘nearest_preview’, ‘bilinear’, ‘cubic’, ‘cubic_spline’, ‘lanczos’, ‘average’, ‘mode’, ‘gauss’, ‘max’, ‘min’, ‘med’, ‘q1’, ‘q3’),</li>
-<li>Default: <code class="docutils literal notranslate"><span class="pre">nearest</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_METHODS</span></code>: dict of shortcut: InterpolationMethod class</li>
+<li><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_SHORTCUTS</span></code>: List<ul>
 <li>Only include the supported interpolation options</li>
 </ul>
 </li>
-</ul>
-</div>
-<div class="section" id="traits">
-<span id="traits"></span><h3>Traits<a class="headerlink" href="#traits" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">method</span></code>: one of:<ul>
-<li>str: Enum(<code class="docutils literal notranslate"><span class="pre">interpolate_options</span></code>)</li>
-<li>Dict({<code class="docutils literal notranslate"><span class="pre">dim</span></code>: Enum(<code class="docutils literal notranslate"><span class="pre">interpolate_options</span></code>)})</li>
-<li>For all dims or single dims.</li>
+<li><code class="docutils literal notranslate"><span class="pre">TOLERANCE_DEFAULTS</span></code>: dict of deafult tolerance for each dim<ul>
+<li>TODO: how to handle units?</li>
 </ul>
 </li>
 </ul>
 </div>
+<div class="section" id="utility-methods">
+<span id="utility-methods"></span><h2>Utility methods<a class="headerlink" href="#utility-methods" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="user-interface">
-<span id="user-interface"></span><h2>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h2>
-<p>TODO: Add user interface specs</p>
+<div class="section" id="interpolator-abstract-class">
+<span id="interpolator-abstract-class"></span><h2><code class="docutils literal notranslate"><span class="pre">Interpolator</span></code> Abstract Class<a class="headerlink" href="#interpolator-abstract-class" title="Permalink to this headline">¶</a></h2>
+<p>This is a traits based class since users may be expected to define Interoplator subclasses</p>
+<div class="section" id="traits">
+<span id="traits"></span><h3>Traits<a class="headerlink" href="#traits" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">method</span></code>: tl.Unicode() - current interpolation method name</li>
+</ul>
 </div>
-<div class="section" id="developer-interface">
-<span id="developer-interface"></span><h2>Developer interface<a class="headerlink" href="#developer-interface" title="Permalink to this headline">¶</a></h2>
-<p>TODO: Add developer interface specs</p>
+<div class="section" id="methods">
+<span id="methods"></span><h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">validate(requested_coordinates,</span> <span class="pre">source_coordinates)</span></code><ul>
+<li>check to see if the Interpolator supports the requested/soruce coordinate pair for the current method</li>
+<li><code class="docutils literal notranslate"><span class="pre">InterpolationMethod</span></code> raises a <code class="docutils literal notranslate"><span class="pre">NotImplemented</span></code> if child does not overide</li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">interpolate(source_coordinates,</span> <span class="pre">source_data,</span> <span class="pre">requested_coordinates,</span> <span class="pre">requested_data)</span></code><ul>
+<li><code class="docutils literal notranslate"><span class="pre">InterpolationMethod</span></code> raises a <code class="docutils literal notranslate"><span class="pre">NotImplemented</span></code> if child does not overide</li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">select_coordinates(requested_coordinates,</span> <span class="pre">source_coordinates,</span> <span class="pre">source_coordinates_idx)</span></code><ul>
+<li><code class="docutils literal notranslate"><span class="pre">InterpolationMethod</span></code> raises a <code class="docutils literal notranslate"><span class="pre">NotImplemented</span></code> if child does not overide</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="nearestneighbor">
+<span id="nearestneighbor"></span><h3><code class="docutils literal notranslate"><span class="pre">NearestNeighbor</span></code><a class="headerlink" href="#nearestneighbor" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="nearestpreview">
+<span id="nearestpreview"></span><h3><code class="docutils literal notranslate"><span class="pre">NearestPreview</span></code><a class="headerlink" href="#nearestpreview" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>can select coordinates</li>
+</ul>
+</div>
+<div class="section" id="rasterio">
+<span id="rasterio"></span><h3><code class="docutils literal notranslate"><span class="pre">Rasterio</span></code><a class="headerlink" href="#rasterio" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="scipy">
+<span id="scipy"></span><h3><code class="docutils literal notranslate"><span class="pre">Scipy</span></code><a class="headerlink" href="#scipy" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="interpolation-class">
+<span id="interpolation-class"></span><h2><code class="docutils literal notranslate"><span class="pre">Interpolation</span></code> Class<a class="headerlink" href="#interpolation-class" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="constructor">
+<span id="constructor"></span><h3>Constructor<a class="headerlink" href="#constructor" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">__init__(definition,</span> <span class="pre">coordinates,</span> <span class="pre">**kwargs)</span></code>:<ul>
+<li><code class="docutils literal notranslate"><span class="pre">definition</span></code>: (str, dict, tuple)</li>
+<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code></li>
+<li>kwargs will get passed through the Interpolator classes</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="members">
+<span id="members"></span><h3>Members<a class="headerlink" href="#members" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="private-members">
+<span id="private-members"></span><h3>Private members<a class="headerlink" href="#private-members" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_definition</span></code>: dict { dim: (‘method’, [Interpolator]) }</li>
+</ul>
+<p><strong>Cost Optimization</strong></p>
+<p>TODO: figure out where to implement optimization steps</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">cost_func</span></code>: tl.CFloat(-1)<ul>
+<li>rough cost FLOPS/DOF to do interpolation</li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">cost_setup</span></code>: tl.CFloat(-1)<ul>
+<li>rough cost FLOPS/DOF to set up the interpolator</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="methods">
+<span id="id1"></span><h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">interpolate(source_coordinates,</span> <span class="pre">source_data,</span> <span class="pre">requested_coordinates,</span> <span class="pre">requested_data)</span></code>: run the interpolator</li>
+<li><code class="docutils literal notranslate"><span class="pre">select_coordinates(requested_coordinates,</span> <span class="pre">source_coordinates,</span> <span class="pre">source_coordinates_idx)</span></code>: interpolate child coordinates</li>
+<li><code class="docutils literal notranslate"><span class="pre">to_pipeline()</span></code>: export interpolator class to pipeline</li>
+<li><code class="docutils literal notranslate"><span class="pre">from_pipeline()</span></code>: create interpolator class from pipeline</li>
+</ul>
+</div>
+</div>
+<div class="section" id="interpolatorexception">
+<span id="interpolatorexception"></span><h2>InterpolatorException<a class="headerlink" href="#interpolatorexception" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>custom exception for interpolation errors</li>
+</ul>
 </div>
 </div>
 
