@@ -228,7 +228,7 @@ Multiple interpolators may be required for each request:<ul>
         <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Nearest</span><span class="p">,</span> <span class="n">Rasterio</span><span class="p">])</span>
     <span class="p">})</span>
 
-<span class="c1"># specify an interpolation class itself</span>
+<span class="c1"># specify an interpolation class itself (useful when you need to override args to Interpolators)</span>
 <span class="n">DataSource</span><span class="p">(</span><span class="o">...</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">Interpolation</span><span class="p">()</span> <span class="p">)</span>
 </pre></div>
 </div>
@@ -240,27 +240,28 @@ Multiple interpolators may be required for each request:<ul>
 <span class="n">Interpolation</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <span class="c1"># simple string definition applies to all dimensions</span>
+<span class="c1"># this string must be a member of INTERPOLATION_SHORTCUTS</span>
 <span class="n">Interpolation</span><span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
 
-<span class="c1"># more complicated specify a tuple with a method name and the order of Interpolators</span>
+<span class="c1"># more complicated specify a tuple with a method name and the order of Interpolators to use this method with</span>
+<span class="c1"># the method string in the tuple does not necessarily have to be a member of INTERPOLATION_SHORTCUTS</span>
 <span class="n">Interpolation</span><span class="p">(</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="n">Nearest</span><span class="p">]),</span> <span class="n">coordinates</span><span class="p">)</span>
 
-
-<span class="c1"># more complicated dict defines dimensions</span>
+<span class="c1"># more complicated dict definition specifies interpolators for each dimension</span>
 <span class="c1"># raises Exception if dimension is not included</span>
 <span class="n">Interpolation</span><span class="p">({</span>
     <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">,</span>
     <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="s1">&#39;bilinear&#39;</span>
     <span class="p">},</span> <span class="n">coordinates</span><span class="p">)</span>
 
-<span class="c1"># most complicated defines method and order of interpolators</span>
+<span class="c1"># most complicated dict definition specifies tuple interpolators for dimensions</span>
 <span class="n">Interpolation</span><span class="p">({</span>
     <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="s1">&#39;nearest&#39;</span><span class="p">,</span>
     <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
     <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Nearest</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
     <span class="p">},</span> <span class="n">coordinates</span><span class="p">)</span>
 
-<span class="c1"># include kwargs that get passed on to inteprolation methods</span>
+<span class="c1"># can include kwargs that get passed on to Interpolator methods</span>
 <span class="n">Interpolation</span><span class="p">({</span>
     <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="s1">&#39;nearest&#39;</span><span class="p">,</span>
     <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nearest&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
@@ -271,7 +272,8 @@ Multiple interpolators may be required for each request:<ul>
 </div>
 <div class="section" id="interpolator">
 <span id="interpolator"></span><h2><code class="docutils literal notranslate"><span class="pre">Interpolator</span></code><a class="headerlink" href="#interpolator" title="Permalink to this headline">¶</a></h2>
-<p>Create Interpolator classes</p>
+<p>Create <strong>Interpolator</strong> classes that can be assigned in <strong>Interpolation</strong> definitions.</p>
+<p>Examples: <code class="docutils literal notranslate"><span class="pre">NearestNeighbor</span></code>, <code class="docutils literal notranslate"><span class="pre">Rasterio</span></code>, <code class="docutils literal notranslate"><span class="pre">Scipy</span></code></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
 <span class="k">class</span> <span class="nc">MyInterpolator</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; </span>
@@ -287,13 +289,13 @@ Multiple interpolators may be required for each request:<ul>
     
     <span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
         <span class="c1"># validate requested coordinates and source_coordinates can </span>
-        <span class="c1"># be interpolated with current &quot;method&quot;</span>
+        <span class="c1"># be interpolated with`self.method`</span>
     
     <span class="n">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
-        <span class="c1"># down select coordinates (if valid) based on method</span>
+        <span class="c1"># down select coordinates (if valid) based on `self.method`</span>
     
     <span class="n">interpolate</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
-        <span class="c1"># interpolate data (if valid) based on method</span>
+        <span class="c1"># interpolate data (if valid) based on `self.method`</span>
 </pre></div>
 </div>
 </div>
@@ -306,10 +308,6 @@ Multiple interpolators may be required for each request:<ul>
 <li><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_METHODS</span></code>: dict of shortcut: InterpolationMethod class</li>
 <li><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_SHORTCUTS</span></code>: List<ul>
 <li>Only include the supported interpolation options</li>
-</ul>
-</li>
-<li><code class="docutils literal notranslate"><span class="pre">TOLERANCE_DEFAULTS</span></code>: dict of deafult tolerance for each dim<ul>
-<li>TODO: how to handle units?</li>
 </ul>
 </li>
 </ul>
