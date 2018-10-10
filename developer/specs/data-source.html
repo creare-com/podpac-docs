@@ -207,10 +207,21 @@
 </ul>
 </li>
 <li><code class="docutils literal notranslate"><span class="pre">interpolation</span></code>:<ul>
-<li><code class="docutils literal notranslate"><span class="pre">Interpolator()</span></code> - NearestNeighbor</li>
-<li>Dict({<code class="docutils literal notranslate"><span class="pre">dim</span></code> (not stacked): <code class="docutils literal notranslate"><span class="pre">Interpolator()</span></code> NearestNeighbor})</li>
-<li>string - Enum(<code class="docutils literal notranslate"><span class="pre">interpolate.INTERPOLATION_OPTIONS</span></code>)</li>
-<li>Dict({<code class="docutils literal notranslate"><span class="pre">dim</span></code> (not stacked): string - Enum(<code class="docutils literal notranslate"><span class="pre">interpolate.INTERPOLATION_OPTIONS</span></code>)})</li>
+<li>str, tuple (str, list of podpac.core.data.interpolate.Interpolator)</li>
+<li>Definition of interpolation methods for each dimension of the native coordinates. If input is a string, it must match one of the interpolation shortcuts defined in
+:ref:podpac.core.data.interpolate.INTERPOLATION_SHORTCUTS. The interpolation method associated
+with this string will be applied to all dimensions in the native coordinates.</li>
+<li>If input is a tuple, the first element of the tuple must be a string interpolation method name.
+The second element must be a list of :ref:podpac.core.data.interpolate.Interpolator. This list specifies
+the order in which the interpolators will be applied.
+The interpolation method defined by this tuple will be applied to all dimensions in the native coordinates.</li>
+<li>If input is a dict, the key must be string dimension names. The value can be a string or tuple following
+the same convention as specified above. The string or tuple will be applied
+to the dimension specied by the key. An exception will be raised if the dictionary
+does not contain a key for all unstacked dimensions of the native coodrinates.
+All dimension keys must be unstacked even if the underlying coordinate dimensions are stacked.</li>
+<li>If input is a podpac.core.data.interpolate.Interpolation, this interpolator will be used without modication.</li>
+<li>By default, the interpolation method is set to <code class="docutils literal notranslate"><span class="pre">'nearest'</span></code> for all dimensions.</li>
 </ul>
 </li>
 <li><code class="docutils literal notranslate"><span class="pre">coordinate_index_type</span></code>: Enum(‘list’,’numpy’,’xarray’,’pandas’). By default this is <code class="docutils literal notranslate"><span class="pre">numpy</span></code></li>
@@ -223,7 +234,7 @@
 <div class="section" id="private-members">
 <span id="private-members"></span><h3>Private Members<a class="headerlink" href="#private-members" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">_interpolator</span></code> - interpolator chosen from <code class="docutils literal notranslate"><span class="pre">interpolator</span></code> and <code class="docutils literal notranslate"><span class="pre">interpolation</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">_interpolation</span></code> - tl.Instance(Interpolation).  Interpolation method returned from Interpolation(<code class="docutils literal notranslate"><span class="pre">interpolation</span></code>) constructor</li>
 </ul>
 <p><em>TODO</em> : the names of these memebers will be changed</p>
 <ul class="simple">
@@ -243,7 +254,6 @@
 <li>Take one input (i.e. <code class="docutils literal notranslate"><span class="pre">evaluate</span></code>) that will automatically execute the datasource at the native_coordinates on contruction. This will allow a shortcut when you just want to load a simple data source for processing with other more complication data sources</li>
 </ul>
 </li>
-<li>Choose a default interpolation option if neither interpolator or interpolation is defined</li>
 </ul>
 </div>
 <div class="section" id="methods">
@@ -251,7 +261,7 @@
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">eval(coordinates,</span> <span class="pre">output=None,</span> <span class="pre">method=None)</span></code>: Evaluate this node using the supplied coordinates<ul>
 <li><code class="docutils literal notranslate"><span class="pre">self.requested_coordinates</span></code> gets set to the coordinates that are input</li>
-<li>Instantiate <code class="docutils literal notranslate"><span class="pre">_interpolator</span></code>  classes with data sources based on input to <code class="docutils literal notranslate"><span class="pre">interpolation</span></code></li>
+<li>Instantiate <code class="docutils literal notranslate"><span class="pre">_interpolation</span></code>  classes with data sources based on input to <code class="docutils literal notranslate"><span class="pre">interpolation</span></code></li>
 <li>remove dims that don’t exist in native coordinates</li>
 <li>intersect the <code class="docutils literal notranslate"><span class="pre">self.requested_coordinates</span></code> with <code class="docutils literal notranslate"><span class="pre">self.native_coordinates</span></code> to create <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> and <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates_index</span></code> to get requested via <code class="docutils literal notranslate"><span class="pre">get_data</span></code>.  DataSource <code class="docutils literal notranslate"><span class="pre">coordinate_index_type</span></code> informs <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates_index</span></code> (Array[int], Array[boolean], List[slices])</li>
 <li>interpolate requested coordinates <code class="docutils literal notranslate"><span class="pre">self.requested_source_coordinates</span></code> using <code class="docutils literal notranslate"><span class="pre">_interpolate_requested_coordinates()</span></code>.</li>
@@ -371,7 +381,7 @@ This datasource gets new <code class="docutils literal notranslate"><span class=
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, Creare.
+        &copy; Copyright 2017-2018, Creare
 
     </p>
   </div>
@@ -390,21 +400,14 @@ This datasource gets new <code class="docutils literal notranslate"><span class=
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'0.0.0',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 

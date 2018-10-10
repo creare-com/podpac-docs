@@ -185,6 +185,7 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
@@ -205,7 +206,7 @@
     <span class="n">scipy</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="c1"># podac imports</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
 
 
 <div class="viewcode-block" id="InterpolationException"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.InterpolationException">[docs]</a><span class="k">class</span> <span class="nc">InterpolationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -247,39 +248,45 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="Interpolator.validate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Validate that this interpolation method can handle the requested coordinates and source_coordinates</span>
+<div class="viewcode-block" id="Interpolator.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate if interpolator can downselect the source coordinates from the requested coordinates</span>
+<span class="sd">        for the unstacked dims supplied</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        requested_coordinates : TYPE</span>
+<span class="sd">        udims : tuple</span>
+<span class="sd">            dimensions to select from</span>
+<span class="sd">        requested_coordinates : podpac.core.coordinates.Coordinates</span>
 <span class="sd">            Description</span>
-<span class="sd">        source_coordinates : TYPE</span>
+<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
 <span class="sd">            Description</span>
+<span class="sd">        </span>
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NotImplementedError</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Bool</span>
 <span class="sd">            True if the current interpolator can handle the requested coordinates and source coordinates for the</span>
 <span class="sd">            currently defined method</span>
-
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        NotImplementedError</span>
-<span class="sd">            Description</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-<div class="viewcode-block" id="Interpolator.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Interpolator.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;use interpolation method to downselect coordinates</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        requested_coordinates : TYPE</span>
+<span class="sd">        udims : tuple</span>
+<span class="sd">            dimensions to select from</span>
+<span class="sd">        requested_coordinates : podpac.core.coordinates.Coordinates</span>
 <span class="sd">            Description</span>
-<span class="sd">        source_coordinates : TYPE</span>
+<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
 <span class="sd">            Description</span>
-<span class="sd">        source_coordinates_index : TYPE</span>
+<span class="sd">        source_coordinates_index : list</span>
 <span class="sd">            Description</span>
 
 <span class="sd">        Returns</span>
@@ -290,22 +297,47 @@
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>
-<span class="sd">            Description</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-<div class="viewcode-block" id="Interpolator.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolator.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Validate that this interpolation method can handle the requested coordinates and source_coordinates</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        udims : tuple</span>
+<span class="sd">            dimensions to interpolate</span>
+<span class="sd">        requested_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">            Description</span>
+<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">            Description</span>
+<span class="sd">        </span>
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NotImplementedError</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Bool</span>
+<span class="sd">            True if the current interpolator can handle the requested coordinates and source coordinates for the</span>
+<span class="sd">            currently defined method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="Interpolator.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;interpolate data from requested coordinates to source coordinates</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        source_coordinates : TYPE</span>
+<span class="sd">        udims : tuple</span>
+<span class="sd">            dimensions to interpolate</span>
+<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
 <span class="sd">            Description</span>
-<span class="sd">        source_data : TYPE</span>
+<span class="sd">        source_data : podpac.core.units.UnitsDataArray</span>
 <span class="sd">            Description</span>
-<span class="sd">        requested_coordinates : TYPE</span>
+<span class="sd">        requested_coordinates : podpac.core.coordinates.Coordinates</span>
 <span class="sd">            Description</span>
-<span class="sd">        output : TYPE</span>
+<span class="sd">        output : podpac.core.units.UnitsDataArray</span>
 <span class="sd">            Description</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
@@ -316,25 +348,48 @@
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>
-<span class="sd">            Description</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 
 
 <div class="viewcode-block" id="NearestNeighbor"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestNeighbor">[docs]</a><span class="k">class</span> <span class="nc">NearestNeighbor</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
-    <span class="n">tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">()</span></div>
+    <span class="n">tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">()</span>
+
+<div class="viewcode-block" id="NearestNeighbor.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestNeighbor.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="NearestNeighbor.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestNeighbor.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="NearestNeighbor.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestNeighbor.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="NearestNeighbor.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestNeighbor.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
 
 <div class="viewcode-block" id="NearestPreview"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview">[docs]</a><span class="k">class</span> <span class="nc">NearestPreview</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
     <span class="n">tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">()</span>
 
-<div class="viewcode-block" id="NearestPreview.validate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
-        <span class="k">pass</span></div>
+<div class="viewcode-block" id="NearestPreview.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="NearestPreview.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="c1"># this can process any coordinate types</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
     
-<div class="viewcode-block" id="NearestPreview.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
-        <span class="c1"># We can optimize a little</span>
+    <span class="k">def</span> <span class="nf">_select_coordinates_for_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="NearestPreview.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
+
+        <span class="c1"># TODO: currently ignoring udims - this will not work as expected with udims specified</span>
+        <span class="c1"># this is the old implementation</span>
+        
         <span class="n">new_coords</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">new_coords_idx</span> <span class="o">=</span> <span class="p">[]</span>
 
+        <span class="c1"># iterate over the source coordinate dims in case they are stacked</span>
         <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">requested_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
                 <span class="n">src_coords</span> <span class="o">=</span> <span class="n">source_coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
@@ -359,8 +414,10 @@
                     <span class="n">src_delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">src_stop</span><span class="o">-</span><span class="n">src_start</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">src_coords</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
                 <span class="n">ndelta</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dst_delta</span> <span class="o">/</span> <span class="n">src_delta</span><span class="p">))</span>
-                
-                <span class="n">c</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">src_start</span><span class="p">,</span> <span class="n">src_stop</span><span class="p">,</span> <span class="n">ndelta</span><span class="o">*</span><span class="n">src_delta</span><span class="p">,</span> <span class="o">**</span><span class="n">src_coords</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">src_coords</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">src_coords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">src_start</span><span class="p">,</span> <span class="n">src_stop</span><span class="p">,</span> <span class="n">ndelta</span><span class="o">*</span><span class="n">src_delta</span><span class="p">,</span> <span class="o">**</span><span class="n">src_coords</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
                 
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
                     <span class="n">idx</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">idx</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">ndelta</span><span class="p">))</span>
@@ -377,31 +434,92 @@
         <span class="n">new_source_coordinates_index</span> <span class="o">=</span> <span class="n">new_coords_idx</span>
 
         <span class="k">return</span> <span class="n">new_source_coordinates</span><span class="p">,</span> <span class="n">new_source_coordinates_index</span></div>
-            
-<div class="viewcode-block" id="NearestPreview.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
-        <span class="k">pass</span></div></div>
+
+
+<div class="viewcode-block" id="NearestPreview.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
 
 
 <div class="viewcode-block" id="Rasterio"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Rasterio">[docs]</a><span class="k">class</span> <span class="nc">Rasterio</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Rasterio.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Rasterio.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Rasterio.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Rasterio.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Rasterio.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Rasterio.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Rasterio.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Rasterio.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
 
 <div class="viewcode-block" id="ScipyGrid"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyGrid">[docs]</a><span class="k">class</span> <span class="nc">ScipyGrid</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+    
+<div class="viewcode-block" id="ScipyGrid.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyGrid.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ScipyGrid.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyGrid.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ScipyGrid.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyGrid.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ScipyGrid.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyGrid.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
 
 <div class="viewcode-block" id="ScipyPoint"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyPoint">[docs]</a><span class="k">class</span> <span class="nc">ScipyPoint</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+    
+<div class="viewcode-block" id="ScipyPoint.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyPoint.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ScipyPoint.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyPoint.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ScipyPoint.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyPoint.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ScipyPoint.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyPoint.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
 
 <div class="viewcode-block" id="Radial"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Radial">[docs]</a><span class="k">class</span> <span class="nc">Radial</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+    
+<div class="viewcode-block" id="Radial.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Radial.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Radial.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Radial.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Radial.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Radial.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Radial.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Radial.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
 
 <div class="viewcode-block" id="OptimalInterpolation"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.OptimalInterpolation">[docs]</a><span class="k">class</span> <span class="nc">OptimalInterpolation</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; I.E. Kriging &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    
+<div class="viewcode-block" id="OptimalInterpolation.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.OptimalInterpolation.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="OptimalInterpolation.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.OptimalInterpolation.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="OptimalInterpolation.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.OptimalInterpolation.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="OptimalInterpolation.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.OptimalInterpolation.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
 
 <span class="c1"># List of available interpolators</span>
 <span class="n">INTERPOLATION_METHODS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;optimal&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">OptimalInterpolation</span><span class="p">],</span>
-    <span class="s1">&#39;nearest&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">NearestNeighbor</span><span class="p">,</span> <span class="n">NearestPreview</span><span class="p">],</span>
+    <span class="s1">&#39;nearest_preview&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">NearestPreview</span><span class="p">],</span>
+    <span class="s1">&#39;nearest&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">NearestNeighbor</span><span class="p">],</span>
     <span class="s1">&#39;bilinear&#39;</span><span class="p">:[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyGrid</span><span class="p">],</span>
     <span class="s1">&#39;cubic&#39;</span><span class="p">:[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyGrid</span><span class="p">],</span>
     <span class="s1">&#39;cubic_spline&#39;</span><span class="p">:[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyGrid</span><span class="p">],</span>
@@ -420,34 +538,8 @@
 <span class="c1"># create shortcut list based on methods keys</span>
 <span class="n">INTERPOLATION_SHORTCUTS</span> <span class="o">=</span> <span class="n">INTERPOLATION_METHODS</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 
-
-<span class="c1"># default tolerance for each dimension</span>
-<span class="c1"># TODO: units?</span>
-<span class="n">TOLERANCE_DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s1">&#39;alt&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mi">1</span>
-<span class="p">}</span>
-
-<span class="c1"># TODO: do we want some kind of string preset?</span>
-<span class="n">TOLERANCE_PRESETS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s1">&#39;alt&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mi">1</span>
-    <span class="p">},</span>
-    <span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s1">&#39;alt&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mi">1</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-
-
-
+<span class="c1"># default interoplation</span>
+<span class="n">INTERPOLATION_DEFAULT</span> <span class="o">=</span> <span class="s1">&#39;nearest&#39;</span>
 
 <div class="viewcode-block" id="Interpolation"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolation">[docs]</a><span class="k">class</span> <span class="nc">Interpolation</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Create an interpolation class to handle one interpolation method per unstacked dimension.</span>
@@ -472,35 +564,63 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
  
-    <span class="n">_definition</span> <span class="o">=</span> <span class="p">{}</span>            <span class="c1"># container for interpolation methods for each dimension</span>
+    <span class="n">definition</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_config</span> <span class="o">=</span> <span class="p">{}</span>            <span class="c1"># container for interpolation methods for each dimension</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="n">INTERPOLATION_DEFAULT</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">INTERPOLATION_DEFAULT</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">definition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># init coordinates if not passed in</span>
+        <span class="k">if</span> <span class="n">coordinates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">()</span>
 
         <span class="c1"># set each dim to interpolator definition</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
 
-                <span class="c1"># if coordinate dim is not included in definition, raise an error</span>
-                <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">definition</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="k">raise</span> <span class="n">InterpolationException</span><span class="p">(</span><span class="s1">&#39;coordinate dim &quot;</span><span class="si">{}</span><span class="s1">&quot; is not defined in interpolation &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">+</span>
-                                                 <span class="s1">&#39;dictionary. All coordinate dimensions must have an interoplation &#39;</span> <span class="o">+</span>
-                                                 <span class="s1">&#39;method defined.&#39;</span><span class="p">)</span>
+            <span class="n">defined_udims</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">udims</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">definition</span><span class="p">):</span>
 
-                <span class="c1"># otherwise use the interpolation method specified in the definition</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_interpolation_method</span><span class="p">(</span><span class="n">definition</span><span class="p">[</span><span class="n">dim</span><span class="p">])</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="c1"># get interpolation method</span>
+                <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_interpolation_method</span><span class="p">(</span><span class="n">definition</span><span class="p">[</span><span class="n">udims</span><span class="p">])</span>
 
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="c1"># if udims is not a tuple, convert it to one</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="n">udims</span> <span class="o">=</span> <span class="p">(</span><span class="n">udims</span><span class="p">,)</span>
+
+
+                <span class="c1"># add all udims to definition</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+                <span class="c1"># create list of all udimss defined</span>
+                <span class="n">defined_udims</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">udims</span><span class="p">)</span>
+
+            <span class="c1"># determine dims missing from definitions</span>
+            <span class="n">missing_udims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">defined_udims</span><span class="p">))</span>
+
+            <span class="c1"># set default method to missing dims</span>
+            <span class="k">if</span> <span class="n">missing_udims</span><span class="p">:</span>
+                <span class="n">default_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_interpolation_method</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">(</span><span class="n">missing_udims</span><span class="p">,</span> <span class="n">default_method</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="p">(</span><span class="n">string_types</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
             <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_interpolation_method</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a valid interpolation definition type. &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">definition</span><span class="p">))</span> <span class="o">+</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot; is not a valid interpolation definition type. &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span> <span class="o">+</span>
                             <span class="s1">&#39;Interpolation definiton must be a string, dict, or tuple&#39;</span><span class="p">)</span>
 
+
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">rep</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">udims</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">):</span>
+            <span class="n">rep</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="si">%s</span><span class="s1">: (</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="n">udims</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                         <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="n">udims</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">rep</span>
 
     <span class="k">def</span> <span class="nf">_parse_interpolation_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;parse interpolation definitions into a tuple of (method, Interpolator)</span>
@@ -523,7 +643,7 @@
 <span class="sd">        InterpolationException</span>
 <span class="sd">        TypeError</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">definition</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">INTERPOLATION_SHORTCUTS</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">InterpolationException</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot; is not a valid interpolation shortcut. &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span> <span class="o">+</span>
                                              <span class="s1">&#39;Valid interpolation shortcuts: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">INTERPOLATION_SHORTCUTS</span><span class="p">))</span>
@@ -534,7 +654,7 @@
             <span class="n">interpolators</span> <span class="o">=</span> <span class="n">definition</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
             <span class="c1"># confirm types</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method_string</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method_string</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a valid interpolation method. &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">method_string</span><span class="p">)</span> <span class="o">+</span>
                                 <span class="s1">&#39;Interpolation method must be a string&#39;</span><span class="p">)</span>
 
@@ -549,7 +669,7 @@
             <span class="k">return</span> <span class="n">definition</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a valid interpolation definition. &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span> <span class="o">+</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot; is not a valid Interpolator definition. &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span> <span class="o">+</span>
                             <span class="s1">&#39;Interpolation definiton must be a string or Interpolator.&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_validate_interpolator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interpolator</span><span class="p">):</span>
@@ -573,13 +693,13 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a valid interpolator type. &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">interpolator</span><span class="p">)</span> <span class="o">+</span>
                             <span class="s1">&#39;Interpolator must be of type </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_set_interpolation_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_set_interpolation_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the list of interpolation methods to the input dimension</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        dim : string</span>
-<span class="sd">            dimension to assign</span>
+<span class="sd">        udims : tuple</span>
+<span class="sd">            tuple of dimensiosn to assign method to</span>
 <span class="sd">        method : tuple (str, list of podpac.core.data.interpolate.Interpolator)</span>
 <span class="sd">            method and list of interpolators to assign to dimension</span>
 <span class="sd">        **kwargs :</span>
@@ -595,13 +715,15 @@
             <span class="n">interpolators</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolator</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="c1"># set to interpolation dictionary</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_definition</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">method_string</span><span class="p">,</span> <span class="n">interpolators</span><span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="n">udims</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">method_string</span><span class="p">,</span> <span class="n">interpolators</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Interpolation.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolation.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Decide if we can interpolate coordinates</span>
+<span class="sd">        Decide if we can interpolate coordinates.</span>
+<span class="sd">        At this point, we have selected a subset of source_coordinates that intersects with the requested coordinates.</span>
+<span class="sd">        We have dropped any extra dimensions from requested coordinates and we have confirmed that source coordinates</span>
+<span class="sd">        are not missing any dimensions.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -613,16 +735,87 @@
 <span class="sd">            Index of intersected source coordinates. See :ref:podpac.core.data.datasource.DataSource for</span>
 <span class="sd">            more information about valid values for the source_coordinates_index</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div>
+        
+        <span class="n">selected_coords</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">)</span>
+        <span class="n">selected_coords_idx</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">source_coordinates_index</span><span class="p">)</span>
 
-        <span class="c1"># for methods in each dimension, run validate. if true, then run select_coordinates in that interpolation method</span>
+        <span class="c1"># TODO: this does not yet work with udims - will not work correctly if udims specified</span>
+        <span class="k">for</span> <span class="n">udims</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">):</span>
+
+            <span class="c1"># iterate through interpolators until one can_select all udims</span>
+            <span class="n">interpolators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="n">udims</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">interpolator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">interpolators</span><span class="p">):</span>
+                <span class="n">can_select</span> <span class="o">=</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">can_select</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">selected_coords</span><span class="p">)</span>
+
+                <span class="c1"># can_select can be True or a cost evaluation (float)</span>
+                <span class="k">if</span> <span class="n">can_select</span><span class="p">:</span>
+                    <span class="n">options</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">idx</span><span class="p">,</span> <span class="n">can_select</span><span class="p">)]</span>
 
 
-    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
-        <span class="k">pass</span>
+            <span class="c1"># TODO: adjust `can_select` by interpolation cost</span>
+            <span class="c1"># current just chooses the first interpolator options</span>
+            <span class="k">if</span> <span class="n">options</span><span class="p">:</span>
+                <span class="n">best_option</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">interpolator</span> <span class="o">=</span> <span class="n">interpolators</span><span class="p">[</span><span class="n">best_option</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">selected_coords</span><span class="p">,</span> <span class="n">selected_coords_idx</span> <span class="o">=</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">select_coordinates</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span>
+                                                                                       <span class="n">requested_coordinates</span><span class="p">,</span>
+                                                                                       <span class="n">selected_coords</span><span class="p">,</span>
+                                                                                       <span class="n">selected_coords_idx</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">selected_coords</span><span class="p">,</span> <span class="n">selected_coords_idx</span></div>
+
+
+<div class="viewcode-block" id="Interpolation.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolation.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Interpolate data from requested coordinates to source coordinates</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        udims : tuple</span>
+<span class="sd">            dimensions to interpolate</span>
+<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">            Description</span>
+<span class="sd">        source_data : podpac.core.units.UnitsDataArray</span>
+<span class="sd">            Description</span>
+<span class="sd">        requested_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">            Description</span>
+<span class="sd">        output : podpac.core.units.UnitsDataArray</span>
+<span class="sd">            Description</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        podpac.core.units.UnitDataArray</span>
+<span class="sd">            returns the new output UnitDataArray of interpolated data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">udims</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">):</span>
+
+            <span class="c1"># iterate through interpolators until one can_select all udims</span>
+            <span class="n">interpolators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="n">udims</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">interpolator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">interpolators</span><span class="p">):</span>
+                <span class="n">can_interpolate</span> <span class="o">=</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">can_interpolate</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">can_interpolate</span><span class="p">:</span>
+                    <span class="n">options</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">idx</span><span class="p">,</span> <span class="n">can_interpolate</span><span class="p">)]</span>
+
+
+            <span class="c1"># TODO: adjust `can_interpolate` by interpolation cost</span>
+            <span class="c1"># currently just chooses the first interpolator options</span>
+            <span class="k">if</span> <span class="n">options</span><span class="p">:</span>
+                <span class="n">best_option</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">interpolator</span> <span class="o">=</span> <span class="n">interpolators</span><span class="p">[</span><span class="n">best_option</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+                <span class="c1"># run interpolation. mutates output.</span>
+                <span class="n">interpolator</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span>
+                                         <span class="n">source_coordinates</span><span class="p">,</span>
+                                         <span class="n">source_data</span><span class="p">,</span>
+                                         <span class="n">requested_coordinates</span><span class="p">,</span>
+                                         <span class="n">output</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">to_pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
 
     <span class="k">def</span> <span class="nf">from_pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span></div>
@@ -638,7 +831,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, Creare.
+        &copy; Copyright 2017-2018, Creare
 
     </p>
   </div>
@@ -657,21 +850,14 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../../',
-            VERSION:'0.0.0',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 

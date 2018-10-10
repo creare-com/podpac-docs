@@ -262,19 +262,246 @@
 </div>
 <div class="section" id="specification">
 <span id="specification"></span><h1>Specification<a class="headerlink" href="#specification" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="cachestore">
+<span id="cachestore"></span><h2><code class="docutils literal notranslate"><span class="pre">CacheStore</span></code><a class="headerlink" href="#cachestore" title="Permalink to this headline">¶</a></h2>
+<p>Abstract class representing a specific storage medium (e.g. folder on local-disk, s3-bucket, RAM).</p>
 <div class="section" id="user-interface">
-<span id="user-interface"></span><h2>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h2>
-<p>TODO: Add user interface specs</p>
+<span id="user-interface"></span><h3>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h3>
+<p>Starting from here for examples below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">traitlets</span> <span class="kn">as</span> <span class="nn">tl</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinate</span> <span class="kn">import</span> <span class="n">Coordinate</span>
+<span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">ureg</span>
+<span class="kn">from</span> <span class="nn">podpac.core.cache</span> <span class="kn">import</span> <span class="n">DiskStore</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">()</span>
+<span class="n">store</span> <span class="o">=</span> <span class="n">DiskStore</span><span class="p">()</span> <span class="c1"># assuming DiskStore is a concrete class inheriting from CacheStore</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">node</span></code> is used in the following methods to allow access to a storage “sandbox” specific to a <code class="docutils literal notranslate"><span class="pre">Node</span></code>. <code class="docutils literal notranslate"><span class="pre">store</span></code> will use methods and properties of <code class="docutils literal notranslate"><span class="pre">node</span></code> to determine which “sandbox” to use. This will mainly be a hash of <code class="docutils literal notranslate"><span class="pre">node.definition(type='json')</span></code>. A <code class="docutils literal notranslate"><span class="pre">CachStore</span></code> representing local-disk storage could also use the class inheritence of a <code class="docutils literal notranslate"><span class="pre">node</span></code> to create a user friendly directory structure, also a <code class="docutils literal notranslate"><span class="pre">node</span></code> could provide a user friendly string to prepend to any files representing cached data for the <code class="docutils literal notranslate"><span class="pre">node</span></code>.</p>
+</div>
+<div class="section" id="methods">
+<span id="methods"></span><h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
+<p>public methods</p>
+<p>Put data into the cache for a node:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Cache data for specified node.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    node : Node</span>
+<span class="sd">        node requesting storage.</span>
+<span class="sd">    data : any</span>
+<span class="sd">        Data to cache</span>
+<span class="sd">    key : str</span>
+<span class="sd">        Cached object key, e.g. &#39;output&#39;.</span>
+<span class="sd">    coordinates : Coordinates, optional</span>
+<span class="sd">        Coordinates for which cached object should be retrieved, for coordinate-dependent data such as evaluation output</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<p>Get data from the cache:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Get cached data for this node.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    node : Node</span>
+<span class="sd">        node requesting storage.</span>
+<span class="sd">    key : str</span>
+<span class="sd">        Cached object key, e.g. &#39;output&#39;.</span>
+<span class="sd">    coordinates : Coordinates, optional</span>
+<span class="sd">        Coordinates for which cached object should be retrieved, for coordinate-dependent data such as evaluation output</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    data : any</span>
+<span class="sd">        The cached data.</span>
+<span class="sd">    </span>
+<span class="sd">    Raises</span>
+<span class="sd">    -------</span>
+<span class="sd">    CacheError</span>
+<span class="sd">        If the data is not in the cache.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<p>Clear the cache:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">rem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Delete cached data for this node.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    node : Node</span>
+<span class="sd">        node requesting storage.</span>
+<span class="sd">    key : str, optional</span>
+<span class="sd">        Delete only cached objects with this key.</span>
+<span class="sd">    coordinates : Coordinates</span>
+<span class="sd">        Delete only cached objects for these coordinates.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">&#64;cached_property(dependson,</span> <span class="pre">expiresin,</span> <span class="pre">key_spec)</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">get()</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">put()</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">delete()</span></code></li>
+<li>delete the entire cache: <code class="docutils literal notranslate"><span class="pre">store.rem()</span></code></li>
+<li>delete the entire cache for a node: <code class="docutils literal notranslate"><span class="pre">store.rem(node)</span></code></li>
+<li>delete a specific cached object (coordinate-depedent): <code class="docutils literal notranslate"><span class="pre">store.rem(node=node,</span> <span class="pre">key=mykey,</span> <span class="pre">coordinates=coords)</span></code></li>
+<li>delete a specific cached object (coordinate-independent): <code class="docutils literal notranslate"><span class="pre">store.rem(node=node,</span> <span class="pre">key=mykey)</span></code></li>
+<li>delete all cached data for a node for specific coordinates: <code class="docutils literal notranslate"><span class="pre">store.rem(node=node,</span> <span class="pre">coordinates=coords)</span></code></li>
+<li>delete all cached objects for a node with a given key for any coordinates: <code class="docutils literal notranslate"><span class="pre">store.rem(node=node,</span> <span class="pre">key=mykey)</span></code></li>
 </ul>
+<p>Just check the cache:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Check for cached data for this node</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    node : Node</span>
+<span class="sd">        node requesting storage.</span>
+<span class="sd">    key : str</span>
+<span class="sd">        Cached object key, e.g. &#39;output&#39;.</span>
+<span class="sd">    coordinates: Coordinate, optional</span>
+<span class="sd">        Coordinates for which cached object should be checked</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    has_cache : bool</span>
+<span class="sd">         True if there as a cached object for this node for the given key and coordinates.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="developer-interface">
-<span id="developer-interface"></span><h2>Developer interface<a class="headerlink" href="#developer-interface" title="Permalink to this headline">¶</a></h2>
-<p>TODO: Add developer interface specs</p>
+<span id="developer-interface"></span><h3>Developer interface<a class="headerlink" href="#developer-interface" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="public-attributes">
+<span id="public-attributes"></span><h4>Public Attributes<a class="headerlink" href="#public-attributes" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">cache_types</span></code> : categories the <code class="docutils literal notranslate"><span class="pre">CacheStore</span></code> files under, e.g. <code class="docutils literal notranslate"><span class="pre">ram</span></code>,<code class="docutils literal notranslate"><span class="pre">disk</span></code>,<code class="docutils literal notranslate"><span class="pre">network</span></code>.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="cachectrl">
+<span id="cachectrl"></span><h2><code class="docutils literal notranslate"><span class="pre">CacheCtrl</span></code><a class="headerlink" href="#cachectrl" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="user-interface">
+<span id="id1"></span><h3>User interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h3>
+<p>Starting from here for examples below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">traitlets</span> <span class="kn">as</span> <span class="nn">tl</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinate</span> <span class="kn">import</span> <span class="n">Coordinate</span>
+<span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">ureg</span>
+<span class="kn">from</span> <span class="nn">podpac.core.cache</span> <span class="kn">import</span> <span class="n">CacheCtrl</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">()</span>
+<span class="n">cache</span> <span class="o">=</span> <span class="n">CacheCtrl</span><span class="p">()</span> <span class="c1"># assuming DiskStore is a concrete class inheriting from CacheStore</span>
+</pre></div>
+</div>
+<p>Instances hold a collection of <code class="docutils literal notranslate"><span class="pre">CacheStore</span></code> objects. Could be an ordered list representing the tiers to look in, e.g. first look in RAM, then local-disk, then s3. Alternatively, <code class="docutils literal notranslate"><span class="pre">CacheStore</span></code> could hold its own fall-back (e.g. a RAM <code class="docutils literal notranslate"><span class="pre">CacheStore</span></code> falls back on a local-disk <code class="docutils literal notranslate"><span class="pre">CacheStore</span></code>)</p>
+</div>
+<div class="section" id="methods">
+<span id="id2"></span><h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
+<p>public methods</p>
+<p>Put data into the cache for a node:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Cache data for specified node.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    node : Node</span>
+<span class="sd">        node requesting storage.</span>
+<span class="sd">    data : any</span>
+<span class="sd">        Data to cache</span>
+<span class="sd">    key : str</span>
+<span class="sd">        Cached object key, e.g. &#39;output&#39;.</span>
+<span class="sd">    coordinates : Coordinates, optional</span>
+<span class="sd">        Coordinates for which cached object should be retrieved, for coordinate-dependent data such as evaluation output</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        determines what types of the `CacheStore` are affected: &#39;ram&#39;,&#39;disk&#39;,&#39;network&#39;,&#39;all&#39;. Defaults to `node._cache_mode` or &#39;all&#39;. Overriden by `self._cache_mode` if `self._cache_mode` is not `None`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<p>Get data from the cache:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Get cached data for this node.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    node : Node</span>
+<span class="sd">        node requesting storage.</span>
+<span class="sd">    key : str</span>
+<span class="sd">        Cached object key, e.g. &#39;output&#39;.</span>
+<span class="sd">    coordinates : Coordinates, optional</span>
+<span class="sd">        Coordinates for which cached object should be retrieved, for coordinate-dependent data such as evaluation output</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        determines what types of the `CacheStore` are affected: &#39;ram&#39;,&#39;disk&#39;,&#39;network&#39;,&#39;all&#39;. Defaults to `node._cache_mode` or &#39;all&#39;. Overriden by `self._cache_mode` if `self._cache_mode` is not `None`.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    data : any</span>
+<span class="sd">        The cached data.</span>
+<span class="sd">    </span>
+<span class="sd">    Raises</span>
+<span class="sd">    -------</span>
+<span class="sd">    CacheError</span>
+<span class="sd">        If the data is not in the cache.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<p>Clear the cache:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">rem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Delete cached data for this node.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    node : Node</span>
+<span class="sd">        node requesting storage.</span>
+<span class="sd">    key : str, optional</span>
+<span class="sd">        Delete only cached objects with this key.</span>
+<span class="sd">    coordinates : Coordinates</span>
+<span class="sd">        Delete only cached objects for these coordinates.</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        determines what types of the `CacheStore` are affected: &#39;ram&#39;,&#39;disk&#39;,&#39;network&#39;,&#39;all&#39;. Defaults to `node._cache_mode` or &#39;all&#39;. Overriden by `self._cache_mode` if `self._cache_mode` is not `None`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>delete the entire cache: <code class="docutils literal notranslate"><span class="pre">cache.rem()</span></code></li>
+<li>delete the entire cache for a node: <code class="docutils literal notranslate"><span class="pre">cache.rem(node)</span></code></li>
+<li>delete a specific cached object (coordinate-depedent): <code class="docutils literal notranslate"><span class="pre">cache.rem(node=node,</span> <span class="pre">key=mykey,</span> <span class="pre">coordinates=coords)</span></code></li>
+<li>delete a specific cached object (coordinate-independent): <code class="docutils literal notranslate"><span class="pre">cache.rem(node=node,</span> <span class="pre">key=mykey)</span></code></li>
+<li>delete all cached data for a node for specific coordinates: <code class="docutils literal notranslate"><span class="pre">cache.rem(node=node,</span> <span class="pre">coordinates=coords)</span></code></li>
+<li>delete all cached objects for a node with a given key for any coordinates: <code class="docutils literal notranslate"><span class="pre">cache.rem(node=node,</span> <span class="pre">key=mykey)</span></code></li>
+</ul>
+<p>Just check the cache:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Check for cached data for this node</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    node : Node</span>
+<span class="sd">        node requesting storage.</span>
+<span class="sd">    key : str</span>
+<span class="sd">        Cached object key, e.g. &#39;output&#39;.</span>
+<span class="sd">    coordinates: Coordinate, optional</span>
+<span class="sd">        Coordinates for which cached object should be checked</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        determines what types of the `CacheStore` are affected: &#39;ram&#39;,&#39;disk&#39;,&#39;network&#39;,&#39;all&#39;. Defaults to `node._cache_mode` or &#39;all&#39;. Overriden by `self._cache_mode` if `self._cache_mode` is not `None`.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    has_cache : bool</span>
+<span class="sd">         True if there as a cached object for this node for the given key and coordinates.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="developer-interface">
+<span id="id3"></span><h3>Developer interface<a class="headerlink" href="#developer-interface" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="private-attributes">
+<span id="private-attributes"></span><h4>Private attributes<a class="headerlink" href="#private-attributes" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_cache_mode</span></code> : Override for what types of the <code class="docutils literal notranslate"><span class="pre">CacheStore</span></code> are affected: ‘ram’,’disk’,’network’,’all’. If this is not <code class="docutils literal notranslate"><span class="pre">None</span></code> then <code class="docutils literal notranslate"><span class="pre">node._cache_mode</span></code> and the <code class="docutils literal notranslate"><span class="pre">mode</span></code> argument for the <code class="docutils literal notranslate"><span class="pre">CacheStore</span></code> public methods will be ignored.</li>
+</ul>
+</div>
+</div>
 </div>
 </div>
 <div class="section" id="implementation-notes">
@@ -307,7 +534,7 @@
 </li>
 </ul>
 </li>
-<li><a class="reference external" href="https://github.com/uqfoundation/klepto">klepto</a> In-memory and archival cache. Works-with/used-by <a class="reference external" href="https://github.com/uqfoundation/pathos">pathos</a> in conjunction with <code class="docutils literal notranslate"><span class="pre">dill</span></code> (serializer that extends pickle).<ul>
+<li><a class="reference external" href="https://github.com/uqfoundation/klepto">klepto</a> In-memory and archival cache. Works-with/used-by <a class="reference external" href="https://github.com/uqfoundation/pathos">pathos</a> in conjunction with <a class="reference external" href="https://github.com/uqfoundation/dill"><code class="docutils literal notranslate"><span class="pre">dill</span></code></a> (serializer that extends pickle).<ul>
 <li>Supported caching algorithms: <code class="docutils literal notranslate"><span class="pre">lfu</span></code>,<code class="docutils literal notranslate"><span class="pre">lru</span></code>,<code class="docutils literal notranslate"><span class="pre">mru</span></code>,<code class="docutils literal notranslate"><span class="pre">rr</span></code>. Does not have the something that takes into account “compute time”.</li>
 <li>Supported archival systems: file, directory,sql-table,sql-database,directory of hdf5 files, single hdf5 file</li>
 <li>Supported key calculations: raw-python objects (obj), hash of obj, str(obj), pickle of obj</li>
@@ -323,6 +550,7 @@
 </li>
 </ul>
 </li>
+<li><a class="reference external" href="https://github.com/kquick/Thespian">Thespian</a> Python Actor package. Supports several underlying communication systems, including TCP and UDP network bassed communication for multiprocess, either single or multi-computer, systems. Communication is restricted to objects that can be pickled and there is no shared memory. Looks like a mature but not neglected package, and the Actor model of parallel/concurrent execution can be pretty easy to reason about.</li>
 </ul>
 </li>
 </ul>
@@ -339,7 +567,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, Creare.
+        &copy; Copyright 2017-2018, Creare
 
     </p>
   </div>
@@ -358,21 +586,14 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'0.0.0',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 

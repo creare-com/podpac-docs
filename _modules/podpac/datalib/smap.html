@@ -191,9 +191,12 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
+<span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">bs4</span> <span class="k">import</span> <span class="n">BeautifulSoup</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -208,6 +211,7 @@
 
 <span class="c1"># Internal dependencies</span>
 <span class="kn">import</span> <span class="nn">podpac</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">union</span><span class="p">,</span> <span class="n">merge_dims</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data</span> <span class="k">import</span> <span class="n">types</span> <span class="k">as</span> <span class="n">datatype</span>
 <span class="kn">from</span> <span class="nn">podpac.core</span> <span class="k">import</span> <span class="n">authentication</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
@@ -226,14 +230,15 @@
                  <span class="s1">&#39;the data&#39;</span><span class="p">),</span>
      <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;User</span><span class="se">\&#39;</span><span class="s1">s EarthData password&#39;</span><span class="p">,</span>
      <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="s1">&#39;User</span><span class="se">\&#39;</span><span class="s1">s EarthData username&#39;</span><span class="p">,</span>
-     <span class="s1">&#39;product&#39;</span><span class="p">:</span> <span class="s1">&#39;SMAP Product name&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;product&#39;</span><span class="p">:</span> <span class="s1">&#39;SMAP product name&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;Version number for the SMAP product&#39;</span><span class="p">,</span>
      <span class="s1">&#39;source_coordinates&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;&#39;Returns the coordinates that uniquely describe each source</span>
 
 <span class="s1">        Returns</span>
 <span class="s1">        -------</span>
-<span class="s1">        podpac.Coordinate</span>
+<span class="s1">        podpac.Coordinates</span>
 <span class="s1">            Coordinates that uniquely describe each source&#39;&#39;&#39;</span><span class="p">,</span>
-                                                             <span class="s1">&#39;keys&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;&#39;Available layers that are in the OpenDAP dataset</span>
+     <span class="s1">&#39;keys&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;&#39;Available layers that are in the OpenDAP dataset</span>
 
 <span class="s1">        Returns</span>
 <span class="s1">        -------</span>
@@ -290,16 +295,53 @@
         <span class="n">date</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">date</span></div>
 
+<span class="k">def</span> <span class="nf">_get_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">auth_session</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to get data from an NSIDC url with error checking. </span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    url: str</span>
+<span class="sd">        URL to website</span>
+<span class="sd">    auth_session: podpac.core.authentication.EarthDataSession</span>
+<span class="sd">        Authenticated EDS session</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">auth_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">auth_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;opendap/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;HTTP error: &lt;</span><span class="si">%d</span><span class="s1">&gt;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+                               <span class="o">+</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">[:</span><span class="mi">256</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">r</span>
+
+
+<span class="k">def</span> <span class="nf">_infer_SMAP_product_version</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="n">base_url</span><span class="p">,</span> <span class="n">auth_session</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to automatically infer the version number of SMAP </span>
+<span class="sd">    products in case user did not specify a version, or the version changed</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ------------</span>
+<span class="sd">    product: str</span>
+<span class="sd">        Name of the SMAP product (e.g. one of SMAP_PRODUCT_DICT.keys())</span>
+<span class="sd">    base_url: str</span>
+<span class="sd">        URL to base SMAP product page</span>
+<span class="sd">    auth_session: podpac.core.authentication.EarthDataSession</span>
+<span class="sd">        Authenticated EDS session</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">_get_from_url</span><span class="p">(</span><span class="n">base_url</span><span class="p">,</span> <span class="n">auth_session</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="o">+</span> <span class="mi">4</span><span class="p">])</span>
+
+
 <span class="c1"># NOTE: {rdk} will be substituted for the entry&#39;s &#39;rootdatakey&#39;</span>
 <span class="n">SMAP_PRODUCT_DICT</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1">#&#39;&lt;Product&gt;.ver&#39;: [&#39;latkey&#39;,               &#39;lonkey&#39;,                     &#39;rootdatakey&#39;,                       &#39;layerkey&#39;</span>
-    <span class="s1">&#39;SPL4SMAU.003&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;cell_lat&#39;</span><span class="p">,</span>             <span class="s1">&#39;cell_lon&#39;</span><span class="p">,</span>                   <span class="s1">&#39;Analysis_Data_&#39;</span><span class="p">,</span>                    <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">sm_surface_analysis&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;SPL4SMGP.003&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;cell_lat&#39;</span><span class="p">,</span>             <span class="s1">&#39;cell_lon&#39;</span><span class="p">,</span>                   <span class="s1">&#39;Geophysical_Data_&#39;</span><span class="p">,</span>                 <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">sm_surface&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;SPL3SMA.003&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">latitude&#39;</span><span class="p">,</span>        <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">longitude&#39;</span><span class="p">,</span>             <span class="s1">&#39;Soil_Moisture_Retrieval_Data_&#39;</span><span class="p">,</span>     <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">soil_moisture&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;SPL3SMAP.003&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">latitude&#39;</span><span class="p">,</span>        <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">longitude&#39;</span><span class="p">,</span>             <span class="s1">&#39;Soil_Moisture_Retrieval_Data_&#39;</span><span class="p">,</span>     <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">soil_moisture&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;SPL3SMP.004&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">AM_latitude&#39;</span><span class="p">,</span>     <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">AM_longitude&#39;</span><span class="p">,</span>          <span class="s1">&#39;Soil_Moisture_Retrieval_Data_&#39;</span><span class="p">,</span>     <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">AM_soil_moisture&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;SPL4SMLM.003&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;cell_lat&#39;</span><span class="p">,</span>             <span class="s1">&#39;cell_lon&#39;</span><span class="p">,</span>                   <span class="s1">&#39;Land_Model_Constants_Data_&#39;</span><span class="p">,</span>        <span class="s1">&#39;&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;SPL2SMAP_S.001&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">latitude_1km&#39;</span><span class="p">,</span>    <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">longitude_1km&#39;</span><span class="p">,</span>         <span class="s1">&#39;Soil_Moisture_Retrieval_Data_1km_&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">soil_moisture_1km&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;SPL4SMAU&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;cell_lat&#39;</span><span class="p">,</span>             <span class="s1">&#39;cell_lon&#39;</span><span class="p">,</span>                   <span class="s1">&#39;Analysis_Data_&#39;</span><span class="p">,</span>                    <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">sm_surface_analysis&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;SPL4SMGP&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;cell_lat&#39;</span><span class="p">,</span>             <span class="s1">&#39;cell_lon&#39;</span><span class="p">,</span>                   <span class="s1">&#39;Geophysical_Data_&#39;</span><span class="p">,</span>                 <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">sm_surface&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;SPL3SMA&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">latitude&#39;</span><span class="p">,</span>        <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">longitude&#39;</span><span class="p">,</span>             <span class="s1">&#39;Soil_Moisture_Retrieval_Data_&#39;</span><span class="p">,</span>     <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">soil_moisture&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;SPL3SMAP&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">latitude&#39;</span><span class="p">,</span>        <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">longitude&#39;</span><span class="p">,</span>             <span class="s1">&#39;Soil_Moisture_Retrieval_Data_&#39;</span><span class="p">,</span>     <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">soil_moisture&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;SPL3SMP&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">AM_latitude&#39;</span><span class="p">,</span>     <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">AM_longitude&#39;</span><span class="p">,</span>          <span class="s1">&#39;Soil_Moisture_Retrieval_Data_&#39;</span><span class="p">,</span>     <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">AM_soil_moisture&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;SPL4SMLM&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;cell_lat&#39;</span><span class="p">,</span>             <span class="s1">&#39;cell_lon&#39;</span><span class="p">,</span>                   <span class="s1">&#39;Land_Model_Constants_Data_&#39;</span><span class="p">,</span>        <span class="s1">&#39;&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;SPL2SMAP_S&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">latitude_1km&#39;</span><span class="p">,</span>    <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">longitude_1km&#39;</span><span class="p">,</span>         <span class="s1">&#39;Soil_Moisture_Retrieval_Data_1km_&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{rdk}</span><span class="s1">soil_moisture_1km&#39;</span><span class="p">],</span>
 <span class="p">}</span>
 
 <span class="n">SMAP_PRODUCT_MAP</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">SMAP_PRODUCT_DICT</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
@@ -309,8 +351,32 @@
               <span class="p">}</span>
 <span class="p">)</span>
 
-<span class="n">SMAP_INCOMPLETE_SOURCE_COORDINATES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SPL2SMAP_S.001&#39;</span><span class="p">]</span>
-<span class="n">SMAP_BASE_URL</span> <span class="o">=</span> <span class="s1">&#39;https://n5eil01u.ecs.nsidc.org/opendap/hyrax/SMAP&#39;</span>
+<span class="n">SMAP_INCOMPLETE_SOURCE_COORDINATES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SPL2SMAP_S&#39;</span><span class="p">]</span>
+<span class="n">SMAP_IRREGULAR_COORDINATES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SPL2SMAP_S&#39;</span><span class="p">]</span>
+
+<span class="c1"># Discover SMAP OpenDAP url from podpac s3 server</span>
+<span class="n">SMAP_BASE_URL_FILE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;nsidc_smap_opendap_url.txt&#39;</span><span class="p">)</span>
+<span class="n">SMAP_BASE_URL</span> <span class="o">=</span> <span class="s1">&#39;https://n5eil01u.ecs.nsidc.org/opendap/SMAP&#39;</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">SMAP_BASE_URL_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span> 
+        <span class="n">rf</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;https://&#39;</span> <span class="ow">in</span> <span class="n">rf</span> <span class="ow">and</span> <span class="s1">&#39;nsidc.org&#39;</span> <span class="ow">in</span> <span class="n">rf</span><span class="p">:</span>
+        <span class="n">SMAP_BASE_URL</span> <span class="o">=</span> <span class="n">rf</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Could not retrieve SMAP url from </span><span class="si">%s</span><span class="s2">: &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">SMAP_BASE_URL_FILE</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="k">try</span><span class="p">:</span> 
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://s3.amazonaws.com/podpac-s3/nsidc_smap_opendap_url.txt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+    <span class="k">if</span> <span class="s1">&#39;https://&#39;</span> <span class="ow">in</span> <span class="n">r</span> <span class="ow">and</span> <span class="s1">&#39;nsidc.org&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">rf</span> <span class="o">!=</span> <span class="n">r</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Updating SMAP url from PODPAC S3 Server.&quot;</span><span class="p">)</span>
+            <span class="n">SMAP_BASE_URL</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="k">try</span><span class="p">:</span> 
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">SMAP_BASE_URL_FILE</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
+                    <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Could not overwrite SMAP url update on disk:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Could not retrieve SMAP url from PODPAC S3 Server. Using default.&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 
 <div class="viewcode-block" id="SMAPSource"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.smap.SMAPSource">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SMAPSource</span><span class="p">(</span><span class="n">datatype</span><span class="o">.</span><span class="n">PyDAP</span><span class="p">):</span>
@@ -342,9 +408,9 @@
             <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
         <span class="c1"># check url</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s1">&#39;.dds&#39;</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SMAP_BASE_URL</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Unknown exception: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">session</span>
 
     <span class="c1">#date_url_re = re.compile(&#39;[0-9]{4}\.[0-9]{2}\.[0-9]{2}&#39;)</span>
@@ -376,7 +442,20 @@
 <span class="sd">            {product}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">src</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;SMAP&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">src</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;SMAP&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the SMAP product version from the OpenDAP Url</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            {version}</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;SMAP&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+        
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;datakey&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_datakey_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -421,8 +500,7 @@
         <span class="n">lats</span><span class="p">[</span><span class="n">lats</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
         <span class="n">lons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">lons</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">lats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">lats</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="n">lats</span><span class="p">,</span> <span class="n">lon</span><span class="o">=</span><span class="n">lons</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
-                                   <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">times</span><span class="p">,</span> <span class="n">lats</span><span class="p">,</span> <span class="n">lons</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;native.coordinates&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">coords</span></div>
 
@@ -493,14 +571,21 @@
 <span class="sd">                        &#39;cell_land_fraction&#39;, &#39;mwrtm_omega&#39;, &#39;mwrtm_soilcls&#39;,</span>
 <span class="sd">                        &#39;clsm_dzgt6&#39;, &#39;mwrtm_rghnrv&#39;, &#39;mwrtm_clay&#39;, &#39;mwrtm_sand&#39;</span>
 <span class="sd">    source : str, optional</span>
-<span class="sd">         Source OpenDAP url for SMAP properties. Default is (&#39;https://n5eil01u.ecs.nsidc.org/opendap/SMAP/&#39;</span>
-<span class="sd">                                                             &#39;SPL4SMLM.003/2015.03.31/&#39;</span>
-<span class="sd">                                                             &#39;SMAP_L4_SM_lmc_00000000T000000_Vv3030_001.h5&#39;)</span>
+<span class="sd">         Source OpenDAP url for SMAP properties. Default is (SMAP_BASE_URL + </span>
+<span class="sd">                                                             &#39;SPL4SMLM{latest_version}/2015.03.31/&#39;</span>
+<span class="sd">                                                             &#39;SMAP_L4_SM_lmc_00000000T000000_Vv{latest_version}.h5&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">file_url_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;SMAP.*_[0-9]</span><span class="si">{8}</span><span class="s1">T[0-9]</span><span class="si">{6}</span><span class="s1">_.*\.h5&#39;</span><span class="p">)</span>
 
-    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;https://n5eil01u.ecs.nsidc.org/opendap/SMAP/&#39;</span>
-                        <span class="s1">&#39;SPL4SMLM.003/2015.03.31/&#39;</span>
-                        <span class="s1">&#39;SMAP_L4_SM_lmc_00000000T000000_Vv3030_001.h5&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_property_source_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">_infer_SMAP_product_version</span><span class="p">(</span><span class="s1">&#39;SPL4SMLM&#39;</span><span class="p">,</span> <span class="n">SMAP_BASE_URL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">SMAP_BASE_URL</span> <span class="o">+</span> \
+              <span class="s1">&#39;/SPL4SMLM.</span><span class="si">%03d</span><span class="s1">/2015.03.31/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">)</span> 
+        <span class="n">r</span> <span class="o">=</span> <span class="n">_get_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_url_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">url</span> <span class="o">+</span> <span class="n">n</span>
 
     <span class="nb">property</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;clsm_dzsf&#39;</span><span class="p">,</span> <span class="s1">&#39;mwrtm_bh&#39;</span><span class="p">,</span> <span class="s1">&#39;clsm_cdcr2&#39;</span><span class="p">,</span> <span class="s1">&#39;mwrtm_poros&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;clsm_dzgt3&#39;</span><span class="p">,</span> <span class="s1">&#39;clsm_dzgt2&#39;</span><span class="p">,</span> <span class="s1">&#39;mwrtm_rghhmax&#39;</span><span class="p">,</span>
@@ -522,20 +607,18 @@
         <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;native.coordinates&#39;</span><span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;native.coordinates&#39;</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="k">pass</span>
-
-        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span>
-        <span class="n">lons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span><span class="p">][:,</span> <span class="p">:])</span>
-        <span class="n">lats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">latkey</span><span class="p">][:,</span> <span class="p">:])</span>
-        <span class="n">lons</span><span class="p">[</span><span class="n">lons</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-        <span class="n">lats</span><span class="p">[</span><span class="n">lats</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-        <span class="n">lons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">lons</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">lats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">lats</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="n">lats</span><span class="p">,</span> <span class="n">lon</span><span class="o">=</span><span class="n">lons</span><span class="p">,</span>
-                                   <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;native.coordinates&#39;</span><span class="p">)</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span>
+            <span class="n">lons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span><span class="p">][:,</span> <span class="p">:])</span>
+            <span class="n">lats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">latkey</span><span class="p">][:,</span> <span class="p">:])</span>
+            <span class="n">lons</span><span class="p">[</span><span class="n">lons</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">lats</span><span class="p">[</span><span class="n">lats</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">lons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">lons</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">lats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">lats</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">lats</span><span class="p">,</span> <span class="n">lons</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;native.coordinates&#39;</span><span class="p">)</span>
+        
         <span class="k">return</span> <span class="n">coords</span></div></div>
 
 <div class="viewcode-block" id="SMAPPorosity"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.smap.SMAPPorosity">[docs]</a><span class="k">class</span> <span class="nc">SMAPPorosity</span><span class="p">(</span><span class="n">SMAPProperties</span><span class="p">):</span>
@@ -588,6 +671,8 @@
 <span class="sd">    password : {password}</span>
 <span class="sd">    product : str</span>
 <span class="sd">        {product}</span>
+<span class="sd">    version : int</span>
+<span class="sd">        {version}</span>
 <span class="sd">    username : {username}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -603,6 +688,11 @@
 
     <span class="n">base_url</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">SMAP_BASE_URL</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">product</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="n">SMAP_PRODUCT_MAP</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;product&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_detect_product_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_infer_SMAP_product_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">)</span>
+        
     <span class="n">folder_date</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">file_url_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.*_[0-9]</span><span class="si">{8}</span><span class="s1">T[0-9]</span><span class="si">{6}</span><span class="s1">_.*\.h5&#39;</span><span class="p">)</span>
@@ -618,9 +708,7 @@
     <span class="n">layerkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span>
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;layerkey&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_layerkey_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">SMAP_PRODUCT_MAP</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span>
-            <span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span>
-            <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;layerkey&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">SMAP_PRODUCT_MAP</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;layerkey&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;layerkey&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_layerkey_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="p">):</span>
@@ -637,7 +725,7 @@
 <span class="sd">        str</span>
 <span class="sd">            URL to OpenDAP dataset folder</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder_date</span><span class="p">])</span>
+        <span class="k">return</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%03d</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">),</span>  <span class="bp">self</span><span class="o">.</span><span class="n">folder_date</span><span class="p">])</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;sources&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">sources_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -648,25 +736,28 @@
 <span class="sd">        np.ndarray(dtype=object(SMAPSource))</span>
 <span class="sd">            Array of SMAPSource instances tied to specific SMAP files</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Swapped the try and except blocks. SMAP filenames may change version numbers, which causes cached source to </span>
+        <span class="c1"># break. Hence, try to get the new source everytime, unless data is offline, in which case rely on the cache.</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;sources&#39;</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_coords_sources</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="s1">&#39;sources&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="s1">&#39;sources&#39;</span><span class="p">)</span>            
+        <span class="k">except</span><span class="p">:</span> <span class="c1">#</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;sources&#39;</span><span class="p">)</span>
+            
 
         <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
-        <span class="n">tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">delta</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnat</span><span class="p">(</span><span class="n">tol</span><span class="p">):</span>
+        <span class="n">time_crds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">is_monotonic</span> <span class="ow">and</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">is_uniform</span><span class="p">:</span>
+            <span class="n">tol</span> <span class="o">=</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="n">tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">tol</span> <span class="o">=</span> <span class="n">tol</span> <span class="o">-</span> <span class="n">tol</span>
             <span class="n">tol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">(</span><span class="n">tol</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
 
-        <span class="n">src_objs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">SMAPSource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">b</span> <span class="o">+</span> <span class="n">s</span><span class="p">,</span>
-                                        <span class="n">interpolation_tolerance</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span>
-                                        <span class="n">auth_session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">,</span>
-                                        <span class="n">layerkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layerkey</span><span class="p">)</span>
-                             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">src_objs</span>
+        <span class="n">src_objs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">SMAPSource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">b</span><span class="o">+</span><span class="n">s</span><span class="p">,</span> <span class="n">interpolation_tolerance</span><span class="o">=</span><span class="n">tol</span><span class="p">,</span> <span class="n">auth_session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">,</span> <span class="n">layerkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layerkey</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">src_objs</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;is_source_coordinates_complete&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">src_crds_complete_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -684,25 +775,19 @@
         <span class="sd">&quot;&quot;&quot;{source_coordinates}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;source.coordinates&#39;</span><span class="p">)</span>
+            <span class="n">times</span><span class="p">,</span> <span class="n">latlon</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_coords_sources</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="n">times</span><span class="p">,</span> <span class="n">latlon</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_coords_sources</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;source.coordinates&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">latlon</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">latlon</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">crds</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span>
-                <span class="n">time_lat_lon</span><span class="o">=</span><span class="p">(</span><span class="n">times</span><span class="p">,</span>
-                              <span class="n">podpac</span><span class="o">.</span><span class="n">Coord</span><span class="p">(</span><span class="n">latlon</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">latlon_delta</span><span class="p">),</span>
-                              <span class="n">podpac</span><span class="o">.</span><span class="n">Coord</span><span class="p">(</span><span class="n">latlon</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">latlon_delta</span><span class="p">)</span>
-                            <span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">crds</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([[</span><span class="n">times</span><span class="p">,</span> <span class="n">latlon</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">latlon</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time_lat_lon&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">crds</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">times</span><span class="p">)</span>
+            <span class="n">crds</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">times</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">crds</span><span class="p">,</span> <span class="s1">&#39;source.coordinates&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">crds</span></div>
 
 <div class="viewcode-block" id="SMAPDateFolder.get_shared_coordinates"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.smap.SMAPDateFolder.get_shared_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">get_shared_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Coordinate that are shared by all files in the folder.</span>
+        <span class="sd">&quot;&quot;&quot;Coordinates that are shared by all files in the folder.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -723,7 +808,7 @@
         <span class="k">return</span> <span class="n">coords</span></div>
 
 <div class="viewcode-block" id="SMAPDateFolder.get_available_coords_sources"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.smap.SMAPDateFolder.get_available_coords_sources">[docs]</a>    <span class="k">def</span> <span class="nf">get_available_coords_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Read NSIDC site for available coordinate sources</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -740,11 +825,7 @@
 <span class="sd">            If the NSIDC website cannot be accessed </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;opendap/hyrax/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;HTTP error: &lt;</span><span class="si">%d</span><span class="s1">&gt;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span> <span class="o">+</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">[:</span><span class="mi">256</span><span class="p">])</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">_get_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">)</span>
         <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;lxml&#39;</span><span class="p">)</span>
         <span class="n">a</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
         <span class="n">file_regex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_url_re</span>
@@ -820,13 +901,18 @@
 
     <span class="n">base_url</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">SMAP_BASE_URL</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">product</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="n">SMAP_PRODUCT_MAP</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;product&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> 
-                      <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;SPL4SMAU.003&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                      <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;SPL4SMAU&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_detect_product_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_infer_SMAP_product_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">)</span>
+    
     <span class="n">date_url_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[0-9]</span><span class="si">{4}</span><span class="s1">\.[0-9]</span><span class="si">{2}</span><span class="s1">\.[0-9]</span><span class="si">{2}</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="n">auth_session</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">authentication</span><span class="o">.</span><span class="n">EarthDataSession</span><span class="p">)</span>
     <span class="n">auth_class</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Type</span><span class="p">(</span><span class="n">authentication</span><span class="o">.</span><span class="n">EarthDataSession</span><span class="p">)</span>
-    <span class="n">username</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">password</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;auth_session&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_auth_session_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -855,7 +941,7 @@
 <span class="sd">        str</span>
 <span class="sd">            The SMAP product name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%03d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;sources&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">sources_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -868,17 +954,37 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_times_dates</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">src_objs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="n">SMAPDateFolder</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">folder_date</span><span class="o">=</span><span class="n">date</span><span class="p">,</span>
+            <span class="n">SMAPDateFolder</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">folder_date</span><span class="o">=</span><span class="n">date</span><span class="p">,</span>
                            <span class="n">shared_coordinates</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span><span class="p">,</span>
                            <span class="n">auth_session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">,</span>
                            <span class="n">layerkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layerkey</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">dates</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">src_objs</span>
 
-<div class="viewcode-block" id="SMAP.get_source_coordinates"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.smap.SMAP.get_source_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">get_source_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SMAP.get_native_coordinates"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.smap.SMAP.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        {native_coordinates}</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        These coordinates are computed, assuming dataset is regular. </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span> <span class="ow">in</span> <span class="n">SMAP_IRREGULAR_COORDINATES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Native coordinates too large. Try using partial native coordinates.&quot;</span><span class="p">)</span>
+        
+        <span class="n">shared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_shared_coordinates</span><span class="p">()</span>
+        <span class="n">partial_sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_source_coordinates</span><span class="p">()[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span>
+        <span class="n">complete_source_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_source_coordinates</span><span class="p">()[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">complete_source_0</span> <span class="o">-</span> <span class="n">partial_sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">full_times</span> <span class="o">=</span> <span class="p">(</span><span class="n">partial_sources</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">offset</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">merge_dims</span><span class="p">([</span><span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">full_times</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]),</span> <span class="n">shared</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="SMAP.get_source_coordinates"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.smap.SMAP.get_source_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_source_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{source_coordinates}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_available_times_dates</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">get_available_times_dates</span><span class="p">()[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="SMAP.get_available_times_dates"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.smap.SMAP.get_available_times_dates">[docs]</a>    <span class="k">def</span> <span class="nf">get_available_times_dates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the available folder dates in the SMAP product</span>
@@ -895,13 +1001,8 @@
 <span class="sd">        RuntimeError</span>
 <span class="sd">            If the http resource could not be accessed (check Earthdata login credentials)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">])</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;opendap/hyrax/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;HTTP error: &lt;</span><span class="si">%d</span><span class="s1">&gt;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
-                                   <span class="o">+</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">[:</span><span class="mi">256</span><span class="p">])</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%03d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)])</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">_get_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">)</span>
         <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;lxml&#39;</span><span class="p">)</span>
         <span class="n">a</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>
         <span class="n">regex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_url_re</span>
@@ -938,7 +1039,7 @@
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
 
-        <span class="n">coords</span> <span class="o">=</span> <span class="n">SMAPDateFolder</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">SMAPDateFolder</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
                                 <span class="n">folder_date</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_available_times_dates</span><span class="p">()[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
                                 <span class="n">auth_session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">auth_session</span><span class="p">,</span>
                                <span class="p">)</span><span class="o">.</span><span class="n">shared_coordinates</span>
@@ -1019,7 +1120,7 @@
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;sources&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">sources_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Orders the compositor of SPL2SMAP_S.001 in front of SPL4SMAU.003</span>
+        <span class="sd">&quot;&quot;&quot;Orders the compositor of SPL2SMAP_S in front of SPL4SMAU</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1027,8 +1128,8 @@
 <span class="sd">            Array of SMAP product sources</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">src_objs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="n">SMAP</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">,</span> <span class="n">product</span><span class="o">=</span><span class="s1">&#39;SPL2SMAP_S.001&#39;</span><span class="p">),</span>
-            <span class="n">SMAP</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">,</span> <span class="n">product</span><span class="o">=</span><span class="s1">&#39;SPL4SMAU.003&#39;</span><span class="p">)</span>
+            <span class="n">SMAP</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">,</span> <span class="n">product</span><span class="o">=</span><span class="s1">&#39;SPL2SMAP_S&#39;</span><span class="p">),</span>
+            <span class="n">SMAP</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">,</span> <span class="n">product</span><span class="o">=</span><span class="s1">&#39;SPL4SMAU&#39;</span><span class="p">)</span>
         <span class="p">])</span>
         <span class="k">return</span> <span class="n">src_objs</span>
 
@@ -1048,7 +1149,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, Creare.
+        &copy; Copyright 2017-2018, Creare
 
     </p>
   </div>
@@ -1067,21 +1168,14 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'0.0.0',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 

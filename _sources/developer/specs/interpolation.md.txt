@@ -22,7 +22,7 @@ Multiple interpolators may be required for each request:
 # Example Use cases
 
 - user requests a single value at a point between coordinates in a datasource
-- user requests an array of coordinates from a dataset from a dataset with a different coordinate system
+- user requests an array of coordinates from a dataset with a different coordinate system
 - user requests data at coordinates that overlap the extent of the native dataset
 - user requests a different type of interpolation for lat/long and time
 
@@ -66,10 +66,8 @@ Interpolation('nearest', coordinates)
 Interpolation( ('nearest', [Rasterio, Nearest]), coordinates)
 
 # more complicated dict definition specifies interpolators for each dimension
-# raises Exception if dimension is not included
 Interpolation({
-    'lat': 'bilinear',
-    'lon': 'bilinear'
+    ('lat', 'lon'): 'bilinear',
     }, coordinates)
 
 # most complicated dict definition specifies tuple interpolators for dimensions
@@ -78,6 +76,13 @@ Interpolation({
     'lon': ('nearest', [Rasterio, ...])
     'time': ('nearest', [Nearest, ...])
     }, coordinates)
+
+# most complicated dict definition specifies tuple interpolators for dimensions
+Interpolation({
+    ('lat', 'lon'): 'nearest',
+    'time': ('nearest', [Nearest, ...])
+    }, coordinates)
+
 
 # can include kwargs that get passed on to Interpolator methods
 Interpolation({
@@ -131,6 +136,7 @@ class MyInterpolator(Interpolator):
 - `INTERPOLATION_METHODS`: dict of shortcut: InterpolationMethod class
 - `INTERPOLATION_SHORTCUTS`: List
     - Only include the supported interpolation options
+- `INTERPOLATION_DEFAULT`: 'nearest', interpolation method if none is specified to datasource or if dimensions are left out of the dict
 
 ## Utility methods
 
