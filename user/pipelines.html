@@ -129,6 +129,28 @@
 <li class="toctree-l2"><a class="reference internal" href="#pipeline">Pipeline</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#additional-attributes">Additional Attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sample">Sample</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#output-definition">Output Definition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common-attributes">Common Attributes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#none-default">None (default)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#files">Files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#additional-attributes">Additional Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sample">Sample</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#images">Images</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#additional-attributes">Additional Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sample">Sample</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-outputs">Custom Outputs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sample-custom-output-class">Sample Custom Output Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sample-pipeline">Sample Pipeline</a></li>
 </ul>
 </li>
 </ul>
@@ -339,157 +361,168 @@
 </div>
 <div class="section" id="sample">
 <span id="id6"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{
-    &quot;nodes&quot;: {
-        &quot;MyDataSource&quot;: {
-            ...
-        },
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;MyDataSource&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="o">...</span>
+        <span class="p">},</span>
         
-        &quot;MyOtherPipeline&quot;: {
-            &quot;path&quot;: &quot;path to pipeline&quot;
-        },
+        <span class="s2">&quot;MyOtherPipeline&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;path to pipeline&quot;</span>
+        <span class="p">},</span>
         
-        &quot;result&quot;: {
-            &quot;node&quot;: &quot;Arithmetic&quot;,
-            &quot;inputs&quot;: {
-                &quot;A&quot;: &quot;MyDataSource&quot;,
-                &quot;B&quot;: &quot;MyOtherPipeline&quot;,
-            },
-            &quot;attrs&quot;: {
-                &quot;eqn&quot;: &quot;A + B&quot;
-            }
-        }
-    }
-}
-
-### Notes
-
- * The `node` path should include the submodule path and the node class. The submodule path is omitted for top-level classes. For example:
-   - `&quot;node&quot;: &quot;datalib.smap.SMAP&quot;` is equivalent to `from podpac.datalib.smap import SMAP`.
-   - `&quot;node&quot;: &quot;compositor.OrderedCompositor&quot;` is equivalent to `from podpac.compositor import OrderedCompositor`.
- * The `plugin` path replaces &#39;podpac&#39; in the full node path. For example
-   - `&quot;plugin&quot;: &quot;path.to.myplugin&quot;, &quot;node&quot;: &quot;mymodule.MyCustomNode&quot;` is equivalent to `from path.to.myplugin.mymodule import MyCustomNode`.
-   - `&quot;plugin&quot;: &quot;myplugin&quot;, &quot;node&quot;: &quot;MyCustomNode&quot;` is equivalent to `from myplugin import MyCustomNode`
-
-## Output Definition
-
-The output definition defines the node to output and, optionally, an additional output mode along with associated parameters. If an output definition is not supplied, the last defined node is used.
-
-Podpac provides several builtin output types, *file* and *image*. You can also define custom outputs in a plugins.
-
-### Common Attributes
-
- * `node`: The nodes to output. *(list, required)*
- * `mode`: For builtin outputs, options are &#39;none&#39; (default), &#39;file&#39;, &#39;image&#39;. *(string, optional)*
-
-## None (default)
-
-No additional output. The output will be returned from the `Pipeline.execute` method.
-
-## Files
-
-Nodes can be output to file in a variety of formats.
-
-### Additional Attributes
-
- * `format`: file format, options are &#39;pickle&#39; (default), &#39;geotif&#39;, &#39;png&#39;. *(string, optional)*
- * `outdir`: destination path for the output file *(string, required)*
-
-### Sample
-</pre></div>
-</div>
-<p>{
-“nodes”: {
-“MyNode1”: { … },
-“MyNode2”: { … }
-},</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="s2">&quot;MyNode2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="s2">&quot;C:\Path\To\OutputData&quot;</span>
+        <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="s2">&quot;Arithmetic&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="s2">&quot;MyDataSource&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="s2">&quot;MyOtherPipeline&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;attrs&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;eqn&quot;</span><span class="p">:</span> <span class="s2">&quot;A + B&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>}</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-## Images
-
-Nodes can be output to a png image (in memory).
-
-### Additional Attributes
-
- * `format`: image format, options are &#39;png&#39; (default). *(string, optional)*
- * `vmin`: min value for the colormap *(number, optional)*
- * `vmax`: max value for the colormap *(number, optional)*
-
-### Sample
-</pre></div>
 </div>
-<p>{
-“nodes”: {
-“MyNode1”: { … },
-“MyNode2”: { … }
-},</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="s2">&quot;MyNode2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;vmin&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
-    <span class="s2">&quot;vmax&quot;</span><span class="p">:</span> <span class="mf">0.35</span>
+<div class="section" id="notes">
+<span id="notes"></span><h3>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>The <code class="docutils literal notranslate"><span class="pre">node</span></code> path should include the submodule path and the node class. The submodule path is omitted for top-level classes. For example:<ul>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;datalib.smap.SMAP&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">podpac.datalib.smap</span> <span class="pre">import</span> <span class="pre">SMAP</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;compositor.OrderedCompositor&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">podpac.compositor</span> <span class="pre">import</span> <span class="pre">OrderedCompositor</span></code>.</li>
+</ul>
+</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">plugin</span></code> path replaces ‘podpac’ in the full node path. For example<ul>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;plugin&quot;:</span> <span class="pre">&quot;path.to.myplugin&quot;,</span> <span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;mymodule.MyCustomNode&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">path.to.myplugin.mymodule</span> <span class="pre">import</span> <span class="pre">MyCustomNode</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">&quot;plugin&quot;:</span> <span class="pre">&quot;myplugin&quot;,</span> <span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;MyCustomNode&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">myplugin</span> <span class="pre">import</span> <span class="pre">MyCustomNode</span></code></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="output-definition">
+<span id="output-definition"></span><h2>Output Definition<a class="headerlink" href="#output-definition" title="Permalink to this headline">¶</a></h2>
+<p>The output definition defines the node to output and, optionally, an additional output mode along with associated parameters. If an output definition is not supplied, the last defined node is used.</p>
+<p>Podpac provides several builtin output types, <em>file</em> and <em>image</em>. You can also define custom outputs in a plugins.</p>
+<div class="section" id="common-attributes">
+<span id="id7"></span><h3>Common Attributes<a class="headerlink" href="#common-attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">node</span></code>: The nodes to output. <em>(list, required)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">mode</span></code>: For builtin outputs, options are ‘none’ (default), ‘file’, ‘image’. <em>(string, optional)</em></li>
+</ul>
+</div>
+</div>
+<div class="section" id="none-default">
+<span id="none-default"></span><h2>None (default)<a class="headerlink" href="#none-default" title="Permalink to this headline">¶</a></h2>
+<p>No additional output. The output will be returned from the <code class="docutils literal notranslate"><span class="pre">Pipeline.execute</span></code> method.</p>
+</div>
+<div class="section" id="files">
+<span id="files"></span><h2>Files<a class="headerlink" href="#files" title="Permalink to this headline">¶</a></h2>
+<p>Nodes can be output to file in a variety of formats.</p>
+<div class="section" id="additional-attributes">
+<span id="id8"></span><h3>Additional Attributes<a class="headerlink" href="#additional-attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">format</span></code>: file format, options are ‘pickle’ (default), ‘geotif’, ‘png’. <em>(string, optional)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">outdir</span></code>: destination path for the output file <em>(string, required)</em></li>
+</ul>
+</div>
+<div class="section" id="sample">
+<span id="id9"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;MyNode1&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+        <span class="s2">&quot;MyNode2&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="s2">&quot;MyNode2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;outdir&quot;</span><span class="p">:</span> <span class="s2">&quot;C:\Path\To\OutputData&quot;</span>
+    <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>}</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-## Custom Outputs
-
-Custom outputs can be defined in a plugin by subclassing the `Output` base class found in `core.pipeline.output`. Custom 
-outputs must define the `write` method with no arguments, and may define additional parameters.
-
-### Attributes
-
-Replace the &#39;mode&#39; parameter with a plugin path and output class name:
-
- * `plugin`: path to a plugin module to use *(string, required)*
- * `output`: output class name *(string, required)*
-
-### Sample Custom Output Class
-
-File: **my_plugin/outputs.py**
-</pre></div>
 </div>
-<p>import numpy as np
-import traitlets as tl
-import podpac</p>
-<p>class NpyOutput(podpac.core.pipeline.output.Output):
-path = tl.String()
-allow_pickle = tl.Bool(True)
-fix_imports = tl.Bool(True)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">numpy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">allow_pickle</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fix_imports</span><span class="p">)</span>
-</pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="c1">### Sample Pipeline</span>
-</pre></div>
+<div class="section" id="images">
+<span id="images"></span><h2>Images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h2>
+<p>Nodes can be output to a png image (in memory).</p>
+<div class="section" id="additional-attributes">
+<span id="id10"></span><h3>Additional Attributes<a class="headerlink" href="#additional-attributes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">format</span></code>: image format, options are ‘png’ (default). <em>(string, optional)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">vmin</span></code>: min value for the colormap <em>(number, optional)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">vmax</span></code>: max value for the colormap <em>(number, optional)</em></li>
+</ul>
 </div>
-<p>{
-“nodes”: {
-“MyNode1”: { … },
-“MyNode2”: { … }
-},</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="s2">&quot;MyNode2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="s2">&quot;my_plugin&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="s2">&quot;NpyOutput&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;my_pipeline_output.npy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;allow_pickle&quot;</span><span class="p">:</span> <span class="n">false</span>
+<div class="section" id="sample">
+<span id="id11"></span><h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;MyNode1&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+        <span class="s2">&quot;MyNode2&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="s2">&quot;MyNode2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;png&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;vmin&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="s2">&quot;vmax&quot;</span><span class="p">:</span> <span class="mf">0.35</span>
+    <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>}</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+</div>
+</div>
+<div class="section" id="custom-outputs">
+<span id="custom-outputs"></span><h2>Custom Outputs<a class="headerlink" href="#custom-outputs" title="Permalink to this headline">¶</a></h2>
+<p>Custom outputs can be defined in a plugin by subclassing the <code class="docutils literal notranslate"><span class="pre">Output</span></code> base class found in <code class="docutils literal notranslate"><span class="pre">core.pipeline.output</span></code>. Custom
+outputs must define the <code class="docutils literal notranslate"><span class="pre">write</span></code> method with no arguments, and may define additional parameters.</p>
+<div class="section" id="attributes">
+<span id="id12"></span><h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<p>Replace the ‘mode’ parameter with a plugin path and output class name:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">plugin</span></code>: path to a plugin module to use <em>(string, required)</em></li>
+<li><code class="docutils literal notranslate"><span class="pre">output</span></code>: output class name <em>(string, required)</em></li>
+</ul>
+</div>
+<div class="section" id="sample-custom-output-class">
+<span id="sample-custom-output-class"></span><h3>Sample Custom Output Class<a class="headerlink" href="#sample-custom-output-class" title="Permalink to this headline">¶</a></h3>
+<p>File: <strong>my_plugin/outputs.py</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
+<span class="kn">import</span> <span class="nn">podpac</span>
+
+<span class="k">class</span> <span class="nc">NpyOutput</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">Output</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">allow_pickle</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">fix_imports</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">allow_pickle</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fix_imports</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sample-pipeline">
+<span id="sample-pipeline"></span><h3>Sample Pipeline<a class="headerlink" href="#sample-pipeline" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;MyNode1&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+        <span class="s2">&quot;MyNode2&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+    <span class="p">},</span>
+
+    <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="s2">&quot;MyNode2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;plugin&quot;</span><span class="p">:</span> <span class="s2">&quot;my_plugin&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="s2">&quot;NpyOutput&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;my_pipeline_output.npy&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;allow_pickle&quot;</span><span class="p">:</span> <span class="n">false</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
