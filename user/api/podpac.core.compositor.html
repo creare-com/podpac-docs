@@ -255,13 +255,11 @@ desired if the datasource change or is updated.</p>
 </dd>
 <dt><strong>threaded</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
 <dd><p class="first last">Default if False.
-When threaded is False, the compositor stops executing sources once the
-output is completely filled for efficiency. When threaded is True, the
-compositor must execute every source. The result is the same, but note
-that because of this, threaded=False could be faster than threaded=True,
-especially if n_threads is low. For example, threaded with n_threads=1
-could be much slower than non-threaded if the output is completely filled
-after the first few sources.</p>
+When threaded is False, the compositor stops evaluated sources once the output is completely filled.
+When threaded is True, the compositor must evaluate every source.
+The result is the same, but note that because of this, threaded=False could be faster than threaded=True,
+especially if n_threads is low. For example, threaded with n_threads=1 could be much slower than non-threaded
+if the output is completely filled after the first few sources.</p>
 </dd>
 <dt><strong>n_threads</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
 <dd><p class="first last">Default is 10 – used when threaded is True. 
@@ -272,6 +270,26 @@ NASA data servers seem to have a hard limit of 10 simultaneous requests, which d
 </tr>
 </tbody>
 </table>
+<dl class="attribute">
+<dt id="podpac.core.compositor.Compositor.base_definition">
+<code class="descname">base_definition</code><a class="headerlink" href="#podpac.core.compositor.Compositor.base_definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base node defintion for Compositor nodes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>OrderedDict</strong></dt>
+<dd><p class="first last">Dictionary containing the location of the Node, the name of the plugin (if required), as well as any 
+parameters and attributes that were tagged by children.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
 <dt id="podpac.core.compositor.Compositor.composite">
 <code class="descname">composite</code><span class="sig-paren">(</span><em>outputs</em>, <em>result=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.composite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.composite" title="Permalink to this definition">¶</a></dt>
@@ -301,53 +319,29 @@ NASA data servers seem to have a hard limit of 10 simultaneous requests, which d
 </table>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="podpac.core.compositor.Compositor.definition">
-<code class="descname">definition</code><a class="headerlink" href="#podpac.core.compositor.Compositor.definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pipeline node defintion for Compositor nodes.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>OrderedDict</strong></dt>
-<dd><p class="first last">Dictionary containing the location of the Node, the name of the plugin (if required), as well as any 
-parameters and attributes that were tagged by children.</p>
-</dd>
-</dl>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="method">
-<dt id="podpac.core.compositor.Compositor.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>coordinates</em>, <em>output=None</em>, <em>method=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.execute" title="Permalink to this definition">¶</a></dt>
-<dd><p>Executes this nodes using the supplied coordinates.</p>
+<dt id="podpac.core.compositor.Compositor.eval">
+<code class="descname">eval</code><span class="sig-paren">(</span><em>coordinates</em>, <em>output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.eval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates this nodes using the supplied coordinates.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
 <dt><strong>coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.Coordinates</span></dt>
-<dd><p class="first last">The set of coordinates requested by a user. The Node will be executed using these coordinates.</p>
+<dd><p class="first last">The set of coordinates requested by a user. The Node will be evaluated using these coordinates.</p>
 </dd>
 <dt><strong>output</strong> <span class="classifier-delimiter">:</span> <span class="classifier">podpac.UnitsDataArray, optional</span></dt>
 <dd><p class="first last">Default is None. Optional input array used to store the output data. When supplied, the node will not 
 allocate its own memory for the output array. This array needs to have the correct dimensions and 
 coordinates.</p>
 </dd>
-<dt><strong>method</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">Default is None. How the node will be executed: serial, parallel, on aws, locally, etc. Currently only local
-execution is supported.</p>
-</dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>UnitsDataArray</strong></dt>
-<dd><p class="first last">Unit-aware xarray DataArray containing the results of the node execution.</p>
+<dd><p class="first last">Unit-aware xarray DataArray containing the results of the node evaluation.</p>
 </dd>
 </dl>
 </td>
@@ -357,34 +351,22 @@ execution is supported.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="podpac.core.compositor.Compositor.get_native_coordinates">
-<code class="descname">get_native_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.get_native_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.get_native_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the native coordinates of the entire dataset.</p>
+<dt id="podpac.core.compositor.Compositor.find_coordinates">
+<code class="descname">find_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.find_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.find_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the available native coordinates for the Node.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>podpac.Coordinates</strong></dt>
-<dd><p class="first last">Description
-Native coordinates of the entire dataset.</p>
+<dt><strong>coords_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">list of available coordinates (Coordinate objects)</p>
 </dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Notes</p>
-<p>This one is tricky… you can have multi-level compositors
-One for a folder described by a date
-One for all the folders over all dates. 
-The single folder one has time coordinates that are actually
-more accurate than just the folder time coordinate, so you want
-to replace the time coordinate in native coordinate – does this 
-rule hold?</p>
-<p>Also, you could have datasource with wildly different coordinates – how are the native coordinates described
-in that case? This is the usecase for the GroupCoordinates, but then how to evaluate nodes with
-GroupCoordinates?</p>
 </dd></dl>
 
 <dl class="method">
@@ -410,7 +392,7 @@ GroupCoordinates?</p>
 <dt id="podpac.core.compositor.Compositor.get_source_coordinates">
 <code class="descname">get_source_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.get_source_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.get_source_coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the coordinates describing each source. 
-This may be implemented by derived classes, and is an optimization that allows a subset of source to be executed.</p>
+This may be implemented by derived classes, and is an optimization that allows evaluation subsets of source.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -428,7 +410,7 @@ This may be implemented by derived classes, and is an optimization that allows a
 
 <dl class="method">
 <dt id="podpac.core.compositor.Compositor.iteroutputs">
-<code class="descname">iteroutputs</code><span class="sig-paren">(</span><em>coordinates</em>, <em>method=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.iteroutputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.iteroutputs" title="Permalink to this definition">¶</a></dt>
+<code class="descname">iteroutputs</code><span class="sig-paren">(</span><em>coordinates</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.iteroutputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.core.compositor.Compositor.iteroutputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Summary</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -479,7 +461,7 @@ nans, the result is returned.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>UnitsDataArray</strong></dt>
-<dd><p class="first last">Unit-aware xarray DataArray containing the results of the node execution. This composites the sources together until there are no nans or no more sources.</p>
+<dd><p class="first last">Unit-aware xarray DataArray containing the results of the node evaluation. This composites the sources together until there are no nans or no more sources.</p>
 </dd>
 </dl>
 </td>
