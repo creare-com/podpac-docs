@@ -113,6 +113,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../developer/design.html">Design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../developer/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/aws.html">AWS Lambda</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../developer/docs.html">Documentation</a></li>
 </ul>
 
@@ -185,13 +186,14 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
 
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <div class="viewcode-block" id="common_doc"><a class="viewcode-back" href="../../../user/api/podpac.core.utils.html#podpac.core.utils.common_doc">[docs]</a><span class="k">def</span> <span class="nf">common_doc</span><span class="p">(</span><span class="n">doc_dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Decorator: replaces commond fields in a function docstring</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
 <span class="sd">    doc_dict : dict</span>
@@ -200,7 +202,7 @@
     <span class="k">def</span> <span class="nf">_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">func</span>
-        
+
         <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">doc_dict</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func</span>
     <span class="k">return</span> <span class="n">_decorator</span></div>
@@ -334,14 +336,14 @@
 <div class="viewcode-block" id="trait_is_defined"><a class="viewcode-back" href="../../../user/api/podpac.core.utils.html#podpac.core.utils.trait_is_defined">[docs]</a><span class="k">def</span> <span class="nf">trait_is_defined</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">trait</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Utility method to determine if trait is defined on object without</span>
 <span class="sd">    call to default (@tl.default)</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    object : object</span>
 <span class="sd">        Class with traits</span>
 <span class="sd">    trait : str</span>
 <span class="sd">        Class property to investigate</span>
-<span class="sd">    </span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    bool</span>
@@ -353,6 +355,44 @@
         <span class="k">return</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">,</span> <span class="n">tl</span><span class="o">.</span><span class="n">TraitError</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="optional_import"><a class="viewcode-back" href="../../../user/api/podpac.core.utils.html#podpac.core.utils.optional_import">[docs]</a><span class="k">def</span> <span class="nf">optional_import</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_root</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Import optional packages if present.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    module_name: str</span>
+<span class="sd">        The name of the module to import</span>
+<span class="sd">    package: str, optional</span>
+<span class="sd">        Default is None. The root package, in case module_name is relative</span>
+<span class="sd">    return_root: bool</span>
+<span class="sd">        Default if False. If True, will return the root package instead of the module</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    ----------</span>
+<span class="sd">    &gt;&gt;&gt; bar = optional_import(&#39;foo.bar&#39;)  # Returns bar</span>
+<span class="sd">    &gt;&gt;&gt; foo = optional_import(&#39;foo.bar&#39;, return_root=True)  # Returns foo</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    module</span>
+<span class="sd">        The imported module if available. None otherwise.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">return_root</span><span class="p">:</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="fm">__import__</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span> <span class="c1"># Python 2.7</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">module</span></div>
 </pre></div>
 
            </div>
