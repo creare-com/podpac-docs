@@ -105,8 +105,10 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Nodes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#datasource">DataSource</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#datasource">DataSource</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#interpolation">Interpolation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#compositor">Compositor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#algorithm">Algorithm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#extending-podpac-with-custom-nodes">Extending Podpac with Custom Nodes</a><ul>
@@ -194,14 +196,52 @@
             
   <div class="section" id="nodes">
 <span id="nodes"></span><h1>Nodes<a class="headerlink" href="#nodes" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="introduction">
-<span id="introduction"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>This document describes the detailed interfaces for Pipeline nodes so that a user may know what to expect. It also documents some of the available nodes implemented as part of the core library.</p>
 <p>… tbd … (for now see the <a class="reference external" href="https://github.com/creare-com/podpac/blob/develop/doc/source/developer/specs/nodes.md">DeveloperSpec</a>)</p>
-</div>
 <div class="section" id="datasource">
 <span id="datasource"></span><h2>DataSource<a class="headerlink" href="#datasource" title="Permalink to this headline">¶</a></h2>
-<p>… tbd …</p>
+<p>DataSource nodes interface with remote geospatial data sources (i.e. raster images, DAP servers, numpy arrays) and define how to retrieve data from these remote sources using PODPAC coordinates. PODPAC defines common generic DataSource nodes (i.e. Array, PyDAP), but advanced users can define their own DataSource nodes by defining the methods to retrieve data (<code class="docutils literal notranslate"><span class="pre">get_data(coordinates,</span> <span class="pre">index)</span></code>) and the method to define the <code class="docutils literal notranslate"><span class="pre">native_coordinates</span></code> property (<code class="docutils literal notranslate"><span class="pre">get_native_coordinates()</span></code>).</p>
+<p>Key properties of DataSource nodes include:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: The location of the source data. Depending on the child node this can be a filepath, numpy array, or server URL).</li>
+<li><code class="docutils literal notranslate"><span class="pre">native_coordinates</span></code>: The PODPAC coordinates of the data in <code class="docutils literal notranslate"><span class="pre">source</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">interpolation</span></code>: Definition of the interpolation method to use with the data source.</li>
+<li><code class="docutils literal notranslate"><span class="pre">nan_vals</span></code>: List of values from source data that should be interpreted as ‘no data’ or ‘nans’.</li>
+</ul>
+<p>To evaluate data at arbitrary PODPAC coordinates, users can input <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> to the eval method of the DataSource node. The DataSource <code class="docutils literal notranslate"><span class="pre">eval</span></code> process consists of the following steps:</p>
+<ol class="simple">
+<li>Verify native coordinates support the dimensions of the requested coordinates</li>
+<li>Remove extra dimensions from the requested coordinates</li>
+<li>Intersect the requested coordinates with the native coordinates</li>
+<li>Further down-select the necessary native coordinates if the requested coordinates are sparser than the native coordinates.</li>
+<li>Retrieve data from the data source (<code class="docutils literal notranslate"><span class="pre">get_data</span></code>) at the subset of native coordinates</li>
+<li>Interpolate the retrieved data to the locations of the requested coordinates</li>
+</ol>
+<div class="section" id="interpolation">
+<span id="interpolation"></span><h3>Interpolation<a class="headerlink" href="#interpolation" title="Permalink to this headline">¶</a></h3>
+<p>The DataSource <code class="docutils literal notranslate"><span class="pre">interpolation</span></code> property defines how to handle interpolation of coordinates and data within the DataSource node. Based on a string or dictionary definition, the DataSource instantiates an Interpolation class that orchestrates the selection and use of different interpolators depending on the native and input coordinates. PODPAC natively supports an array of interpolator methods covering a wide range of use cases, but the user may also write their own <code class="docutils literal notranslate"><span class="pre">Interpolator</span></code> class to use in a specific circumstance. Under the hood, PODPAC leverages interpolation methods from xarray, scipy, and rasterio to do some of the heavy lifting.</p>
+<p>Definition of the interpolation method on a DataSource node may either be a string:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">node</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="s1">&#39;nearest&#39;</span>  <span class="c1"># nearest neighbor interpolation</span>
+</pre></div>
+</div>
+<p>or a dictionary that supplies extra parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">node</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;nearest&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;spatial_tolerance&#39;</span><span class="p">:</span> <span class="mf">1.1</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For the most advanced users, the interpolation definition supports defining different interpolation methods for different dimensions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">node</span><span class="o">.</span><span class="n">interpolation</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">):</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">,</span> 
+    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="s1">&#39;nearest&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When a DataSource node is created, the interpolation manager selects a list of applicable <code class="docutils literal notranslate"><span class="pre">Interpolator</span></code> classes to apply to each set of defined dimensions. When a DataSource node is being evaluated, the interpolation manager chooses the first interpolator that is capable of handling the dimensions defined in the requested coordinates and the native coordinates using the <code class="docutils literal notranslate"><span class="pre">can_interpolate</span></code> method. After selecting an interpolator for all sets of dimensions, the manager sequentially interpolates data for each set of dimensions using the <code class="docutils literal notranslate"><span class="pre">interpolate</span></code> method.</p>
+</div>
 </div>
 <div class="section" id="compositor">
 <span id="compositor"></span><h2>Compositor<a class="headerlink" href="#compositor" title="Permalink to this headline">¶</a></h2>
