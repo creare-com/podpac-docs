@@ -102,7 +102,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../user/pipelines.html">Pipelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../user/earthdata.html">NASA Earth Data Login</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../user/references.html">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../user/api-min.html">API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../user/api.html">API Reference</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Developer Guide</span></p>
@@ -179,8 +178,14 @@
 
 <span class="sd">Attributes</span>
 <span class="sd">----------</span>
-<span class="sd">AVAILABLE_INTERPOLATORS : TYPE</span>
-<span class="sd">Description</span>
+<span class="sd">INTERPOLATION_DEFAULT : str</span>
+<span class="sd">    Default interpolation method used when creating a new :class:`Interpolation` class</span>
+<span class="sd">INTERPOLATION_METHODS : dict</span>
+<span class="sd">    Dictionary of string interpolation method strings and the associated interpolator classes that support</span>
+<span class="sd">    the method (i.e. ``&#39;nearest&#39;: [NearestNeighbor, Rasterio, Scipy]``)</span>
+<span class="sd">INTERPOLATION_SHORTCUTS : list</span>
+<span class="sd">    Keys of :attr:`INTERPOLATION_METHODS`</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
@@ -218,19 +223,27 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        method : str</span>
 <span class="sd">            Current interpolation method to use in Interpolator (i.e. &#39;nearest&#39;).</span>
-<span class="sd">            This attribute is set during node evaluation when a new :ref:podpac.core.data.interpolate.Interpolation</span>
-<span class="sd">            class is constructed. See the :ref:podpac.core.data.datasource.DataSource `interpolation` attribute for</span>
+<span class="sd">            This attribute is set during node evaluation when a new :class:`Interpolation`</span>
+<span class="sd">            class is constructed. See the :class:`podpac.data.DataSource` `interpolation` attribute for</span>
 <span class="sd">            more information on specifying the interpolator method.</span>
 <span class="sd">        dims_supported : list</span>
 <span class="sd">            List of unstacked dimensions supported by the interpolator.</span>
-<span class="sd">            This attribute should be defined by the implementing :ref:podpac.core.data.interpolate</span>
-<span class="sd">            Used by private convience method :ref:self._filter_udims_supported</span>
+<span class="sd">            This attribute should be defined by the implementing :class:`Interpolator`.</span>
+<span class="sd">            Used by private convience method :meth:`_filter_udims_supported`.</span>
 <span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
     <span class="s1">&#39;nearest_neighbor_attributes&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attributes</span>
 <span class="sd">        ----------</span>
-<span class="sd">        {interpolator_attributes}</span>
+<span class="sd">        method : str</span>
+<span class="sd">            Current interpolation method to use in Interpolator (i.e. &#39;nearest&#39;).</span>
+<span class="sd">            This attribute is set during node evaluation when a new :class:`Interpolation`</span>
+<span class="sd">            class is constructed. See the :class:`podpac.data.DataSource` `interpolation` attribute for</span>
+<span class="sd">            more information on specifying the interpolator method.</span>
+<span class="sd">        dims_supported : list</span>
+<span class="sd">            List of unstacked dimensions supported by the interpolator.</span>
+<span class="sd">            This attribute should be defined by the implementing :class:`Interpolator`.</span>
+<span class="sd">            Used by private convience method :meth:`_filter_udims_supported`.</span>
 <span class="sd">        spatial_tolerance : float</span>
 <span class="sd">            Maximum distance to the nearest coordinate in space.</span>
 <span class="sd">            Cooresponds to the unit of the space measurement.</span>
@@ -242,15 +255,15 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate if interpolator can downselect the source coordinates from the requested coordinates</span>
 <span class="sd">        for the unstacked dims supplied.</span>
-<span class="sd">        If not overwritten, this method returns an empty tuple (`tuple()`)</span>
+<span class="sd">        If not overwritten, this method returns an empty tuple (``tuple()``)</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        udims : tuple</span>
 <span class="sd">            dimensions to select</span>
-<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
@@ -267,16 +280,16 @@
 <span class="sd">        ----------</span>
 <span class="sd">        udims : tuple</span>
 <span class="sd">            dimensions to select coordinates</span>
-<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
 <span class="sd">        source_coordinates_index : list</span>
 <span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        (podpac.core.coordinates.Coordinates, list)</span>
+<span class="sd">        (:class:`podpac.Coordinates`, list)</span>
 <span class="sd">            returns the new down selected coordinates and the new associated index. These coordinates must exist</span>
 <span class="sd">            in the native coordinates of the source data</span>
 
@@ -293,9 +306,9 @@
 <span class="sd">        ----------</span>
 <span class="sd">        udims : tuple</span>
 <span class="sd">            dimensions to interpolate</span>
-<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
@@ -312,11 +325,11 @@
 <span class="sd">        ----------</span>
 <span class="sd">        udims : tuple</span>
 <span class="sd">            dimensions to interpolate</span>
-<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
 <span class="sd">        source_data : podpac.core.units.UnitsDataArray</span>
 <span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
 <span class="sd">        output_data : podpac.core.units.UnitsDataArray</span>
 <span class="sd">            Description</span>
@@ -332,13 +345,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 <span class="p">}</span>
 
-<div class="viewcode-block" id="InterpolationException"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.InterpolationException">[docs]</a><span class="k">class</span> <span class="nc">InterpolationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="InterpolationException"><a class="viewcode-back" href="../../../../user/api/podpac.data.InterpolationException.html#podpac.data.InterpolationException">[docs]</a><span class="k">class</span> <span class="nc">InterpolationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom label for interpolator exceptions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
     
-<div class="viewcode-block" id="Interpolator"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+<div class="viewcode-block" id="Interpolator"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.data.Interpolator">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Interpolator</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Interpolation Method</span>
 
@@ -358,13 +371,13 @@
     <span class="c1"># cost_func = tl.CFloat(-1)  # The rough cost FLOPS/DOF to do interpolation</span>
     <span class="c1"># cost_setup = tl.CFloat(-1)  # The rough cost FLOPS/DOF to set up the interpolator</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolator.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.data.Interpolator.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         
         <span class="c1"># Call traitlets constructor</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Interpolator.init"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolator.init"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.data.Interpolator.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overwrite this method if a Interpolator needs to do any</span>
 <span class="sd">        additional initialization after the standard initialization.</span>
@@ -383,7 +396,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        dim : str, list of str</span>
 <span class="sd">            Dimension or list of dimensions to verify</span>
-<span class="sd">        *coords podpac.core.coordinates.Coordinates</span>
+<span class="sd">        *coords :class:`podpac.Coordinates`</span>
 <span class="sd">            coordinates to evaluate</span>
 <span class="sd">        unstacked : bool, optional</span>
 <span class="sd">            True if you want to compare dimensions in unstacked form, otherwise compare dimensions however</span>
@@ -450,32 +463,37 @@
 
         <span class="k">return</span> <span class="n">output_data</span>
 
-<div class="viewcode-block" id="Interpolator.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolator.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.data.Interpolator.can_select">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_can_select}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Interpolator.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolator.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.data.Interpolator.select_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_select}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-<div class="viewcode-block" id="Interpolator.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolator.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.data.Interpolator.can_interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_can_interpolate}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Interpolator.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolator.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolator.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.data.Interpolator.interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_interpolate}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 
-<div class="viewcode-block" id="NearestNeighbor"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestNeighbor">[docs]</a><span class="k">class</span> <span class="nc">NearestNeighbor</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
+<div class="viewcode-block" id="NearestNeighbor"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.NearestNeighbor.html#podpac.data.NearestNeighbor">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NearestNeighbor</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Nearest Neighbor Interpolation</span>
 <span class="sd">    </span>
 <span class="sd">    {nearest_neighbor_attributes}</span>
@@ -484,7 +502,8 @@
     <span class="n">spatial_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
     <span class="n">time_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<div class="viewcode-block" id="NearestNeighbor.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestNeighbor.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="NearestNeighbor.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.NearestNeighbor.html#podpac.data.NearestNeighbor.can_interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_interpolate}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -497,7 +516,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="NearestNeighbor.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestNeighbor.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
+<div class="viewcode-block" id="NearestNeighbor.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.NearestNeighbor.html#podpac.data.NearestNeighbor.interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_interpolate}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -552,13 +572,15 @@
         <span class="k">return</span> <span class="n">output_data</span></div></div>
 
 
-<div class="viewcode-block" id="NearestPreview"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview">[docs]</a><span class="k">class</span> <span class="nc">NearestPreview</span><span class="p">(</span><span class="n">NearestNeighbor</span><span class="p">):</span>
+<div class="viewcode-block" id="NearestPreview"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.NearestPreview.html#podpac.data.NearestPreview">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NearestPreview</span><span class="p">(</span><span class="n">NearestNeighbor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Nearest Neighbor (Preview) Interpolation</span>
 <span class="sd">    </span>
 <span class="sd">    {nearest_neighbor_attributes}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="NearestPreview.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview.can_select">[docs]</a>    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="NearestPreview.can_select"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.NearestPreview.html#podpac.data.NearestPreview.can_select">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_can_select}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -571,7 +593,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="NearestPreview.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.NearestPreview.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="NearestPreview.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.NearestPreview.html#podpac.data.NearestPreview.select_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_select}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -626,7 +649,8 @@
         <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">new_coords</span><span class="p">),</span> <span class="n">new_coords_idx</span></div></div>
 
 
-<div class="viewcode-block" id="Rasterio"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Rasterio">[docs]</a><span class="k">class</span> <span class="nc">Rasterio</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
+<div class="viewcode-block" id="Rasterio"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Rasterio.html#podpac.data.Rasterio">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Rasterio</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Rasterio Interpolation</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
@@ -642,7 +666,8 @@
 
     <span class="c1"># TODO: support &#39;gauss&#39; method?</span>
 
-<div class="viewcode-block" id="Rasterio.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Rasterio.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="Rasterio.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Rasterio.html#podpac.data.Rasterio.can_interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{interpolator_can_interpolate}&quot;&quot;&quot;</span>
 
         <span class="c1"># TODO: make this so we don&#39;t need to specify lat and lon together</span>
@@ -657,7 +682,8 @@
         <span class="c1"># otherwise return no supported dims</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Rasterio.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Rasterio.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
+<div class="viewcode-block" id="Rasterio.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Rasterio.html#podpac.data.Rasterio.interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_interpolate}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -725,7 +751,8 @@
         <span class="k">return</span> <span class="n">output_data</span></div></div>
 
 
-<div class="viewcode-block" id="ScipyPoint"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyPoint">[docs]</a><span class="k">class</span> <span class="nc">ScipyPoint</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
+<div class="viewcode-block" id="ScipyPoint"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.ScipyPoint.html#podpac.data.ScipyPoint">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ScipyPoint</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Scipy Point Interpolation</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
@@ -737,7 +764,8 @@
     <span class="n">spatial_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
     <span class="n">time_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ScipyPoint.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyPoint.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="ScipyPoint.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.ScipyPoint.html#podpac.data.ScipyPoint.can_interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_can_interpolate}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -756,7 +784,8 @@
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="ScipyPoint.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyPoint.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
+<div class="viewcode-block" id="ScipyPoint.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.ScipyPoint.html#podpac.data.ScipyPoint.interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_interpolate}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -819,7 +848,8 @@
             <span class="k">return</span> <span class="n">output_data</span></div></div>
 
 
-<div class="viewcode-block" id="ScipyGrid"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyGrid">[docs]</a><span class="k">class</span> <span class="nc">ScipyGrid</span><span class="p">(</span><span class="n">ScipyPoint</span><span class="p">):</span>
+<div class="viewcode-block" id="ScipyGrid"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.ScipyGrid.html#podpac.data.ScipyGrid">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ScipyGrid</span><span class="p">(</span><span class="n">ScipyPoint</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Scipy Interpolation</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
@@ -831,7 +861,8 @@
     <span class="n">spatial_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
     <span class="n">time_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ScipyGrid.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyGrid.can_interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="ScipyGrid.can_interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.ScipyGrid.html#podpac.data.ScipyGrid.can_interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_can_interpolate}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -847,7 +878,8 @@
         <span class="c1"># otherwise return no supported dims</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="ScipyGrid.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.ScipyGrid.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
+<div class="viewcode-block" id="ScipyGrid.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.ScipyGrid.html#podpac.data.ScipyGrid.interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">INTERPOLATE_DOCS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_interpolate}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -921,17 +953,8 @@
 
         <span class="k">return</span> <span class="n">output_data</span></div>
 
-
-<div class="viewcode-block" id="Radial"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Radial">[docs]</a><span class="k">class</span> <span class="nc">Radial</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
-    <span class="k">pass</span></div>
-
-<div class="viewcode-block" id="OptimalInterpolation"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.OptimalInterpolation">[docs]</a><span class="k">class</span> <span class="nc">OptimalInterpolation</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; I.E. Kriging &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
-
 <span class="c1"># List of available interpolators</span>
 <span class="n">INTERPOLATION_METHODS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;optimal&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">OptimalInterpolation</span><span class="p">],</span>
     <span class="s1">&#39;nearest_preview&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">NearestPreview</span><span class="p">],</span>
     <span class="s1">&#39;nearest&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">NearestNeighbor</span><span class="p">,</span> <span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyGrid</span><span class="p">,</span> <span class="n">ScipyPoint</span><span class="p">],</span>
     <span class="s1">&#39;bilinear&#39;</span><span class="p">:[</span><span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyGrid</span><span class="p">],</span>
@@ -948,8 +971,7 @@
     <span class="s1">&#39;q3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Rasterio</span><span class="p">],</span>
     <span class="s1">&#39;spline_2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">ScipyGrid</span><span class="p">],</span>
     <span class="s1">&#39;spline_3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">ScipyGrid</span><span class="p">],</span>
-    <span class="s1">&#39;spline_4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">ScipyGrid</span><span class="p">],</span>
-    <span class="s1">&#39;radial&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">Radial</span><span class="p">]</span>
+    <span class="s1">&#39;spline_4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">ScipyGrid</span><span class="p">]</span>
 <span class="p">}</span>
 
 <span class="c1"># create shortcut list based on methods keys</span>
@@ -958,7 +980,7 @@
 <span class="c1"># default interpolation</span>
 <span class="n">INTERPOLATION_DEFAULT</span> <span class="o">=</span> <span class="s1">&#39;nearest&#39;</span>
 
-<div class="viewcode-block" id="Interpolation"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolation">[docs]</a><span class="k">class</span> <span class="nc">Interpolation</span><span class="p">():</span>
+<div class="viewcode-block" id="Interpolation"><a class="viewcode-back" href="../../../../user/api/podpac.data.Interpolation.html#podpac.data.Interpolation">[docs]</a><span class="k">class</span> <span class="nc">Interpolation</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Create an interpolation class to handle one interpolation method per unstacked dimension.</span>
 <span class="sd">    Used to interpolate data within a datasource.</span>
 <span class="sd">    </span>
@@ -969,7 +991,7 @@
 <span class="sd">                 dict</span>
 <span class="sd">        Interpolation definition used to define interpolation methods for each definiton.</span>
 <span class="sd">        See :ref:podpac.core.data.datasource.DataSource.interpolation for more details.</span>
-<span class="sd">    coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">    coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">        source coordinates to be interpolated</span>
 <span class="sd">    **kwargs :</span>
 <span class="sd">        Keyword arguments passed on to each :ref:podpac.core.data.interpolate.Interpolator</span>
@@ -986,7 +1008,7 @@
     <span class="n">_last_interpolator_queue</span> <span class="o">=</span> <span class="kc">None</span>     <span class="c1"># container for the last run interpolator queue - useful for debugging</span>
     <span class="n">_last_select_queue</span> <span class="o">=</span> <span class="kc">None</span>           <span class="c1"># container for the last run select queue - useful for debugging</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="n">INTERPOLATION_DEFAULT</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolation.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.data.Interpolation.html#podpac.data.Interpolation.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="n">INTERPOLATION_DEFAULT</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">definition</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -1043,7 +1065,7 @@
 
         <span class="c1"># make sure (&#39;default&#39;,) is always the last entry in config dictionary</span>
         <span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">((</span><span class="s1">&#39;default&#39;</span><span class="p">,))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[(</span><span class="s1">&#39;default&#39;</span><span class="p">,)]</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[(</span><span class="s1">&#39;default&#39;</span><span class="p">,)]</span> <span class="o">=</span> <span class="n">default</span></div>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rep</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
@@ -1191,9 +1213,9 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
 <span class="sd">        select_method : function</span>
 <span class="sd">            method used to determine if interpolator can handle dimensions</span>
@@ -1257,7 +1279,7 @@
         <span class="c1"># TODO: adjust by interpolation cost</span>
         <span class="k">return</span> <span class="n">interpolator_queue</span>
 
-<div class="viewcode-block" id="Interpolation.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolation.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolation.select_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.data.Interpolation.html#podpac.data.Interpolation.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Select a subset or coordinates if interpolator can downselect.</span>
 <span class="sd">        </span>
@@ -1267,17 +1289,17 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Intersected source coordinates</span>
 <span class="sd">        source_coordinates_index : list</span>
 <span class="sd">            Index of intersected source coordinates. See :ref:podpac.core.data.datasource.DataSource for</span>
 <span class="sd">            more information about valid values for the source_coordinates_index</span>
-<span class="sd">        eval_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Requested coordinates to evaluate</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        (podpac.core.coordinates.Coordinates, list)</span>
+<span class="sd">        (:class:`podpac.Coordinates`, list)</span>
 <span class="sd">            Returns tuple with the first element subset of selected coordinates and the second element the indicies</span>
 <span class="sd">            of the selected coordinates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1306,26 +1328,24 @@
 
         <span class="k">return</span> <span class="n">selected_coords</span><span class="p">,</span> <span class="n">selected_coords_idx</span></div>
 
-<div class="viewcode-block" id="Interpolation.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.core.data.interpolate.html#podpac.core.data.interpolate.Interpolation.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolation.interpolate"><a class="viewcode-back" href="../../../../user/api/podpac.data.Interpolation.html#podpac.data.Interpolation.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Interpolate data from requested coordinates to source coordinates</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        source_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
 <span class="sd">        source_data : podpac.core.units.UnitsDataArray</span>
 <span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : podpac.core.coordinates.Coordinates</span>
+<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Description</span>
 <span class="sd">        output_data : podpac.core.units.UnitsDataArray</span>
 <span class="sd">            Description</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        (podpac.core.coordinates.Coordinates, podpac.core.units.UnitDataArray, podpac.core.units.UnitDataArray)</span>
-<span class="sd">            returns tuple with the first elemented the downselected source_coordinates, the second element</span>
-<span class="sd">            the downselected source_data (at the source_coordaintes) and the third element the new output UnitDataArray</span>
-<span class="sd">            of interpolated data</span>
+<span class="sd">        podpac.core.units.UnitDataArray</span>
+<span class="sd">            returns the new output UnitDataArray of interpolated data</span>
 <span class="sd">        </span>
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>

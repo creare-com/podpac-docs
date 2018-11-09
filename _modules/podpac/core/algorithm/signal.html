@@ -1,0 +1,480 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>podpac.core.algorithm.signal &mdash; PODPAC 0.0.0 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../../_static/favicon.png"/>
+  
+  
+  
+    <link rel="canonical" href="https://creare-com.github.io/podpac-docs_modules/podpac/core/algorithm/signal.html"/>
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/style.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html">
+          
+
+          
+            
+            <img src="../../../../_static/icon.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../why-podpac.html">Why PODPAC?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../roadmap.html">Development Roadmap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/coordinates.html">Coordinates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/nodes.html">Nodes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/pipelines.html">Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/earthdata.html">NASA Earth Data Login</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/api.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/design.html">Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/docs.html">Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">PODPAC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>podpac.core.algorithm.signal</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for podpac.core.algorithm.signal</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Signal Summary</span>
+
+<span class="sd">NOTE: another option for the convolution kernel input would be to accept an</span>
+<span class="sd">    xarray and add and transpose dimensions as necessary.</span>
+
+<span class="sd">NOTE: At the moment this module is quite brittle... it makes assumptions about</span>
+<span class="sd">    the input node (i.e. alt coordinates would likely break this)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">podpac</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+<span class="kn">import</span> <span class="nn">scipy.signal</span>
+
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">add_coord</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="k">import</span> <span class="n">Algorithm</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span>
+
+<span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">COMMON_DOC</span><span class="p">[</span><span class="s1">&#39;full_kernel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;Kernel that contains all the dimensions of the input source, in the correct order.</span>
+<span class="s1">        </span>
+<span class="s1">        Returns</span>
+<span class="s1">        -------</span>
+<span class="s1">        np.ndarray</span>
+<span class="s1">            The dimensionally full convolution kernel&#39;&#39;&#39;</span>
+<span class="n">COMMON_DOC</span><span class="p">[</span><span class="s1">&#39;validate_kernel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;Checks to make sure the kernel is valid. </span>
+<span class="s1">        </span>
+<span class="s1">        Parameters</span>
+<span class="s1">        ----------</span>
+<span class="s1">        proposal : np.ndarray</span>
+<span class="s1">            The proposed kernel</span>
+<span class="s1">        </span>
+<span class="s1">        Returns</span>
+<span class="s1">        -------</span>
+<span class="s1">        np.ndarray</span>
+<span class="s1">            The valid kernel</span>
+<span class="s1">        </span>
+<span class="s1">        Raises</span>
+<span class="s1">        ------</span>
+<span class="s1">        ValueError</span>
+<span class="s1">            If the kernel is not valid (i.e. incorrect dimensionality). &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="Convolution"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution">[docs]</a><span class="k">class</span> <span class="nc">Convolution</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base algorithm node for computing convolutions. This node automatically resizes the request to avoid edge effects.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    source : podpac.Node</span>
+<span class="sd">        Source node on which convolution will be performed. </span>
+<span class="sd">    kernel : np.ndarray</span>
+<span class="sd">        The convolution kernel</span>
+<span class="sd">    kernel_ndim : int</span>
+<span class="sd">        Number of dimensions of the kernel</span>
+<span class="sd">    kernel_type : str, optional</span>
+<span class="sd">        If kernel is not defined, kernel_type will create a kernel based on the inputs. </span>
+<span class="sd">        The format for the created  kernels is &#39;&lt;kernel_type&gt;, &lt;kernel_size&gt;, &lt;kernel_params&gt;&#39;.</span>
+<span class="sd">        Any kernel defined in `scipy.signal` as well as `mean` can be used. For example:</span>
+<span class="sd">        kernel_type = &#39;mean, 8&#39; or kernel_type = &#39;gaussian,16,8&#39; are both valid. </span>
+<span class="sd">        Note: These kernels are automatically normalized such that kernel.sum() == 1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Node</span><span class="p">)</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>  <span class="c1"># Would like to tag this, but arrays are not yet supported</span>
+    <span class="n">kernel_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">kernel_ndim</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">_expanded_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
+    <span class="n">_full_kernel</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+ 
+<div class="viewcode-block" id="Convolution.eval"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coordinates : podpac.Coordinates</span>
+<span class="sd">            {requested_coordinates}</span>
+<span class="sd">        output : podpac.UnitsDataArray, optional</span>
+<span class="sd">            {eval_output}</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        {eval_return}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
+        
+        <span class="c1"># This should be aligned with coordinates&#39; dimension order</span>
+        <span class="c1"># The size of this kernel is used to figure out the expanded size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_full_kernel</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Kernel shape does not match source data shape&quot;</span><span class="p">)</span>
+
+        <span class="c1"># expand the coordinates</span>
+        <span class="n">exp_coords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">exp_slice</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+            <span class="n">coord</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">):</span>
+                <span class="n">exp_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+                <span class="n">exp_slice</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+                <span class="k">continue</span>
+
+            <span class="n">s_start</span> <span class="o">=</span> <span class="o">-</span><span class="n">s</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">s_end</span> <span class="o">=</span> <span class="n">s</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">((</span><span class="n">s</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="c1"># The 1e-07 is for floating point error because if endpoint is slightly</span>
+            <span class="c1"># in front of step * N then the endpoint is excluded</span>
+            <span class="n">exp_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">(</span>
+                <span class="n">add_coord</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">s_start</span> <span class="o">*</span> <span class="n">coord</span><span class="o">.</span><span class="n">step</span><span class="p">),</span>
+                <span class="n">add_coord</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">s_end</span> <span class="o">*</span> <span class="n">coord</span><span class="o">.</span><span class="n">step</span> <span class="o">+</span> <span class="mf">1e-07</span><span class="o">*</span><span class="n">coord</span><span class="o">.</span><span class="n">step</span><span class="p">),</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">step</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">coord</span><span class="o">.</span><span class="n">properties</span><span class="p">))</span>
+            <span class="n">exp_slice</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="o">-</span><span class="n">s_start</span><span class="p">,</span> <span class="o">-</span><span class="n">s_end</span><span class="p">))</span>
+        <span class="n">exp_coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">exp_coords</span><span class="p">)</span>
+        <span class="n">exp_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">exp_slice</span><span class="p">)</span>
+
+        <span class="c1"># evaluate using expanded coordinates and then reduce down to originally requested coordinates</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Convolution</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">exp_coords</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="n">exp_slice</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
+
+        <span class="c1"># debugging</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expanded_coordinates</span> <span class="o">=</span> <span class="n">exp_coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;kernel&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_kernel_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">kernel_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_type</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kernel_type</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to supply either &#39;kernel&#39; as a numpy array,&quot;</span>
+                             <span class="s2">&quot; or &#39;kernel_type&#39; as a string.&quot;</span><span class="p">)</span>
+        <span class="n">ktype</span> <span class="o">=</span> <span class="n">kernel_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kernel_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">kernel_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]]</span>
+        <span class="k">if</span> <span class="n">ktype</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">size</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_ndim</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="p">,</span> <span class="n">ktype</span><span class="p">)</span>
+            <span class="n">k1d</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">k1d</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tensordot</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">k1d</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">k</span> <span class="o">/</span> <span class="n">k</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+ 
+<div class="viewcode-block" id="Convolution.get_full_kernel"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution.get_full_kernel">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{full_kernel}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span></div>
+
+<div class="viewcode-block" id="Convolution.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the convolution of the source and the kernel</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inputs : dict</span>
+<span class="sd">            evaluated outputs of the input nodes. The keys are the attribute names.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Resultant array. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">])):</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;direct&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span></div></div>
+
+
+<div class="viewcode-block" id="TimeConvolution"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.TimeConvolution.html#podpac.algorithm.TimeConvolution">[docs]</a><span class="k">class</span> <span class="nc">TimeConvolution</span><span class="p">(</span><span class="n">Convolution</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Specialized convolution node that computes temporal convolutions only.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    kernel_ndim : int</span>
+<span class="sd">        Value is 1. Should not be modified.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">kernel_ndim</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;kernel&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">validate_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proposal</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{validate_kernel}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">proposal</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;kernel must have ndim=1 (got ndim=</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">proposal</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">proposal</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="TimeConvolution.get_full_kernel"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.TimeConvolution.html#podpac.algorithm.TimeConvolution.get_full_kernel">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{full_kernel}</span>
+<span class="sd">        </span>
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If source data doesn&#39;t have time dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot compute time convolution from time-indepedendent input&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;lat&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s1">&#39;lon&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span>
+ 
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">]])</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">))</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">kernel</span><span class="o">.</span><span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="SpatialConvolution"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.SpatialConvolution.html#podpac.algorithm.SpatialConvolution">[docs]</a><span class="k">class</span> <span class="nc">SpatialConvolution</span><span class="p">(</span><span class="n">Convolution</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Specialized convolution node that computes lat-lon convolutions only.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    kernel_ndim : int</span>
+<span class="sd">        Value is 2. Should not be modified.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">kernel_ndim</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;kernel&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">validate_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proposal</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{validate_kernel}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">proposal</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;kernel must have ndim=2 (got ndim=</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">proposal</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">proposal</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="SpatialConvolution.get_full_kernel"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.SpatialConvolution.html#podpac.algorithm.SpatialConvolution.get_full_kernel">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{full_kernel}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span>
+
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">))</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">kernel</span><span class="o">.</span><span class="n">data</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2018, Creare
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
