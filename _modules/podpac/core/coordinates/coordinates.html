@@ -192,22 +192,13 @@
 <span class="kn">import</span> <span class="nn">xarray.core.coordinates</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">OrderedDictTrait</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">GDAL_CRS</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.base_coordinates</span> <span class="k">import</span> <span class="n">BaseCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="k">import</span> <span class="n">Coordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.array_coordinates1d</span> <span class="k">import</span> <span class="n">ArrayCoordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.uniform_coordinates1d</span> <span class="k">import</span> <span class="n">UniformCoordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.stacked_coordinates</span> <span class="k">import</span> <span class="n">StackedCoordinates</span>
-
-<span class="k">class</span> <span class="nc">OrderedDictTrait</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; OrderedDict trait for Python &lt; 3.6 (including Python 2) compatibility &quot;&quot;&quot;</span>
-
-    <span class="n">default_value</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">tl</span><span class="o">.</span><span class="n">TraitError</span><span class="p">(</span><span class="s1">&#39;...&#39;</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">OrderedDictTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">value</span>
 
 <div class="viewcode-block" id="Coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates">[docs]</a><span class="k">class</span> <span class="nc">Coordinates</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -222,10 +213,7 @@
 <span class="sd">    coordinates</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span> <span class="o">&lt;</span> <span class="s1">&#39;3.6&#39;</span><span class="p">:</span>
-        <span class="n">_coords</span> <span class="o">=</span> <span class="n">OrderedDictTrait</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">_coords</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">))</span>
+    <span class="n">_coords</span> <span class="o">=</span> <span class="n">OrderedDictTrait</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Coordinates.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="p">[],</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
