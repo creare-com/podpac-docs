@@ -197,8 +197,7 @@
 <dl class="class">
 <dt id="podpac.compositor.Compositor">
 <em class="property">class </em><code class="descclassname">podpac.compositor.</code><code class="descname">Compositor</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.compositor.Compositor" title="Permalink to this definition">¶</a></dt>
-<dd><p>The base class for all Nodes, which defines the common interface for everything.</p>
-<p class="rubric">Notes</p>
+<dd><p class="rubric">Notes</p>
 <p>Developers of new Compositor nodes need to implement the <cite>composite</cite> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -209,29 +208,58 @@
 <dd><p class="first last">Coordinates that are shared amongst all of the composited sources</p>
 </dd>
 <dt><strong>source_coordinates = :class:`podpac.Coordinates`, optional</strong></dt>
-<dd><p class="first last">Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the 
+<dd><p class="first last">Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the
 user-requested coordinates. It is an optimization.</p>
 </dd>
 <dt><strong>is_source_coordinates_complete</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Bool</span></dt>
 <dd><p class="first last">Default is False. The source_coordinates do not have to completely describe the source. For example, the source
 coordinates could include the year-month-day of the source, but the actual source also has hour-minute-second
-information. In that case, source_coordinates is incomplete. This flag is used to automatically construct 
+information. In that case, source_coordinates is incomplete. This flag is used to automatically construct
 native_coordinates</p>
 </dd>
 <dt><strong>source: str</strong></dt>
 <dd><p class="first last">The source is used for a unique name to cache composited products.</p>
 </dd>
 <dt><strong>sources</strong> <span class="classifier-delimiter">:</span> <span class="classifier">np.ndarray</span></dt>
-<dd><p class="first last">An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to 
+<dd><p class="first last">An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to
 subselect the nodes that will be evaluated.</p>
 </dd>
 <dt><strong>cache_native_coordinates</strong> <span class="classifier-delimiter">:</span> <span class="classifier">True</span></dt>
-<dd><p class="first last">Default is True. If native_coordinates are requested by the user, it may take a long time to calculate if the 
+<dd><p class="first">Default is True. If native_coordinates are requested by the user, it may take a long time to calculate if the
 Compositor points to many sources. The result is relatively small and is cached by default. Caching may not be
 desired if the datasource change or is updated.</p>
+<dl class="last docutils">
+<dt>interpolation <span class="classifier-delimiter">:</span> <span class="classifier">str,</span></dt>
+<dd><blockquote class="first">
+<div><p>dict,
+optional</p>
+</div></blockquote>
+<p>Definition of interpolation methods for each dimension of the native coordinates.</p>
+<p>If input is a string, it must match one of the interpolation shortcuts defined in
+:attr:podpac.data.interpolate.INTERPOLATION_SHORTCUTS. The interpolation method associated
+with this string will be applied to all dimensions at the same time.</p>
+<p>If input is a dict, the dict must contain one of two definitions:</p>
+<p>1. A dictionary which contains the key <cite>‘method’</cite> defining the interpolation method name.
+If the interpolation method is not one of <a class="reference internal" href="podpac.data.INTERPOLATION_SHORTCUTS.html#podpac.data.INTERPOLATION_SHORTCUTS" title="podpac.data.INTERPOLATION_SHORTCUTS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">podpac.data.INTERPOLATION_SHORTCUTS</span></code></a>, a
+second key <cite>‘interpolators’</cite> must be defined with a list of
+<a class="reference internal" href="podpac.interpolators.Interpolator.html#podpac.interpolators.Interpolator" title="podpac.interpolators.Interpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.interpolators.Interpolator</span></code></a> classes to use in order of uages.
+The dictionary may contain an option <cite>‘params’</cite> key which contains a dict of parameters to pass along to
+the <a class="reference internal" href="podpac.interpolators.Interpolator.html#podpac.interpolators.Interpolator" title="podpac.interpolators.Interpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.interpolators.Interpolator</span></code></a> classes associated with the interpolation method.
+This interpolation definition will be applied to all dimensions.
+2. A dictionary containing an ordered set of keys defining dimensions and values
+defining the interpolation method to use with the dimensions.
+The key must be a string or tuple of dimension names (i.e. <cite>‘time’</cite> or <cite>(‘lat’, ‘lon’)</cite> ).
+The value can either be a string matching one of the interpolation shortcuts defined in
+<a class="reference internal" href="podpac.data.INTERPOLATION_SHORTCUTS.html#podpac.data.INTERPOLATION_SHORTCUTS" title="podpac.data.INTERPOLATION_SHORTCUTS"><code class="xref py py-attr docutils literal notranslate"><span class="pre">podpac.data.INTERPOLATION_SHORTCUTS</span></code></a> or a dictionary meeting the previous requirements
+(1). If the dictionary does not contain a key for all unstacked dimensions of the source coordinates, the
+<a class="reference internal" href="podpac.data.INTERPOLATION_DEFAULT.html#podpac.data.INTERPOLATION_DEFAULT" title="podpac.data.INTERPOLATION_DEFAULT"><code class="xref py py-attr docutils literal notranslate"><span class="pre">podpac.data.INTERPOLATION_DEFAULT</span></code></a> value will be used.
+All dimension keys must be unstacked even if the underlying coordinate dimensions are stacked.
+Any extra dimensions included but not found in the source coordinates will be ignored.</p>
+<p>If input is a podpac.core.data.interpolate.Interpolation, this interpolation
+class will be used without modication.</p>
+<p class="last">By default, the interpolation method is set to <code class="docutils literal notranslate"><span class="pre">'nearest'</span></code> for all dimensions.</p>
 </dd>
-<dt><strong>interpolation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Indicates the interpolation type. This gets passed down to the DataSources as part of the compositor.</p>
+</dl>
 </dd>
 <dt><strong>threaded</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
 <dd><p class="first last">Default if False.
@@ -242,7 +270,7 @@ especially if n_threads is low. For example, threaded with n_threads=1 could be 
 if the output is completely filled after the first few sources.</p>
 </dd>
 <dt><strong>n_threads</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd><p class="first last">Default is 10 – used when threaded is True. 
+<dd><p class="first last">Default is 10 – used when threaded is True.
 NASA data servers seem to have a hard limit of 10 simultaneous requests, which determined the default value.</p>
 </dd>
 </dl>
@@ -414,7 +442,7 @@ NASA data servers seem to have a hard limit of 10 simultaneous requests, which d
 <td></td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation</span></code></td>
-<td>A trait for unicode strings.</td>
+<td>A trait type representing a Union type.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_source_coordinates_complete</span></code></td>
 <td>A boolean (True, False) trait.</td>

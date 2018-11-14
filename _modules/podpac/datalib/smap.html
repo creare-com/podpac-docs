@@ -367,19 +367,19 @@
 <span class="n">SMAP_BASE_URL_FILE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;nsidc_smap_opendap_url.txt&#39;</span><span class="p">)</span>
 <span class="n">SMAP_BASE_URL</span> <span class="o">=</span> <span class="s1">&#39;https://n5eil01u.ecs.nsidc.org/opendap/SMAP&#39;</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">SMAP_BASE_URL_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span> 
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">SMAP_BASE_URL_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
         <span class="n">rf</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
     <span class="k">if</span> <span class="s1">&#39;https://&#39;</span> <span class="ow">in</span> <span class="n">rf</span> <span class="ow">and</span> <span class="s1">&#39;nsidc.org&#39;</span> <span class="ow">in</span> <span class="n">rf</span><span class="p">:</span>
         <span class="n">SMAP_BASE_URL</span> <span class="o">=</span> <span class="n">rf</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Could not retrieve SMAP url from </span><span class="si">%s</span><span class="s2">: &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">SMAP_BASE_URL_FILE</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-<span class="k">try</span><span class="p">:</span> 
+<span class="k">try</span><span class="p">:</span>
     <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://s3.amazonaws.com/podpac-s3/settings/nsidc_smap_opendap_url.txt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
     <span class="k">if</span> <span class="s1">&#39;https://&#39;</span> <span class="ow">in</span> <span class="n">r</span> <span class="ow">and</span> <span class="s1">&#39;nsidc.org&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">rf</span> <span class="o">!=</span> <span class="n">r</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Updating SMAP url from PODPAC S3 Server.&quot;</span><span class="p">)</span>
             <span class="n">SMAP_BASE_URL</span> <span class="o">=</span> <span class="n">r</span>
-            <span class="k">try</span><span class="p">:</span> 
+            <span class="k">try</span><span class="p">:</span>
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">SMAP_BASE_URL_FILE</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
                     <span class="n">fid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -390,7 +390,7 @@
 <span class="n">SMAP_BASE_URL_REGEX</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">d&#39;</span><span class="p">,</span> <span class="n">SMAP_BASE_URL</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]))</span>
 <div class="viewcode-block" id="SMAPSource"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.SMAPSource">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SMAPSource</span><span class="p">(</span><span class="n">datatype</span><span class="o">.</span><span class="n">PyDAP</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Accesses SMAP data given a specific openDAP URL. This is the base class giving access to SMAP data, and knows how </span>
+    <span class="sd">&quot;&quot;&quot;Accesses SMAP data given a specific openDAP URL. This is the base class giving access to SMAP data, and knows how</span>
 <span class="sd">    to extract the correct coordinates and data keys for the soil moisture data.</span>
 
 <span class="sd">    Attributes</span>
@@ -420,7 +420,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SMAP_BASE_URL</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Unknown exception: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unknown exception: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">session</span>
 
     <span class="c1">#date_url_re = re.compile(&#39;[0-9]{4}\.[0-9]{2}\.[0-9]{2}&#39;)</span>
@@ -462,7 +462,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        int</span>
 <span class="sd">            {version}</span>
-<span class="sd">        &quot;&quot;&quot;</span>        
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;SMAP&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
         
@@ -898,12 +898,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">compositor</span><span class="o">.</span><span class="n">Compositor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">base_definition</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;interpolation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span>
-        <span class="k">return</span> <span class="n">d</span>    </div>
+        <span class="k">return</span> <span class="n">d</span></div>
 
 <div class="viewcode-block" id="SMAP"><a class="viewcode-back" href="../../../user/api/podpac.datalib.smap.html#podpac.datalib.SMAP">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SMAP</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">compositor</span><span class="o">.</span><span class="n">OrderedCompositor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Compositor of all the SMAPDateFolder&#39;s for every available SMAP date. Essentially a compositor of all SMAP data </span>
-<span class="sd">    for a particular product. </span>
+    <span class="sd">&quot;&quot;&quot;Compositor of all the SMAPDateFolder&#39;s for every available SMAP date. Essentially a compositor of all SMAP data</span>
+<span class="sd">    for a particular product.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -911,7 +911,7 @@
 <span class="sd">    auth_session : {auth_session}</span>
 <span class="sd">    base_url : {base_url}</span>
 <span class="sd">    date_url_re : SRE_Pattern</span>
-<span class="sd">        Regular expression used to extract all folder dates (or folder names) for the particular SMAP product. </span>
+<span class="sd">        Regular expression used to extract all folder dates (or folder names) for the particular SMAP product.</span>
 <span class="sd">    layerkey : {layerkey}</span>
 <span class="sd">    password : {password}</span>
 <span class="sd">    product : str</span>
@@ -920,7 +920,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">base_url</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">SMAP_BASE_URL</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">product</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="n">SMAP_PRODUCT_MAP</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;product&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> 
+    <span class="n">product</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="n">SMAP_PRODUCT_MAP</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;product&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
                       <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;SPL4SMAU&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">)</span>

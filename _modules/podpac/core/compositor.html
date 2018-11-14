@@ -185,40 +185,41 @@
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
 <span class="c1"># Internal imports</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">union</span><span class="p">,</span> <span class="n">merge_dims</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">merge_dims</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span>
+<span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="k">import</span> <span class="n">COMMON_DATA_DOC</span>
+<span class="kn">from</span> <span class="nn">podpac.core.data.interpolate</span> <span class="k">import</span> <span class="n">interpolation_trait</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">trait_is_defined</span>
 
-<span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">COMMON_COMPOSITOR_DOC</span> <span class="o">=</span> <span class="n">COMMON_DATA_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># superset of COMMON_NODE_DOC</span>
 
-<div class="viewcode-block" id="Compositor"><a class="viewcode-back" href="../../../user/api/podpac.compositor.Compositor.html#podpac.compositor.Compositor">[docs]</a><span class="k">class</span> <span class="nc">Compositor</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The base class for all Nodes, which defines the common interface for everything.</span>
+<div class="viewcode-block" id="Compositor"><a class="viewcode-back" href="../../../user/api/podpac.compositor.Compositor.html#podpac.compositor.Compositor">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_COMPOSITOR_DOC</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Compositor</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compositor</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    shared_coordinates : :class:`podpac.Coordinates`, optional</span>
 <span class="sd">        Coordinates that are shared amongst all of the composited sources</span>
 <span class="sd">    source_coordinates = :class:`podpac.Coordinates`, optional</span>
-<span class="sd">        Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the </span>
-<span class="sd">        user-requested coordinates. It is an optimization. </span>
+<span class="sd">        Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the</span>
+<span class="sd">        user-requested coordinates. It is an optimization.</span>
 <span class="sd">    is_source_coordinates_complete : Bool</span>
 <span class="sd">        Default is False. The source_coordinates do not have to completely describe the source. For example, the source</span>
 <span class="sd">        coordinates could include the year-month-day of the source, but the actual source also has hour-minute-second</span>
-<span class="sd">        information. In that case, source_coordinates is incomplete. This flag is used to automatically construct </span>
+<span class="sd">        information. In that case, source_coordinates is incomplete. This flag is used to automatically construct</span>
 <span class="sd">        native_coordinates</span>
 <span class="sd">    source: str</span>
-<span class="sd">        The source is used for a unique name to cache composited products. </span>
+<span class="sd">        The source is used for a unique name to cache composited products.</span>
 <span class="sd">    sources : np.ndarray</span>
-<span class="sd">        An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to </span>
+<span class="sd">        An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to</span>
 <span class="sd">        subselect the nodes that will be evaluated.</span>
 <span class="sd">    cache_native_coordinates : True</span>
-<span class="sd">        Default is True. If native_coordinates are requested by the user, it may take a long time to calculate if the </span>
+<span class="sd">        Default is True. If native_coordinates are requested by the user, it may take a long time to calculate if the</span>
 <span class="sd">        Compositor points to many sources. The result is relatively small and is cached by default. Caching may not be</span>
-<span class="sd">        desired if the datasource change or is updated. </span>
-<span class="sd">    interpolation : str</span>
-<span class="sd">        Indicates the interpolation type. This gets passed down to the DataSources as part of the compositor. </span>
+<span class="sd">        desired if the datasource change or is updated.</span>
+<span class="sd">    {interpolation}</span>
 <span class="sd">    threaded : bool, optional</span>
 <span class="sd">        Default if False.</span>
 <span class="sd">        When threaded is False, the compositor stops evaluated sources once the output is completely filled.</span>
@@ -227,7 +228,7 @@
 <span class="sd">        especially if n_threads is low. For example, threaded with n_threads=1 could be much slower than non-threaded</span>
 <span class="sd">        if the output is completely filled after the first few sources.</span>
 <span class="sd">    n_threads : int</span>
-<span class="sd">        Default is 10 -- used when threaded is True. </span>
+<span class="sd">        Default is 10 -- used when threaded is True.</span>
 <span class="sd">        NASA data servers seem to have a hard limit of 10 simultaneous requests, which determined the default value.</span>
 <span class="sd">        </span>
 <span class="sd">    Notes</span>
@@ -236,17 +237,16 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">shared_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">is_source_coordinates_complete</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;This allows some optimizations but assumes that a node&#39;s &quot;</span>
-              <span class="s2">&quot;native_coordinates=source_coordinate + shared_coordinate &quot;</span>
-              <span class="s2">&quot;IN THAT ORDER&quot;</span><span class="p">))</span>
+    <span class="n">is_source_coordinates_complete</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;This allows some optimizations but assumes that a node&#39;s &quot;</span>
+                                                          <span class="s2">&quot;native_coordinates=source_coordinate + shared_coordinate &quot;</span>
+                                                          <span class="s2">&quot;IN THAT ORDER&quot;</span><span class="p">))</span>
 
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">sources</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
     <span class="n">cache_native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
     
-    <span class="n">interpolation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-   
+    <span class="n">interpolation</span> <span class="o">=</span> <span class="n">interpolation_trait</span><span class="p">()</span>
+
     <span class="n">threaded</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">n_threads</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
     
@@ -372,7 +372,7 @@
                 <span class="k">yield</span> <span class="n">output</span>
                 <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span></div>
 
-<div class="viewcode-block" id="Compositor.eval"><a class="viewcode-back" href="../../../user/api/podpac.compositor.Compositor.html#podpac.compositor.Compositor.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="Compositor.eval"><a class="viewcode-back" href="../../../user/api/podpac.compositor.Compositor.html#podpac.compositor.Compositor.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_COMPOSITOR_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates. </span>
 
@@ -409,7 +409,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;TODO&quot;</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
-    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_COMPOSITOR_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">base_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Base node defintion for Compositor nodes. </span>
 <span class="sd">        </span>
@@ -427,7 +427,7 @@
     <span class="sd">&quot;&quot;&quot;Compositor that combines sources based on their order in self.sources. Once a request contains no</span>
 <span class="sd">    nans, the result is returned. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="OrderedCompositor.composite"><a class="viewcode-back" href="../../../user/api/podpac.compositor.OrderedCompositor.html#podpac.compositor.OrderedCompositor.composite">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="OrderedCompositor.composite"><a class="viewcode-back" href="../../../user/api/podpac.compositor.OrderedCompositor.html#podpac.compositor.OrderedCompositor.composite">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_COMPOSITOR_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">composite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Composites outputs in order that they appear.</span>
 <span class="sd">        </span>
