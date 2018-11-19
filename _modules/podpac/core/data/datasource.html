@@ -190,13 +190,11 @@
 
 <span class="c1"># Internal imports</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="k">import</span> <span class="n">UnitsDataArray</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="p">(</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">,</span> 
-                                      <span class="n">ArrayCoordinates1d</span><span class="p">,</span> <span class="n">StackedCoordinates</span> <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeException</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">trait_is_defined</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span>
-<span class="kn">from</span> <span class="nn">podpac.core.data.interpolate</span> <span class="k">import</span> <span class="p">(</span> <span class="n">Interpolation</span><span class="p">,</span> <span class="n">interpolation_trait</span><span class="p">,</span> 
-                                           <span class="n">INTERPOLATION_SHORTCUTS</span><span class="p">,</span> <span class="n">INTERPOLATION_DEFAULT</span> <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">podpac.core.data.interpolate</span> <span class="k">import</span> <span class="n">Interpolation</span><span class="p">,</span> <span class="n">interpolation_trait</span>
 
 <span class="n">DATA_DOC</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;native_coordinates&#39;</span><span class="p">:</span> <span class="s1">&#39;The coordinates of the data source.&#39;</span><span class="p">,</span>
@@ -262,38 +260,35 @@
 <span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
     <span class="s1">&#39;interpolation&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        interpolation : str,</span>
-<span class="sd">                        dict,</span>
-<span class="sd">                        optional</span>
-<span class="sd">            Definition of interpolation methods for each dimension of the native coordinates.</span>
-<span class="sd">            </span>
-<span class="sd">            If input is a string, it must match one of the interpolation shortcuts defined in</span>
-<span class="sd">            :attr:podpac.data.interpolate.INTERPOLATION_SHORTCUTS. The interpolation method associated</span>
-<span class="sd">            with this string will be applied to all dimensions at the same time.</span>
+<span class="sd">        Definition of interpolation methods for each dimension of the native coordinates.</span>
+<span class="sd">        </span>
+<span class="sd">        If input is a string, it must match one of the interpolation shortcuts defined in</span>
+<span class="sd">        :attr:`podpac.data.INTERPOLATION_SHORTCUTS`. The interpolation method associated</span>
+<span class="sd">        with this string will be applied to all dimensions at the same time.</span>
 
-<span class="sd">            If input is a dict, the dict must contain one of two definitions:</span>
+<span class="sd">        If input is a dict, the dict must contain one of two definitions:</span>
 
-<span class="sd">            1. A dictionary which contains the key `&#39;method&#39;` defining the interpolation method name.</span>
-<span class="sd">            If the interpolation method is not one of :attr:`podpac.data.INTERPOLATION_SHORTCUTS`, a</span>
-<span class="sd">            second key `&#39;interpolators&#39;` must be defined with a list of</span>
-<span class="sd">            :class:`podpac.interpolators.Interpolator` classes to use in order of uages.</span>
-<span class="sd">            The dictionary may contain an option `&#39;params&#39;` key which contains a dict of parameters to pass along to</span>
-<span class="sd">            the :class:`podpac.interpolators.Interpolator` classes associated with the interpolation method.</span>
-<span class="sd">            This interpolation definition will be applied to all dimensions.</span>
-<span class="sd">            2. A dictionary containing an ordered set of keys defining dimensions and values</span>
-<span class="sd">            defining the interpolation method to use with the dimensions.</span>
-<span class="sd">            The key must be a string or tuple of dimension names (i.e. `&#39;time&#39;` or `(&#39;lat&#39;, &#39;lon&#39;)` ).</span>
-<span class="sd">            The value can either be a string matching one of the interpolation shortcuts defined in</span>
-<span class="sd">            :attr:`podpac.data.INTERPOLATION_SHORTCUTS` or a dictionary meeting the previous requirements</span>
-<span class="sd">            (1). If the dictionary does not contain a key for all unstacked dimensions of the source coordinates, the</span>
-<span class="sd">            :attr:`podpac.data.INTERPOLATION_DEFAULT` value will be used.</span>
-<span class="sd">            All dimension keys must be unstacked even if the underlying coordinate dimensions are stacked.</span>
-<span class="sd">            Any extra dimensions included but not found in the source coordinates will be ignored.</span>
+<span class="sd">        1. A dictionary which contains the key ``&#39;method&#39;`` defining the interpolation method name.</span>
+<span class="sd">           If the interpolation method is not one of :attr:`podpac.data.INTERPOLATION_SHORTCUTS`, a</span>
+<span class="sd">           second key ``&#39;interpolators&#39;`` must be defined with a list of</span>
+<span class="sd">           :class:`podpac.interpolators.Interpolator` classes to use in order of uages.</span>
+<span class="sd">           The dictionary may contain an option ``&#39;params&#39;`` key which contains a dict of parameters to pass along to</span>
+<span class="sd">           the :class:`podpac.interpolators.Interpolator` classes associated with the interpolation method.</span>
+<span class="sd">           This interpolation definition will be applied to all dimensions.</span>
+<span class="sd">        2. A dictionary containing an ordered set of keys defining dimensions and values</span>
+<span class="sd">           defining the interpolation method to use with the dimensions.</span>
+<span class="sd">           The key must be a string or tuple of dimension names (i.e. ``&#39;time&#39;`` or ``(&#39;lat&#39;, &#39;lon&#39;)`` ).</span>
+<span class="sd">           The value can either be a string matching one of the interpolation shortcuts defined in</span>
+<span class="sd">           :attr:`podpac.data.INTERPOLATION_SHORTCUTS` or a dictionary meeting the previous requirements</span>
+<span class="sd">           (1). If the dictionary does not contain a key for all unstacked dimensions of the source coordinates, the</span>
+<span class="sd">           :attr:`podpac.data.INTERPOLATION_DEFAULT` value will be used.</span>
+<span class="sd">           All dimension keys must be unstacked even if the underlying coordinate dimensions are stacked.</span>
+<span class="sd">           Any extra dimensions included but not found in the source coordinates will be ignored.</span>
 
-<span class="sd">            If input is a podpac.core.data.interpolate.Interpolation, this interpolation</span>
-<span class="sd">            class will be used without modication.</span>
-<span class="sd">            </span>
-<span class="sd">            By default, the interpolation method is set to ``&#39;nearest&#39;`` for all dimensions.</span>
+<span class="sd">        If input is a :class:`podpac.data.Interpolation` class, this interpolation</span>
+<span class="sd">        class will be used without modication.</span>
+<span class="sd">        </span>
+<span class="sd">        By default, the interpolation method is set to ``&#39;nearest&#39;`` for all dimensions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
     <span class="p">}</span>
 
@@ -306,23 +301,25 @@
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
+<span class="sd">    coordinate_index_type : str, optional</span>
+<span class="sd">        Type of index to use for data source. Possible values are ``[&#39;list&#39;, &#39;numpy&#39;, &#39;xarray&#39;, &#39;pandas&#39;]``</span>
+<span class="sd">        Default is &#39;numpy&#39;</span>
+<span class="sd">    interpolation : str, dict, optional</span>
+<span class="sd">        {interpolation}</span>
+<span class="sd">    nan_vals : List, optional</span>
+<span class="sd">        List of values from source data that should be interpreted as &#39;no data&#39; or &#39;nans&#39;</span>
+<span class="sd">    native_coordinates : :class:`podpac.Coordinates`</span>
+<span class="sd">        {native_coordinates}</span>
 <span class="sd">    source : Any</span>
 <span class="sd">        The location of the source. Depending on the child node this can be a filepath,</span>
 <span class="sd">        numpy array, or dictionary as a few examples.</span>
-<span class="sd">    native_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">        {native_coordinates}</span>
-<span class="sd">    coordinate_index_type : str, optional</span>
-<span class="sd">        Type of index to use for data source. Possible values are [&#39;list&#39;,&#39;numpy&#39;,&#39;xarray&#39;,&#39;pandas&#39;]</span>
-<span class="sd">        Default is &#39;numpy&#39;</span>
-<span class="sd">    {interpolation}</span>
-<span class="sd">    nan_vals : List, optional</span>
-<span class="sd">        List of values from source data that should be interpreted as &#39;no data&#39; or &#39;nans&#39;</span>
-
+<span class="sd">    </span>
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    Custom DataSource Nodes must implement the :meth:`get_data` and :meth:`get_native_coordinates` methods.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
+    <span class="c1">#: any : the docstring right on the </span>
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to the raw data source&#39;</span><span class="p">)</span>
     <span class="n">native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
 
@@ -355,21 +352,21 @@
     <span class="k">def</span> <span class="nf">interpolation_class</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get the interpolation class currently set for this data source.</span>
 <span class="sd">        </span>
-<span class="sd">        The DataSource `interpolation` property is used to define the</span>
-<span class="sd">        :ref:podpac.core.data.interpolate.Interpolation class that will handle interpolation for requested coordinates.</span>
+<span class="sd">        The DataSource ``interpolation`` property is used to define the</span>
+<span class="sd">        :class:`podpac.data.Interpolation` class that will handle interpolation for requested coordinates.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        podpac.core.data.interpolate.Interpolation</span>
+<span class="sd">        :class:`podpac.data.Interpolation`</span>
 <span class="sd">            Interpolation class defined by DataSource `interpolation` definition</span>
-<span class="sd">        &quot;&quot;&quot;</span> 
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">interpolators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the interpolators selected for the previous node evaluation interpolation.</span>
-<span class="sd">        If the node has not been evaluated, or if interpolation was not necessary, this will return </span>
+<span class="sd">        If the node has not been evaluated, or if interpolation was not necessary, this will return</span>
 <span class="sd">        an empty OrderedDict</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
