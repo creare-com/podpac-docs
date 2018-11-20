@@ -191,6 +191,48 @@
 <div class="viewcode-block" id="StackedCoordinates"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates">[docs]</a><span class="k">class</span> <span class="nc">StackedCoordinates</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Stacked coordinates.</span>
+
+<span class="sd">    StackedCoordinates contain coordinates from two or more different dimensions that are stacked together to form a</span>
+<span class="sd">    list of points (rather than a grid). The underlying coordinates values are :class:`Coordinates1d` objects of equal</span>
+<span class="sd">    size. The name for the stacked coordinates combines the underlying dimensions with underscores, e.g. ``&#39;lat_lon&#39;``</span>
+<span class="sd">    or ``&#39;lat_lon_time&#39;``.</span>
+
+<span class="sd">    When creating :class:`Coordinates`, podpac automatically detects StackedCoordinates. The following Coordinates</span>
+<span class="sd">    contain 3 stacked lat-lon coordinates and 2 time coordinates in a 3 x 2 grid::</span>
+
+<span class="sd">        &gt;&gt;&gt; lat = [0, 1, 2]</span>
+<span class="sd">        &gt;&gt;&gt; lon = [10, 20, 30]</span>
+<span class="sd">        &gt;&gt;&gt; time = [&#39;2018-01-01&#39;, &#39;2018-01-02&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; podpac.Coordinates([[lat, lon], time], dims=[&#39;lat_lon&#39;, &#39;time&#39;])</span>
+<span class="sd">        Coordinates</span>
+<span class="sd">            lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[0.0, 2.0], N[3], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">            lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[10.0, 30.0], N[3], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">            time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-02], N[2], ctype[&#39;midpoint&#39;]</span>
+
+<span class="sd">    For convenience, you can also create uniformly-spaced stacked coordinates using :class:`clinspace`::</span>
+
+<span class="sd">        &gt;&gt;&gt; lat_lon = podpac.clinspace((0, 10), (2, 30), 3)</span>
+<span class="sd">        &gt;&gt;&gt; time = [&#39;2018-01-01&#39;, &#39;2018-01-02&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; podpac.Coordinates([lat_lon, time], dims=[&#39;lat_lon&#39;, &#39;time&#39;])</span>
+<span class="sd">        Coordinates</span>
+<span class="sd">            lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[0.0, 2.0], N[3], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">            lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[10.0, 30.0], N[3], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">            time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-02], N[2], ctype[&#39;midpoint&#39;]    </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dims : tuple</span>
+<span class="sd">        Tuple of dimension names.</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Stacked dimension name.</span>
+<span class="sd">    coords : dict-like</span>
+<span class="sd">        xarray coordinates (container of coordinate arrays)</span>
+<span class="sd">    coordinates : pandas.MultiIndex</span>
+<span class="sd">        MultiIndex of stacked coordinates values.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :class:`clinspace`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># TODO dict vs tuple?</span>

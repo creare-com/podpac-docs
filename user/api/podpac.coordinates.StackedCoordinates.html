@@ -210,6 +210,50 @@
 <em class="property">class </em><code class="descclassname">podpac.coordinates.</code><code class="descname">StackedCoordinates</code><span class="sig-paren">(</span><em>coords</em>, <em>coord_ref_sys=None</em>, <em>ctype=None</em>, <em>distance_units=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/stacked_coordinates.html#StackedCoordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.StackedCoordinates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.core.coordinates.base_coordinates.BaseCoordinates</span></code></p>
 <p>Stacked coordinates.</p>
+<p>StackedCoordinates contain coordinates from two or more different dimensions that are stacked together to form a
+list of points (rather than a grid). The underlying coordinates values are <a class="reference internal" href="podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d" title="podpac.coordinates.Coordinates1d"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coordinates1d</span></code></a> objects of equal
+size. The name for the stacked coordinates combines the underlying dimensions with underscores, e.g. <code class="docutils literal notranslate"><span class="pre">'lat_lon'</span></code>
+or <code class="docutils literal notranslate"><span class="pre">'lat_lon_time'</span></code>.</p>
+<p>When creating <a class="reference internal" href="podpac.coordinates.Coordinates.html#podpac.coordinates.Coordinates" title="podpac.coordinates.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coordinates</span></code></a>, podpac automatically detects StackedCoordinates. The following Coordinates
+contain 3 stacked lat-lon coordinates and 2 time coordinates in a 3 x 2 grid:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lat</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lon</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-02&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([[</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">],</span> <span class="n">time</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
+<span class="go">Coordinates</span>
+<span class="go">    lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[0.0, 2.0], N[3], ctype[&#39;midpoint&#39;]</span>
+<span class="go">    lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[10.0, 30.0], N[3], ctype[&#39;midpoint&#39;]</span>
+<span class="go">    time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-02], N[2], ctype[&#39;midpoint&#39;]</span>
+</pre></div>
+</div>
+<p>For convenience, you can also create uniformly-spaced stacked coordinates using <a class="reference internal" href="podpac.coordinates.clinspace.html#podpac.coordinates.clinspace" title="podpac.coordinates.clinspace"><code class="xref py py-class docutils literal notranslate"><span class="pre">clinspace</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lat_lon</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;2018-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;2018-01-02&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">lat_lon</span><span class="p">,</span> <span class="n">time</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
+<span class="go">Coordinates</span>
+<span class="go">    lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[0.0, 2.0], N[3], ctype[&#39;midpoint&#39;]</span>
+<span class="go">    lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[10.0, 30.0], N[3], ctype[&#39;midpoint&#39;]</span>
+<span class="go">    time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-02], N[2], ctype[&#39;midpoint&#39;]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dims</strong> (<em>tuple</em>) – Tuple of dimension names.</li>
+<li><strong>name</strong> (<em>str</em>) – Stacked dimension name.</li>
+<li><strong>coords</strong> (<em>dict-like</em>) – xarray coordinates (container of coordinate arrays)</li>
+<li><strong>coordinates</strong> (<em>pandas.MultiIndex</em>) – MultiIndex of stacked coordinates values.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="podpac.coordinates.clinspace.html#podpac.coordinates.clinspace" title="podpac.coordinates.clinspace"><code class="xref py py-class docutils literal notranslate"><span class="pre">clinspace</span></code></a></p>
+</div>
 <p class="rubric">Methods</p>
 <table border="1" class="longtable docutils">
 <colgroup>
