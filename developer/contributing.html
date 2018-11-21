@@ -119,6 +119,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#lint">Lint</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#import-conventions-api-conventions">Import Conventions / API Conventions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#public-api">Public API</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#developer-api">Developer API</a></li>
@@ -298,6 +299,44 @@ $ pylint podpac/settings.py     <span class="c1"># lint single file</span>
 </div>
 <p>Configuration options are specified in <code class="docutils literal notranslate"><span class="pre">.pylintrc</span></code>.</p>
 </div>
+</div>
+<div class="section" id="logging">
+<span id="logging"></span><h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<p>We use the python <code class="docutils literal notranslate"><span class="pre">logging</span></code> library to support library logging.
+To include logging in your module, use:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>  <span class="c1"># creates a logger with the current module name</span>
+
+<span class="c1"># log a message</span>
+<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Debug message&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Info message&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Warning message&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Error message&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Do not set levels, handlers, or formatters in your modules.
+See the <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger.debug">python logging documentation</a> for details on how to construct log messages.</p>
+<p>To handling logging in your application, you can use a simple config:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>  <span class="c1"># log to console</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;podpac.log&#39;</span><span class="p">)</span>  <span class="c1"># log to a file podpac.log</span>
+</pre></div>
+</div>
+<p>or a more complicated configuration which handles only podpac logs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># log only podpac logs</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;podpac&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+<span class="c1"># log only podpac logs in a file</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">FileHandler</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;podpac&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;podpac.log&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We have created a convience method <code class="docutils literal notranslate"><span class="pre">create_logfile()</span></code> in the <code class="docutils literal notranslate"><span class="pre">podpac.utils</span></code> module to
+automatically create a log file for only podpac logs.</p>
 </div>
 <div class="section" id="import-conventions-api-conventions">
 <span id="import-conventions-api-conventions"></span><h2>Import Conventions / API Conventions<a class="headerlink" href="#import-conventions-api-conventions" title="Permalink to this headline">¶</a></h2>
