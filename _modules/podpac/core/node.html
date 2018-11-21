@@ -186,7 +186,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
-<span class="kn">from</span> <span class="nn">podpac</span> <span class="k">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="k">import</span> <span class="n">Units</span><span class="p">,</span> <span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">create_data_array</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
@@ -205,7 +205,7 @@
 <span class="sd">            Unit-aware xarray DataArray containing the results of the node evaluation.</span>
 <span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
     <span class="s1">&#39;hash_return&#39;</span><span class="p">:</span> <span class="s1">&#39;A unique hash capturing the coordinates and parameters used to evaluate the node. &#39;</span><span class="p">,</span>
-    <span class="s1">&#39;outdir&#39;</span><span class="p">:</span> <span class="s1">&#39;Optional output directory. Uses :attr:`podpac.settings.CACHE_DIR` by default&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;outdir&#39;</span><span class="p">:</span> <span class="s2">&quot;Optional output directory. Uses :attr:`podpac.settings[&#39;CACHE_DIR&#39;]` by default&quot;</span><span class="p">,</span>
     <span class="s1">&#39;definition_return&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        OrderedDict</span>
@@ -674,7 +674,7 @@
 
     <span class="k">def</span> <span class="nf">_get_output_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">outdir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">outdir</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span>
+            <span class="n">outdir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outdir</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">outdir</span>
@@ -782,7 +782,7 @@
         <span class="kn">import</span> <span class="nn">warnings</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Node.cache_dir will be removed in a later release&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
 
-        <span class="n">basedir</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span>
+        <span class="n">basedir</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span>
         <span class="n">subdir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)[</span><span class="mi">8</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
         <span class="n">dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">basedir</span><span class="p">]</span> <span class="o">+</span> <span class="n">subdir</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">dirs</span><span class="p">)</span>
@@ -838,13 +838,13 @@
             <span class="n">boto3</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_TO_S3</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;S3_BUCKET_NAME&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;CACHE_TO_S3&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">):</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">)</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
                 <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fid</span><span class="p">)</span><span class="c1">#, protocol=cPickle.HIGHEST_PROTOCOL)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span><span class="p">)</span>
+            <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;S3_BUCKET_NAME&#39;</span><span class="p">])</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
             <span class="n">s3</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div>
 
@@ -879,11 +879,11 @@
             <span class="n">boto3</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_TO_S3</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;S3_BUCKET_NAME&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;CACHE_TO_S3&#39;</span><span class="p">]:</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
                 <span class="n">obj</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fid</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span><span class="p">)</span>
+            <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;S3_BUCKET_NAME&#39;</span><span class="p">])</span>
             <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
             <span class="n">s3</span><span class="o">.</span><span class="n">download_fileobj</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">io</span><span class="p">)</span>
             <span class="n">io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -917,7 +917,7 @@
         <span class="kn">import</span> <span class="nn">shutil</span>
 
         <span class="k">if</span> <span class="n">all_cache</span><span class="p">:</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">node_cache</span><span class="p">:</span>
             <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
