@@ -688,8 +688,8 @@
 
     <span class="n">auth_session</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">authentication</span><span class="o">.</span><span class="n">EarthDataSession</span><span class="p">)</span>
     <span class="n">auth_class</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Type</span><span class="p">(</span><span class="n">authentication</span><span class="o">.</span><span class="n">EarthDataSession</span><span class="p">)</span>
-    <span class="n">username</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">password</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;auth_session&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_auth_session_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1066,9 +1066,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;shared.coordinates&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">coords</span></div>
 
-<div class="viewcode-block" id="SMAP.get_filename_coordinates_sources"><a class="viewcode-back" href="../../../user/api/podpac.datalib.SMAP.html#podpac.datalib.SMAP.get_filename_coordinates_sources">[docs]</a>    <span class="k">def</span> <span class="nf">get_filename_coordinates_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SMAP.get_filename_coordinates_sources"><a class="viewcode-back" href="../../../user/api/podpac.datalib.SMAP.html#podpac.datalib.SMAP.get_filename_coordinates_sources">[docs]</a>    <span class="k">def</span> <span class="nf">get_filename_coordinates_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns coordinates solely based on the filenames of the sources. This function was motivated by the </span>
 <span class="sd">        SMAP-Sentinel product, which does not have regularly stored tiles (in space and time). </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        Bounds: podpac.Coordinates, Optional</span>
+<span class="sd">            Default is None. Return the coordinates based on filenames of the source only within the specified bounds. When </span>
+<span class="sd">            not None, the result is not cached.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1076,29 +1082,40 @@
 <span class="sd">            Coordinates of all the sources in the product family</span>
 <span class="sd">        np.ndarray(dtype=object(SMAPSource))</span>
 <span class="sd">            Array of all the SMAPSources pointing to unique OpenDAP urls corresponding to the partial native coordinates</span>
+<span class="sd">        </span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        ------</span>
 <span class="sd">        The outputs of this function can be used to find source that overlap spatially or temporally with a subset </span>
 <span class="sd">        region specified by the user.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;filename.coordinates&#39;</span><span class="p">),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;filename.sources&#39;</span><span class="p">))</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">pass</span>
 
-        <span class="n">crds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">source_coordinates</span>
-        <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sources</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+<span class="sd">        If &#39;bounds&#39; is not specified, the result is cached for faster future access.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;filename.coordinates&#39;</span><span class="p">),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">load_cached_obj</span><span class="p">(</span><span class="s1">&#39;filename.sources&#39;</span><span class="p">))</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">active_sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">crds</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">active_sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="n">I</span><span class="p">]</span>
+
+        <span class="n">crds</span> <span class="o">=</span> <span class="n">active_sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">source_coordinates</span>
+        <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">active_sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sources</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">active_sources</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">crds</span> <span class="o">=</span> <span class="n">concat</span><span class="p">([</span><span class="n">crds</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">])</span>
                 <span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">sources</span><span class="p">)</span>
         <span class="c1">#if self.shared_coordinates is not None:</span>
             <span class="c1">#crds = crds + self.shared_coordinates</span>
         <span class="n">sources</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">crds</span><span class="p">,</span> <span class="s1">&#39;filename.coordinates&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="s1">&#39;filename.sources&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">crds</span><span class="p">,</span> <span class="s1">&#39;filename.coordinates&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_obj</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="s1">&#39;filename.sources&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">crds</span><span class="p">,</span> <span class="n">sources</span></div>
 
     <span class="nd">@property</span>

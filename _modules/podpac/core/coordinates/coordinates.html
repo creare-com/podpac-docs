@@ -208,12 +208,14 @@
 <span class="sd">    coords in `xarray &lt;http://xarray.pydata.org/en/stable/data-structures.html&gt;`_:</span>
 
 <span class="sd">     * Coordinates are created from a list of coordinate values and dimension names.</span>
-<span class="sd">     * PODPAC coordinate values are always either ``float`` or ``np.datetime64``. For convenience, podpac</span>
+<span class="sd">     * Coordinate values are always either ``float`` or ``np.datetime64``. For convenience, podpac</span>
 <span class="sd">       automatically converts datetime strings such as ``&#39;2018-01-01&#39;`` to ``np.datetime64``.</span>
 <span class="sd">     * The allowed dimensions are ``&#39;lat&#39;``, ``&#39;lon&#39;``, ``&#39;time&#39;``, and ``&#39;alt&#39;``.</span>
 <span class="sd">     * Coordinates from multiple dimensions can be stacked together to represent a *list* of coordinates instead of a</span>
 <span class="sd">       *grid* of coordinates. The name of the stacked coordinates uses an underscore to combine the underlying dimensions, e.g.</span>
 <span class="sd">       ``&#39;lat_lon&#39;``.</span>
+
+<span class="sd">    TODO: document indexing with []</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -227,18 +229,30 @@
 
     <span class="n">_coords</span> <span class="o">=</span> <span class="n">OrderedDictTrait</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Coordinates.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a multidimensional coords object.</span>
+<span class="sd">        Create multidimensional coordinates.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        coords : list, dict, or Coordinates</span>
-<span class="sd">            List of named BaseCoordinates objects</span>
-<span class="sd">        ctype : str</span>
-<span class="sd">            Default coordinates type (optional).</span>
-<span class="sd">        coord_ref_sys : str</span>
-<span class="sd">            Default coordinates reference system (optional)</span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        coords : list</span>
+<span class="sd">            List of coordinate values for each dimension. Valid coordinate values:</span>
+
+<span class="sd">             * single coordinate value (number, datetime64, or str)</span>
+<span class="sd">             * array of coordinate values</span>
+<span class="sd">             * list of stacked coordinate values</span>
+<span class="sd">             * :class:`Coordinates1d` or :class:`StackedCoordinates` object</span>
+<span class="sd">        dims : list of str, optional</span>
+<span class="sd">            List of dimension names. Optional if all items in ``coords`` are named. Valid names are</span>
+<span class="sd">            </span>
+<span class="sd">             * &#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;, or &#39;time&#39; for unstacked coordinates</span>
+<span class="sd">             * dimension names joined by an underscore for stacked coordinates</span>
+<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">            Default coordinates reference system</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
+<span class="sd">        distance_units : Units</span>
+<span class="sd">            Default distance units.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">)):</span>
@@ -286,7 +300,7 @@
         <span class="c1">#     if &#39;units&#39; not in c._trait_values and distance_units is not None and c.name in [&#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;]:</span>
         <span class="c1">#         c.units = distance_units</span>
 
-        <span class="nb">super</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_coords</span><span class="o">=</span><span class="n">dcoords</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_coords</span><span class="o">=</span><span class="n">dcoords</span><span class="p">)</span></div>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;_coords&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -331,35 +345,128 @@
         <span class="k">return</span> <span class="n">coords</span>
 
 <div class="viewcode-block" id="Coordinates.grid"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.grid">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">grid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_coords_from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">grid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a grid of coordinates.</span>
+
+<span class="sd">        Valid coordinate values:</span>
+
+<span class="sd">         * single coordinate value (number, datetime64, or str)</span>
+<span class="sd">         * array of coordinate values</span>
+<span class="sd">         * (start, stop, step) tuple for uniformly-spaced coordinates</span>
+<span class="sd">         * Coordinates1d object</span>
+
+<span class="sd">        This is equivalent to creating unstacked coordinates with a list of coordinate values::</span>
+
+<span class="sd">            podpac.Coordinates.grid(lat=[0, 1, 2], lon=[10, 20], dims=[&#39;lat&#39;, &#39;lon&#39;])</span>
+<span class="sd">            podpac.Coordinates([[0, 1, 2], [10, 20]], dims=[&#39;lan&#39;, &#39;lon&#39;])</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        lat : optional</span>
+<span class="sd">            coordinates for the latitude dimension</span>
+<span class="sd">        lon : optional</span>
+<span class="sd">            coordinates for the longitude dimension</span>
+<span class="sd">        alt : optional</span>
+<span class="sd">            coordinates for the altitude dimension</span>
+<span class="sd">        time : optional</span>
+<span class="sd">            coordinates for the time dimension</span>
+<span class="sd">        dims : list of str, optional in Python&gt;=3.6</span>
+<span class="sd">            List of dimension names, must match the provided keyword arguments. In Python 3.6 and above, the ``dims``</span>
+<span class="sd">            argument is optional, and the dims will match the order of the provided keyword arguments.</span>
+<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">            Default coordinates reference system</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
+<span class="sd">        distance_units : Units</span>
+<span class="sd">            Default distance units.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Coordinates</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        points</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">coords</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_coords_from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">dims</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">coord_ref_sys</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="n">distance_units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.points"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.points">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_coords_from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a list of multidimensional coordinates.</span>
+
+<span class="sd">        Valid coordinate values:</span>
+
+<span class="sd">         * single coordinate value (number, datetime64, or str)</span>
+<span class="sd">         * array of coordinate values</span>
+<span class="sd">         * (start, stop, step) tuple for uniformly-spaced coordinates</span>
+<span class="sd">         * Coordinates1d object</span>
+
+<span class="sd">        Note that the coordinates for each dimension must be the same size.</span>
+
+<span class="sd">        This is equivalent to creating stacked coordinates with a list of coordinate values and a stacked dimension</span>
+<span class="sd">        name::</span>
+
+<span class="sd">            podpac.Coordinates.points(lat=[0, 1, 2], lon=[10, 20, 30], dims=[&#39;lat&#39;, &#39;lon&#39;])</span>
+<span class="sd">            podpac.Coordinates([[[0, 1, 2], [10, 20, 30]]], dims=[&#39;lan_lon&#39;])</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        lat : optional</span>
+<span class="sd">            coordinates for the latitude dimension</span>
+<span class="sd">        lon : optional</span>
+<span class="sd">            coordinates for the longitude dimension</span>
+<span class="sd">        alt : optional</span>
+<span class="sd">            coordinates for the altitude dimension</span>
+<span class="sd">        time : optional</span>
+<span class="sd">            coordinates for the time dimension</span>
+<span class="sd">        dims : list of str, optional in Python&gt;=3.6</span>
+<span class="sd">            List of dimension names, must match the provided keyword arguments. In Python 3.6 and above, the ``dims``</span>
+<span class="sd">            argument is optional, and the dims will match the order of the provided keyword arguments.</span>
+<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">            Default coordinates reference system</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
+<span class="sd">        distance_units : Units</span>
+<span class="sd">            Default distance units.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Coordinates</span>
+<span class="sd">            podpac Coordinates</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        grid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">coords</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_coords_from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">dims</span><span class="p">)</span>
         <span class="n">stacked</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">([</span><span class="n">stacked</span><span class="p">],</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">coord_ref_sys</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="n">distance_units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.from_xarray"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_xarray">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_xarray</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert an xarray coord to podpac Coordinates.</span>
+<span class="sd">        Create podpac Coordinates from xarray coords.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        xcoord : DataArrayCoordinates</span>
-<span class="sd">            xarray coord attribute to convert</span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        xcoord : xarray.core.coordinates.DataArrayCoordinates</span>
+<span class="sd">            xarray coords</span>
+<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">            Default coordinates reference system</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
+<span class="sd">        distance_units : Units</span>
+<span class="sd">            Default distance units.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        coord : Coordinates</span>
-<span class="sd">            podpact Coordinates object</span>
-
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        TypeError</span>
-<span class="sd">            Description</span>
+<span class="sd">        Coordinates</span>
+<span class="sd">            podpac Coordinates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xcoord</span><span class="p">,</span> <span class="n">xarray</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">DataArrayCoordinates</span><span class="p">):</span>
@@ -377,6 +484,24 @@
 
 <div class="viewcode-block" id="Coordinates.from_definition"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_definition">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create podpac Coordinates from a coordinates definition.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        d : list</span>
+<span class="sd">            coordinates definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Coordinates</span>
+<span class="sd">            podpac Coordinates</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        definition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -394,6 +519,26 @@
 
 <div class="viewcode-block" id="Coordinates.from_json"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_json">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create podpac Coordinates from a coordinates JSON definition.</span>
+
+<span class="sd">        Coordinates defined in pipelines will be created from this method.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        s : str</span>
+<span class="sd">            coordinates JSON definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Coordinates</span>
+<span class="sd">            podpac Coordinates</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
 
@@ -401,16 +546,20 @@
     <span class="c1"># standard dict-like methods</span>
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="Coordinates.values"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.values">[docs]</a>    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">()</span></div>
-
 <div class="viewcode-block" id="Coordinates.keys"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; dict-like keys &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
 
+<div class="viewcode-block" id="Coordinates.values"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.values">[docs]</a>    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; dict-like values &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="Coordinates.items"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; dict-like items &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">items</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Coordinates.get"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; dict-like get &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
@@ -490,6 +639,7 @@
     <span class="c1">#     return True</span>
 
 <div class="viewcode-block" id="Coordinates.update"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; dict-like update &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot update &#39;</span><span class="si">%s</span><span class="s2">&#39; with Coordinates&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
 
@@ -503,35 +653,96 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tuple of dimension names, potentially stacked.</span>
+
+<span class="sd">        :type: tuple</span>
+<span class="sd">        </span>
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        udims</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tuple of the number of coordinates in each dimension.</span>
+
+<span class="sd">        :type: tuple</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Number of dimensions.</span>
+
+<span class="sd">        :type: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Total number of coordinates.</span>
+
+<span class="sd">        :type: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">udims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tuple of unstacked dimension names.</span>
+
+<span class="sd">        If there are no stacked dimensions, then ``dims`` and ``udims`` will be the same::</span>
+
+<span class="sd">            In [1]: lat = [0, 1]</span>
+
+<span class="sd">            In [2]: lon = [10, 20]</span>
+
+<span class="sd">            In [3]: time = &#39;2018-01-01&#39;</span>
+<span class="sd">            </span>
+<span class="sd">            In [4]: c = podpac.Coordinates([lat, lon, time], dims=[&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;])</span>
+<span class="sd">            </span>
+<span class="sd">            In [5]: c.dims</span>
+<span class="sd">            Out[5]: (&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;)</span>
+<span class="sd">            </span>
+<span class="sd">            In [6]: c.udims</span>
+<span class="sd">            Out[6]: (&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;)</span>
+
+
+<span class="sd">        If there are stacked dimensions, then ``udims`` contains the individual dimension names::</span>
+
+<span class="sd">            In [7]: c = podpac.Coordinates([[lat, lon], time], dims=[&#39;lat_lon&#39;, &#39;time&#39;])</span>
+
+<span class="sd">            In [8]: c.dims</span>
+<span class="sd">            Out[8]: (&#39;lat_lon&#39;, &#39;time&#39;)</span>
+
+<span class="sd">            In [9]: c.udims</span>
+<span class="sd">            Out[9]: (&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;)</span>
+
+<span class="sd">        :type: tuple</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        dims</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dim</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        SUMMARY</span>
+<span class="sd">        xarray coords, a dictionary-like container of coordinate arrays.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        coords : type</span>
-<span class="sd">            description</span>
+<span class="sd">        :type: xarray.core.coordinates.DataArrayCoordinates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># TODO don&#39;t recompute this every time (but also don&#39;t compute it until requested)</span>
@@ -540,25 +751,59 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serializable definition.</span>
+
+<span class="sd">        The ``definition`` can be used to create new Coordinates::</span>
+
+<span class="sd">            c = podpac.Coordinates(...)</span>
+<span class="sd">            c2 = podpac.Coordinates.from_definition(c.definition)</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        from_definition, json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">definition</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        JSON-serialized definition.</span>
+
+<span class="sd">        The ``json`` can be used to create new Coordinates::</span>
+
+<span class="sd">            c = podapc.Coordinates(...)</span>
+<span class="sd">            c2 = podpac.Coordinates.from_json(c.definition)</span>
+
+<span class="sd">        The serialized definition is used to define coordinates in pipelines and to transport coordinates, e.g.</span>
+<span class="sd">        over HTTP and in AWS lambda functions. It also provides a consistent hashable value.</span>
+
+<span class="sd">        :type: str</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        from_json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Coordinates hash.</span>
+
+<span class="sd">        *Note: To be replaced with the __hash__ method.*</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Dictionary specifying the coordinate properties.</span>
+<span class="sd">        Dictionary of the coordinate properties.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        :type: dict</span>
 <span class="sd">        &#39;&#39;&#39;</span>
 
         <span class="c1"># TODO JXM</span>
@@ -587,10 +832,7 @@
     <span class="k">def</span> <span class="nf">gdal_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;GDAL coordinate reference system.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        :type: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># TODO enforce all have the same coord ref sys, possibly make that read-only and always passed from here</span>
@@ -603,14 +845,28 @@
 
 <div class="viewcode-block" id="Coordinates.drop"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.drop">[docs]</a>    <span class="k">def</span> <span class="nf">drop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">ignore_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Remove the given dimensions from the Coordinates.</span>
+<span class="sd">        Remove the given dimensions from the Coordinates `dims`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        dims : str, list</span>
-<span class="sd">            Description</span>
-<span class="sd">        ignore_missing : bool</span>
+<span class="sd">            Dimension(s) to drop.</span>
+<span class="sd">        ignore_missing : bool, optional</span>
+<span class="sd">            If True, do not raise an exception if a given dimension is not in ``dims``. Default ``False``.</span>
 
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Coordinates</span>
+<span class="sd">            Coordinates object with the given dimensions removed</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If a given dimension is missing in the Coordinates (and ignore_missing is ``False``).</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        udrop</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
@@ -626,6 +882,48 @@
 
     <span class="c1"># do we ever need this?</span>
 <div class="viewcode-block" id="Coordinates.udrop"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.udrop">[docs]</a>    <span class="k">def</span> <span class="nf">udrop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">ignore_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove the given individual dimensions from the Coordinates `udims`.</span>
+
+<span class="sd">        Unlike `drop`, ``udrop`` will remove parts of stacked coordinates::</span>
+
+<span class="sd">            In [1]: c = podpac.Coordinates([[[0, 1], [10, 20]], &#39;2018-01-01&#39;], dims=[&#39;lat_lon&#39;, &#39;time&#39;])</span>
+
+<span class="sd">            In [2]: c</span>
+<span class="sd">            Out[2]: </span>
+<span class="sd">            Coordinates</span>
+<span class="sd">                lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[0.0, 1.0], N[2], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[10.0, 20.0], N[2], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-01], N[1], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">            </span>
+<span class="sd">            In [3]: c.udrop(&#39;lat&#39;)</span>
+<span class="sd">            Out[3]: </span>
+<span class="sd">            Coordinates</span>
+<span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[10.0, 20.0], N[2], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-01], N[1], ctype[&#39;midpoint&#39;]</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dims : str, list</span>
+<span class="sd">            Individual dimension(s) to drop.</span>
+<span class="sd">        ignore_missing : bool, optional</span>
+<span class="sd">            If True, do not raise an exception if a given dimension is not in ``udims``. Default ``False``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Coordinates</span>
+<span class="sd">            Coordinates object with the given dimensions removed.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        KeyError</span>
+<span class="sd">            If a given dimension is missing in the Coordinates (and ignore_missing is ``False``).</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        drop</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
             <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">,)</span>
 
@@ -636,7 +934,7 @@
                 <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Dimension &#39;</span><span class="si">%s</span><span class="s2">&#39; not found in Coordinates with </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">))</span>
 
         <span class="n">cs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">:</span>
                     <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
