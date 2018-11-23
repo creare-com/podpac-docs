@@ -184,6 +184,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 
 <span class="c1"># from podpac.core.utils import cached_property, clear_cache</span>
+<span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="k">import</span> <span class="n">Units</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">make_coord_value</span><span class="p">,</span> <span class="n">make_coord_delta</span><span class="p">,</span> <span class="n">add_coord</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="k">import</span> <span class="n">Coordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.array_coordinates1d</span> <span class="k">import</span> <span class="n">ArrayCoordinates1d</span>
@@ -198,7 +199,7 @@
 <span class="sd">    ``timedelta64``. For convenience, podpac automatically converts datetime strings such as ``&#39;2018-01-01&#39;`` to</span>
 <span class="sd">    ``datetime64`` and timedelta strings such as ``&#39;1,D&#39;`` to ``timedelta64``.</span>
 
-<span class="sd">    UniformCoordinates1d can also be created using a ``start``, ``stop``, and ``size``.</span>
+<span class="sd">    UniformCoordinates1d can also be created by specifying the size instead of the step.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -210,44 +211,70 @@
 <span class="sd">        Signed, non-zero step between coordinates.</span>
 <span class="sd">    name : str</span>
 <span class="sd">        Dimension name, one of &#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, &#39;alt&#39;.</span>
-<span class="sd">    coordinates : np.ndarray</span>
+<span class="sd">    coordinates : array, read-only</span>
 <span class="sd">        Full array of coordinate values.</span>
 <span class="sd">    units : podpac.Units</span>
 <span class="sd">        Coordinate units.</span>
 <span class="sd">    coord_ref_sys : str</span>
 <span class="sd">        Coordinate reference system.</span>
 <span class="sd">    ctype : str</span>
-<span class="sd">        Coordinates type: &#39;point&#39;, &#39;left&#39;, &#39;right&#39;, or &#39;midpoint&#39;.</span>
+<span class="sd">        Coordinates type, one of&#39;point&#39;, &#39;left&#39;, &#39;right&#39;, or &#39;midpoint&#39;.</span>
 <span class="sd">    extents : ndarray</span>
 <span class="sd">        When ctype != &#39;point&#39;, defines custom area bounds for the coordinates.</span>
 <span class="sd">        *Note: To be replaced with segment_lengths.*</span>
 
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
-<span class="sd">    :class:`ArrayCoordinates1d`, :class:`crange`, :class:`clinspace`</span>
+<span class="sd">    :class:`Coordinates1d`, :class:`ArrayCoordinates1d`, :class:`crange`, :class:`clinspace`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="c1">#:float, datetime64: Start coordinate.</span>
     <span class="n">start</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)])</span>
+    
+    <span class="c1">#:float, datetime64: Stop coordinate.</span>
     <span class="n">stop</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)])</span>
+
+    <span class="c1">#:float, timedelta64: Signed, non-zero step between coordinates.</span>
     <span class="n">step</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">)])</span>
 
+    <span class="c1">#:str: Dimension name, one of &#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, or &#39;alt&#39;.</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#: Units : Coordinate units.</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Units</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#: str : Coordinate reference system.</span>
+    <span class="n">coord_ref_sys</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;WGS84&#39;</span><span class="p">,</span> <span class="s1">&#39;SPHER_MERC&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#: str : Coordinates type, one of &#39;point&#39;, &#39;left&#39;, &#39;right&#39;, or &#39;midpoint&#39;.</span>
+    <span class="n">ctype</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;point&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;midpoint&#39;</span><span class="p">])</span>
+
+    <span class="c1">#: : *To be replaced.*</span>
+    <span class="n">extents</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1">#: bool : Are the coordinate values unique and sorted (always True).</span>
     <span class="n">is_monotonic</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CBool</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#: bool : Are the coordinate values sorted in descending order.</span>
+    <span class="n">is_descending</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CBool</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="c1">#: bool : Are the coordinate values uniformly-spaced (always True).</span>
     <span class="n">is_uniform</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CBool</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <div class="viewcode-block" id="UniformCoordinates1d.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extents</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize uniformly-spaced coordinates.</span>
+<span class="sd">        Create uniformly-spaced 1d coordinates from a `start`, `stop`, and `step` or `size`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        start : float or datetime64</span>
-<span class="sd">            start value</span>
+<span class="sd">            Start coordinate.</span>
 <span class="sd">        stop : float or datetime64</span>
-<span class="sd">            stop value</span>
+<span class="sd">            Stop coordinate.</span>
 <span class="sd">        step : float or timedelta64</span>
-<span class="sd">            step between coordinates (either step or size required)</span>
+<span class="sd">            Signed, nonzero step between coordinates (either step or size required).</span>
 <span class="sd">        size : int</span>
-<span class="sd">            number of coordinates (either step or size required)</span>
+<span class="sd">            Number of coordinates (either step or size required).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -319,6 +346,18 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;is_descending&#39;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">))</span>
 
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;extents&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_validate_extents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_validate_extents</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;coord_ref_sys&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_default_coord_ref_sys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_default_coord_ref_sys</span><span class="p">()</span>
+    
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;ctype&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_default_ctype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_default_ctype</span><span class="p">()</span>
+
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Alternate Constructors</span>
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
@@ -335,12 +374,75 @@
 
 <div class="viewcode-block" id="UniformCoordinates1d.from_definition"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.from_definition">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create uniformly-spaced 1d Coordinates from a coordinates definition.</span>
+
+<span class="sd">        The definition must contain the coordinate start, stop, and step or size::</span>
+
+<span class="sd">            c = UniformCoordinates1d.from_definition({</span>
+<span class="sd">                &quot;start&quot;: 1,</span>
+<span class="sd">                &quot;stop&quot;: 10,</span>
+<span class="sd">                &quot;step&quot;: 0.5</span>
+<span class="sd">            })</span>
+
+<span class="sd">            c = UniformCoordinates1d.from_definition({</span>
+<span class="sd">                &quot;start&quot;: 1,</span>
+<span class="sd">                &quot;stop&quot;: 10,</span>
+<span class="sd">                &quot;size&quot;: 21</span>
+<span class="sd">            })</span>
+
+<span class="sd">        The definition may also contain any of the 1d Coordinates properties::</span>
+
+<span class="sd">            c = UniformCoordinates1d.from_definition({</span>
+<span class="sd">                &quot;start&quot;: 1,</span>
+<span class="sd">                &quot;stop&quot;: 10,</span>
+<span class="sd">                &quot;step&quot;: 0.5,</span>
+<span class="sd">                &quot;name&quot;: &quot;lat&quot;,</span>
+<span class="sd">                &quot;ctype&quot;: &quot;points&quot;</span>
+<span class="sd">            })</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        d : dict</span>
+<span class="sd">            uniform 1d coordinates definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        UniformCoordinates1d</span>
+<span class="sd">            uniformly-spaced 1d Coordinates</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        definition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">start</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">)</span>
         <span class="n">stop</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;stop&#39;</span><span class="p">)</span>
-        <span class="n">step</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;step&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="UniformCoordinates1d.copy"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a deep copy of the uniform 1d Coordinates.</span>
+
+<span class="sd">        The coordinates properties will be copied. Any provided keyword arguments will override these properties.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Dimension name. One of &#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;, and &#39;time&#39;.</span>
+<span class="sd">        units : str, optional</span>
+<span class="sd">            Coordinates units.</span>
+<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">            Coordinates reference system.</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        UniformCoordinates1d</span>
+<span class="sd">            Copy of the coordinates, with provided properties.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
         <span class="n">properties</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">properties</span><span class="p">)</span></div>
@@ -396,16 +498,14 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Coordinate values &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Coordinate values.</span>
+
+<span class="sd">        :type: array, read-only</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">coordinates</span> <span class="o">=</span> <span class="n">add_coord</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
         <span class="n">coordinates</span><span class="o">.</span><span class="n">setflags</span><span class="p">(</span><span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">coordinates</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Coordinate dtype, datetime or float &#39;&#39;&#39;</span>
-
-        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -433,7 +533,20 @@
         <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">range_</span><span class="o">/</span><span class="n">step</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Coordinates dtype.</span>
+
+<span class="sd">        ``float`` for numerical coordinates and numpy ``datetime64`` for datetime coordinates.</span>
+
+<span class="sd">        :type: type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Low and high coordinate bounds. &quot;&quot;&quot;</span>
+
         <span class="n">lo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
         <span class="n">hi</span> <span class="o">=</span> <span class="n">add_coord</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_descending</span><span class="p">:</span>
@@ -446,6 +559,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">area_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Low and high coordinate area bounds.</span>
+
+<span class="sd">        When ctype != &#39;point&#39;, this includes the portions of the segments beyond the coordinate bounds.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># point ctypes, just use bounds</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span> <span class="o">==</span> <span class="s1">&#39;point&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
@@ -472,6 +591,21 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serializable uniform 1d coordinates definition.</span>
+
+<span class="sd">        The ``definition`` can be used to create new UniformCoordinates1d::</span>
+
+<span class="sd">            c = podpac.UniformCoordinates1d(0, 10, step=1)</span>
+<span class="sd">            c2 = podpac.UniformCoordinates1d.from_definition(c.definition)</span>
+
+<span class="sd">        :type: dict</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        from_definition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
             <span class="n">d</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
@@ -489,6 +623,47 @@
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="UniformCoordinates1d.select"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the coordinate values that are within the given bounds.</span>
+
+<span class="sd">        The default selection returns coordinates that are within the other coordinates bounds::</span>
+
+<span class="sd">            In [1]: c = UniformCoordinates1d(0, 3, step=1, name=&#39;lat&#39;)</span>
+
+<span class="sd">            In [2]: c.select([1.5, 2.5]).coordinates</span>
+<span class="sd">            Out[2]: array([2.])</span>
+
+<span class="sd">        The *outer* selection returns the minimal set of coordinates that contain the other coordinates::</span>
+<span class="sd">        </span>
+<span class="sd">            In [3]: c.intersect([1.5, 2.5], outer=True).coordinates</span>
+<span class="sd">            Out[3]: array([1., 2., 3.])</span>
+
+<span class="sd">        The *outer* selection also returns a boundary coordinate if the other coordinates are outside this</span>
+<span class="sd">        coordinates bounds but *inside* its area bounds::</span>
+<span class="sd">        </span>
+<span class="sd">            In [4]: c.intersect([3.25, 3.35], outer=True).coordinates</span>
+<span class="sd">            Out[4]: array([3.0], dtype=float64)</span>
+
+<span class="sd">            In [5]: c.intersect([10.0, 11.0], outer=True).coordinates</span>
+<span class="sd">            Out[5]: array([], dtype=float64)</span>
+<span class="sd">        </span>
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        bounds : low, high</span>
+<span class="sd">            selection bounds</span>
+<span class="sd">        outer : bool, optional</span>
+<span class="sd">            If True, do an *outer* selection. Default False.</span>
+<span class="sd">        return_indices : bool, optional</span>
+<span class="sd">            If True, return slice or indices for the selection in addition to coordinates. Default False.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        selection : UniformCoordinates1d</span>
+<span class="sd">            Coordinates1d object with coordinates within the other coordinates bounds.</span>
+<span class="sd">        I : slice or list</span>
+<span class="sd">            index or slice for the intersected coordinates (only if return_indices=True)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">bounds</span> <span class="o">=</span> <span class="n">make_coord_value</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">make_coord_value</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
         <span class="c1"># full</span>

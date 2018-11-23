@@ -197,13 +197,24 @@
 <span class="sd">    Base class for 1-dimensional coordinates.</span>
 
 <span class="sd">    Coordinates1d objects contain values and metadata for a single dimension of coordinates. :class:`Coordinates` and</span>
-<span class="sd">    :class:`StackedCoordinates` are built from Coordinate1d objects.</span>
+<span class="sd">    :class:`StackedCoordinates` use Coordinate1d objects.</span>
+
+<span class="sd">    The following coordinates types (``ctype``) are supported:</span>
+
+<span class="sd">     * &#39;point&#39;: each coordinate represents a single location</span>
+<span class="sd">     * &#39;left&#39;: each coordinate is the left endpoint of its segment</span>
+<span class="sd">     * &#39;right&#39;: each coordinate is the right endpoint of its endpoint</span>
+<span class="sd">     * &#39;midpoint&#39;: segment endpoints are at the midpoints between coordinate values.</span>
+
+<span class="sd">    The ``bounds`` are always the low and high coordinate value. For *point* coordinates, the ``area_bounds`` are the</span>
+<span class="sd">    same as the ``bounds``. For *segment* coordinates (left, right, and midpoint), the ``area_bounds`` include the</span>
+<span class="sd">    portion of the segments above and below the ``bounds`.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name : str</span>
-<span class="sd">        Dimension name, one of &#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, &#39;alt&#39;.</span>
-<span class="sd">    coordinates : np.ndarray</span>
+<span class="sd">        Dimension name, one of &#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, or &#39;alt&#39;.</span>
+<span class="sd">    coordinates : array, read-only</span>
 <span class="sd">        Full array of coordinate values.</span>
 <span class="sd">    units : podpac.Units</span>
 <span class="sd">        Coordinate units.</span>
@@ -211,8 +222,8 @@
 <span class="sd">        Coordinate reference system.</span>
 <span class="sd">    ctype : str</span>
 <span class="sd">        Coordinates type: &#39;point&#39;, &#39;left&#39;, &#39;right&#39;, or &#39;midpoint&#39;.</span>
-<span class="sd">    extents : ndarray</span>
-<span class="sd">        When ctype != &#39;point&#39;, defines a custom acea bounds for the coordinates.</span>
+<span class="sd">    extents : (low, high)</span>
+<span class="sd">        When ctype != &#39;point&#39;, defines custom (low, high) area bounds for the coordinates.</span>
 <span class="sd">        *Note: To be replaced with segment_lengths.*</span>
 
 <span class="sd">    See Also</span>
@@ -220,16 +231,33 @@
 <span class="sd">    :class:`ArrayCoordinates1d`, :class:`UniformCoordinates1d`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="c1">#:str: Dimension name, one of &#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, or &#39;alt&#39;.</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#: Units : Coordinate units.</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Units</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#: str : Coordinate reference system.</span>
     <span class="n">coord_ref_sys</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;WGS84&#39;</span><span class="p">,</span> <span class="s1">&#39;SPHER_MERC&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#: str : Coordinates type, one of &#39;point&#39;, &#39;left&#39;, &#39;right&#39;, or &#39;midpoint&#39;.</span>
     <span class="n">ctype</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;point&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;midpoint&#39;</span><span class="p">])</span>
+
+    <span class="c1">#: : *To be replaced.*</span>
     <span class="n">extents</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1">#: bool : Are the coordinate values unique and sorted.</span>
     <span class="n">is_monotonic</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CBool</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="c1">#: bool : Are the coordinate values sorted in descending order.</span>
     <span class="n">is_descending</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CBool</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#: bool : Are the coordinate values uniformly-spaced.</span>
     <span class="n">is_uniform</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CBool</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Coordinates1d.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extents</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;*Do not use.*&quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
         <span class="k">if</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -281,19 +309,19 @@
     <span class="k">def</span> <span class="nf">dims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot access dims property of unnamed Coordinates1d&quot;</span><span class="p">)</span>
-
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">udims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Coordinate properties (units, coord_ref_sys, ctype, extents)</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        properties : dict</span>
-<span class="sd">            Coordinate properties (units, coord_ref_sys, ctype, extents)</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dictionary of the coordinate properties.</span>
+
+<span class="sd">        :type: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -309,41 +337,51 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Coordinate values. &#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Full array of coordinates values.</span>
+
+<span class="sd">        :type: array, read-only</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Coordinate array dtype, either np.datetime64 or np.float64. &#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot; Coordinates dtype.</span>
+
+<span class="sd">        ``float`` for numerical coordinates and numpy ``datetime64`` for datetime coordinates.</span>
+
+<span class="sd">        :type: type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Number of coordinates. &#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;Number of coordinates. &quot;&quot;&quot;</span>
 
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Coordinate bounds. &#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot; Low and high coordinate bounds. &quot;&quot;&quot;</span>
 
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">area_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Low and high area bounds. When ctype != &#39;point&#39;, this includes the portions of the segments beyond the</span>
-<span class="sd">        coordinate bounds.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Low and high coordinate area bounds.</span>
+
+<span class="sd">        When ctype != &#39;point&#39;, this includes the portions of the segments beyond the coordinate bounds.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot; Serializable 1d coordinates definition.&quot;&quot;&quot;</span>
+
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
@@ -351,6 +389,30 @@
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="Coordinates1d.copy"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a deep copy of the 1d Coordinates.</span>
+
+<span class="sd">        The coordinates properties will be copied. Any provided keyword arguments will override these properties.</span>
+
+<span class="sd">        *Note: Defined in child classes.*</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Dimension name. One of &#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;, and &#39;time&#39;.</span>
+<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">            Coordinates reference system</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
+<span class="sd">        units : podpac.Units, optional</span>
+<span class="sd">            Coordinates units.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Coordinates1d</span>
+<span class="sd">            Copy of the coordinates, with provided properties.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
     <span class="k">def</span> <span class="nf">_select_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">):</span>
@@ -370,34 +432,67 @@
 
 <div class="viewcode-block" id="Coordinates1d.intersect"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d.intersect">[docs]</a>    <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the coordinates within the bounds the given coordinates object.</span>
+<span class="sd">        Get the coordinate values that are within the bounds of a given coordinates object.</span>
+
+<span class="sd">        If a Coordinates1d ``other`` is provided, then this dimension must match the other dimension</span>
+<span class="sd">        (``self.name == other.name``). If a multidimensional :class:`Coordinates` ``other`` is provided, then the</span>
+<span class="sd">        corresponding 1d coordinates are used for the intersection if available, and otherwise the entire coordinates</span>
+<span class="sd">        are returned.</span>
+
+<span class="sd">        The default intersection selects coordinates that are within the other coordinates bounds::</span>
+
+<span class="sd">            In [1]: c = ArrayCoordinates1d([0, 1, 2, 3], name=&#39;lat&#39;)</span>
+
+<span class="sd">            In [2]: other = ArrayCoordinates1d([1.5, 2.5], name=&#39;lat&#39;)</span>
+
+<span class="sd">            In [3]: c.intersect(other).coordinates</span>
+<span class="sd">            Out[3]: array([2.])</span>
+
+<span class="sd">        The *outer* intersection selects the minimal set of coordinates that contain the other coordinates::</span>
+<span class="sd">        </span>
+<span class="sd">            In [4]: c.intersect(other, outer=True).coordinates</span>
+<span class="sd">            Out[4]: array([1., 2., 3.])</span>
+
+<span class="sd">        The *outer* intersection also selects a boundary coordinate if the other coordinates are outside this</span>
+<span class="sd">        coordinates bounds but *inside* its area bounds::</span>
+<span class="sd">        </span>
+<span class="sd">            In [5]: c.area_bounds</span>
+<span class="sd">            Out[5]: array([-0.5,  3.5])</span>
+
+<span class="sd">            In [6]: other1 = podpac.coordinates.ArrayCoordinates1d([3.25], name=&#39;lat&#39;)</span>
+<span class="sd">            </span>
+<span class="sd">            In [7]: other2 = podpac.coordinates.ArrayCoordinates1d([3.75], name=&#39;lat&#39;)</span>
+
+<span class="sd">            In [8]: c.intersect(o2, outer=True).coordinates</span>
+<span class="sd">            Out[8]: array([3.0], dtype=float64)</span>
+
+<span class="sd">            In [9]: c.intersect(o2, outer=True).coordinates</span>
+<span class="sd">            Out[9]: array([], dtype=float64)</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        other : Coordinates1d</span>
-<span class="sd">            coordinates to intersect with</span>
+<span class="sd">        other : Coordinates1d, StackedCoordinates, Coordinates</span>
+<span class="sd">            Coordinates to intersect with.</span>
 <span class="sd">        outer : bool, optional</span>
-<span class="sd">            If True, select minimal coordinates that contain the other coordinates bounds.</span>
-<span class="sd">            If False, select maximal coordinates that are within the other coordinates bounds.</span>
-<span class="sd">            Default False.</span>
+<span class="sd">            If True, do an *outer* intersection. Default False.</span>
 <span class="sd">        return_indices : bool, optional</span>
 <span class="sd">            If True, return slice or indices for the selection in addition to coordinates. Default False.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        intersection : Coordinates1d</span>
-<span class="sd">            Coordinates1d object with coordinates with other.bounds</span>
+<span class="sd">            Coordinates1d object with coordinates within the other coordinates bounds.</span>
 <span class="sd">        I : slice or list</span>
 <span class="sd">            index or slice for the intersected coordinates (only if return_indices=True)</span>
 <span class="sd">        </span>
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the coordinates names do not match, when intersecting with a Coordinates1d other.</span>
+
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
 <span class="sd">        select : Get the coordinates within the given bounds.</span>
-<span class="sd">        </span>
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        NotImplementedError</span>
-<span class="sd">            Description</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
@@ -426,23 +521,46 @@
 
 <div class="viewcode-block" id="Coordinates1d.select"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the coordinates within the given bounds.</span>
+<span class="sd">        Get the coordinate values that are within the given bounds.</span>
+
+<span class="sd">        The default selection returns coordinates that are within the other coordinates bounds::</span>
+
+<span class="sd">            In [1]: c = ArrayCoordinates1d([0, 1, 2, 3], name=&#39;lat&#39;)</span>
+
+<span class="sd">            In [2]: c.select([1.5, 2.5]).coordinates</span>
+<span class="sd">            Out[2]: array([2.])</span>
+
+<span class="sd">        The *outer* selection returns the minimal set of coordinates that contain the other coordinates::</span>
+<span class="sd">        </span>
+<span class="sd">            In [3]: c.intersect([1.5, 2.5], outer=True).coordinates</span>
+<span class="sd">            Out[3]: array([1., 2., 3.])</span>
+
+<span class="sd">        The *outer* selection also returns a boundary coordinate if the other coordinates are outside this</span>
+<span class="sd">        coordinates bounds but *inside* its area bounds::</span>
+<span class="sd">        </span>
+<span class="sd">            In [4]: c.intersect([3.25, 3.35], outer=True).coordinates</span>
+<span class="sd">            Out[4]: array([3.0], dtype=float64)</span>
+
+<span class="sd">            In [5]: c.intersect([10.0, 11.0], outer=True).coordinates</span>
+<span class="sd">            Out[5]: array([], dtype=float64)</span>
+
+<span class="sd">        *Note: Defined in child classes.*</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        bounds : min, max</span>
+<span class="sd">        bounds : low, high</span>
 <span class="sd">            selection bounds</span>
+<span class="sd">        outer : bool, optional</span>
+<span class="sd">            If True, do an *outer* selection. Default False.</span>
 <span class="sd">        return_indices : bool, optional</span>
-<span class="sd">            return slice or indices for selection instead of coordinates</span>
-<span class="sd">        **kwargs</span>
-<span class="sd">            Description</span>
-<span class="sd">        </span>
+<span class="sd">            If True, return slice or indices for the selection in addition to coordinates. Default False.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        intersection : Coordinates1d</span>
-<span class="sd">            coord object with selected coordinates (if return_indices=False)</span>
+<span class="sd">        selection : Coordinates1d</span>
+<span class="sd">            Coordinates1d object with coordinates within the other coordinates bounds.</span>
 <span class="sd">        I : slice or list</span>
-<span class="sd">            index or slice for the selected coordinates (if return_indices=True)</span>
+<span class="sd">            index or slice for the intersected coordinates (only if return_indices=True)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
