@@ -243,17 +243,19 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        coords : list, dict, or Coordinates</span>
-<span class="sd">            Coordinates, either</span>
-<span class="sd">             * list of named BaseCoordinates objects</span>
-<span class="sd">             * dictionary of BaseCoordinates objects, with dimension names as the keys</span>
-<span class="sd">             * Coordinates object to be copied</span>
-<span class="sd">        ctype : str</span>
-<span class="sd">            Default coordinates type (optional).</span>
-<span class="sd">        coord_ref_sys : str</span>
-<span class="sd">            Default coordinates reference system (optional)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        coords : list, :class:`StackedCoordinates`</span>
+<span class="sd">            Coordinate values in a list, or a StackedCoordinates object to copy.</span>
+<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">            Default coordinates reference system.</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type.</span>
+<span class="sd">        distance_units : Units, optional</span>
+<span class="sd">            Default distance units.</span>
 
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        clinspace, crange</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">):</span>
             <span class="n">coords</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
@@ -296,31 +298,50 @@
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="StackedCoordinates.from_xarray"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.from_xarray">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_xarray</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_xarray</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert an xarray coord to Stacked</span>
+<span class="sd">        Convert an xarray coord to StackedCoordinates</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        xcoord : DataArrayCoordinates</span>
 <span class="sd">            xarray coord attribute to convert</span>
+<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">            Default coordinates reference system.</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type.</span>
+<span class="sd">        distance_units : Units, optional</span>
+<span class="sd">            Default distance units.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        coord : Coordinates</span>
-<span class="sd">            podpact Coordinates object</span>
-
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        TypeError</span>
-<span class="sd">            Description</span>
+<span class="sd">        coord : :class:`StackedCoordinates`</span>
+<span class="sd">            stacked coordinates object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">dims</span> <span class="o">=</span> <span class="n">xcoord</span><span class="o">.</span><span class="n">indexes</span><span class="p">[</span><span class="n">xcoord</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">names</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">([</span><span class="n">ArrayCoordinates1d</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">xcoord</span><span class="p">[</span><span class="n">dims</span><span class="p">])</span> <span class="k">for</span> <span class="n">dims</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">([</span><span class="n">ArrayCoordinates1d</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">xcoord</span><span class="p">[</span><span class="n">dims</span><span class="p">])</span> <span class="k">for</span> <span class="n">dims</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="StackedCoordinates.from_definition"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.from_definition">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create StackedCoordinates from a stacked coordinates definition.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        d : list</span>
+<span class="sd">            stacked coordinates definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`StackedCoordinates`</span>
+<span class="sd">            stacked coordinates object</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        definition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
             <span class="k">if</span> <span class="s1">&#39;start&#39;</span> <span class="ow">in</span> <span class="n">elem</span> <span class="ow">and</span> <span class="s1">&#39;stop&#39;</span> <span class="ow">in</span> <span class="n">elem</span> <span class="ow">and</span> <span class="s1">&#39;step&#39;</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">:</span>
@@ -335,6 +356,28 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StackedCoordinates.copy"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a deep copy of the stacked coordinates.</span>
+
+<span class="sd">        The coordinates properties will be copied.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Dimension names joined by an underscore.</span>
+<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">            Default coordinates reference system</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type.</span>
+<span class="sd">        distance_units : Units, optional</span>
+<span class="sd">            Default distance units.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`StackedCoordinates`</span>
+<span class="sd">            Copy of the stacked coordinates, with provided properties and name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">c</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
@@ -371,6 +414,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:tuple: Tuple of dimension names.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -379,6 +423,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:str: Stacked dimension name.</span>
+
+<span class="sd">        Stacked dimension names are the individual `dims` joined by an underscore.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dim</span> <span class="ow">or</span> <span class="s1">&#39;?&#39;</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
 
     <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
@@ -391,21 +440,37 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Number of stacked coordinates. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:pandas.MultiIndex: MultiIndex of stacked coordinates values.&quot;&quot;&quot;</span>
+
         <span class="c1"># TODO don&#39;t recompute this every time (but also don&#39;t compute it until requested)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:dict-like: xarray coordinates (container of coordinate arrays)&quot;&quot;&quot;</span>
+
         <span class="c1"># TODO don&#39;t recompute this every time (but also don&#39;t compute it until requested)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">coords</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:list: Serializable stacked coordinates definition.</span>
+
+<span class="sd">        The ``definition`` can be used to create new StackedCoordinates::</span>
+
+<span class="sd">            c = podpac.StackedCoordinates(...)</span>
+<span class="sd">            c2 = podpac.StackedCoordinates.from_definition(c.definition)</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        from_definition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">definition</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">]</span>
 
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
@@ -413,8 +478,32 @@
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="StackedCoordinates.intersect"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.intersect">[docs]</a>    <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the stacked coordinate values that are within the bounds of a given coordinates object in all dimensions.</span>
+
+<span class="sd">        *Note: you should not generally need to call this method directly.*</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : :class:`Coordinates1d`, :class:`StackedCoordinates`, :class:`Coordinates`</span>
+<span class="sd">            Coordinates to intersect with.</span>
+<span class="sd">        outer : bool, optional</span>
+<span class="sd">            If True, do an *outer* intersection. Default False.</span>
+<span class="sd">        return_indices : bool, optional</span>
+<span class="sd">            If True, return slice or indices for the selection in addition to coordinates. Default False.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        intersection : :class:`StackedCoordinates`</span>
+<span class="sd">            StackedCoordinates object consisting of the intersection in all dimensions.</span>
+<span class="sd">        idx : slice or list</span>
+<span class="sd">            Slice or index for the intersected coordinates, only if ``return_indices`` is True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># intersections in each dimension</span>
         <span class="n">Is</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="n">outer</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">]</span>
 
+        <span class="c1"># logical AND of the intersections</span>
         <span class="n">I</span> <span class="o">=</span> <span class="n">Is</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">J</span> <span class="ow">in</span> <span class="n">Is</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="nb">slice</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">J</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>

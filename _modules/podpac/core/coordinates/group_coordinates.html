@@ -182,9 +182,19 @@
 
 <div class="viewcode-block" id="GroupCoordinates"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.GroupCoordinates.html#podpac.coordinates.GroupCoordinates">[docs]</a><span class="k">class</span> <span class="nc">GroupCoordinates</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    List of multidimensional Coordinates.</span>
+<span class="sd">    List of multi-dimensional Coordinates.</span>
 
 <span class="sd">    GroupCoordinates contains a list of :class:`Coordinates` containing the same set of unstacked dimensions.</span>
+
+<span class="sd">    The GroupCoordinates object is list-like and can be indexed, appended, looped, etc like a standard ``list``. The</span>
+<span class="sd">    following ``Coordinates`` methods are wrapped for convenience:</span>
+
+<span class="sd">     * :meth:`intersect`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    udims : tuple</span>
+<span class="sd">        Tuple of shared dimensions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">_items</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">))</span>
@@ -204,12 +214,70 @@
         <span class="k">return</span> <span class="n">items</span>
 
 <div class="viewcode-block" id="GroupCoordinates.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.GroupCoordinates.html#podpac.coordinates.GroupCoordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a Coordinates group.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        coords_list : list</span>
+<span class="sd">            list of :class:`Coordinates`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">GroupCoordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_items</span><span class="o">=</span><span class="n">coords_list</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="n">rep</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">repr</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">rep</span>
+
+    <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
+    <span class="c1"># alternative constructors</span>
+    <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
+    
+<div class="viewcode-block" id="GroupCoordinates.from_definition"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.GroupCoordinates.html#podpac.coordinates.GroupCoordinates.from_definition">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a Coordinates group from a group definition.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        d : list</span>
+<span class="sd">            group definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`CoordinatesGroup`</span>
+<span class="sd">            Coordinates group</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        definition, from_json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">([</span><span class="n">Coordinates</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">d</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="GroupCoordinates.from_json"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.GroupCoordinates.html#podpac.coordinates.GroupCoordinates.from_json">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a Coordinates group from a group JSON definition.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        s : str</span>
+<span class="sd">            group JSON definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`CoordinatesGroup`</span>
+<span class="sd">            Coordinates group</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
     
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># standard list-like methods</span>
@@ -222,6 +290,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
 
 <div class="viewcode-block" id="GroupCoordinates.append"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.GroupCoordinates.html#podpac.coordinates.GroupCoordinates.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Append :class:`Coordinates` to the group.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        c : :class:`Coordinates`</span>
+<span class="sd">            Coordinates to append.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Can only append Coordinates objects, not &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
 
@@ -246,6 +322,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">udims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:tuple: Tuple of shared dimensions.&quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
         
@@ -253,14 +331,46 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serializable coordinates group definition.</span>
+
+<span class="sd">        The ``definition`` can be used to create new GroupCoordinates::</span>
+
+<span class="sd">            g = podpac.GroupCoordinates([...])</span>
+<span class="sd">            g2 = podpac.GroupCoordinates.from_definition(g.definition)</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        from_definition, json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">definition</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serialized coordinates group definition.</span>
+
+<span class="sd">        The ``definition`` can be used to create new GroupCoordinates::</span>
+
+<span class="sd">            g = podpac.GroupCoordinates(...)</span>
+<span class="sd">            g2 = podpac.GroupCoordinates.from_json(g.json)</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        GroupCoordinates hash.</span>
+
+<span class="sd">        *Note: To be replaced with the __hash__ method.*</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">)</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
@@ -268,6 +378,26 @@
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="GroupCoordinates.intersect"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.GroupCoordinates.html#podpac.coordinates.GroupCoordinates.intersect">[docs]</a>    <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Intersect each Coordinates in the group with the given coordinates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : :class:`Coordinates1d`, :class:`StackedCoordinates`, :class:`Coordinates`</span>
+<span class="sd">            Coordinates to intersect with.</span>
+<span class="sd">        outer : bool, optional</span>
+<span class="sd">            If True, do an *outer* intersection. Default False.</span>
+<span class="sd">        return_indices : bool, optional</span>
+<span class="sd">            If True, return slice or indices for the selection in addition to coordinates. Default False.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        intersections : :class:`GroupCoordinates`</span>
+<span class="sd">            Coordinates group consisting of the intersection of each :class:`Coordinates`.</span>
+<span class="sd">        idx : list</span>
+<span class="sd">            List of lists of indices for each :class:`Coordinates` item, only if ``return_indices`` is True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">intersections</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="n">outer</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="n">return_indices</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
             <span class="n">cs</span> <span class="o">=</span> <span class="n">GroupCoordinates</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">intersections</span><span class="p">])</span>
