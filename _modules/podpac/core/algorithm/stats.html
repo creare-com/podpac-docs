@@ -193,7 +193,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
 <span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="k">import</span> <span class="n">Algorithm</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span><span class="p">,</span> <span class="n">node_eval</span>
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -337,6 +337,7 @@
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
 
     <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="nd">@node_eval</span>
     <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates. </span>
 <span class="sd">        </span>
@@ -379,7 +380,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
         <span class="k">return</span> <span class="n">output</span>
 
     <span class="k">def</span> <span class="nf">reduce</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
@@ -1082,6 +1082,7 @@
         <span class="k">return</span> <span class="n">coords</span>
 
 <div class="viewcode-block" id="GroupReduce.eval"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.GroupReduce.html#podpac.algorithm.GroupReduce.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="nd">@node_eval</span>
     <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates. </span>
 <span class="sd">        </span>
@@ -1101,7 +1102,7 @@
 <span class="sd">        ValueError</span>
 <span class="sd">            If source it not time-depended (required by this node).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
+        
         <span class="bp">self</span><span class="o">.</span><span class="n">_source_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_source_coordinates</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1125,7 +1126,6 @@
         <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">:</span><span class="n">E</span><span class="p">})</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">:</span> <span class="s1">&#39;time&#39;</span><span class="p">})</span>
         <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
         <span class="k">return</span> <span class="n">output</span></div>
 
 <div class="viewcode-block" id="GroupReduce.base_ref"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.GroupReduce.html#podpac.algorithm.GroupReduce.base_ref">[docs]</a>    <span class="k">def</span> <span class="nf">base_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

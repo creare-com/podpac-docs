@@ -195,7 +195,9 @@
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">union</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="k">import</span> <span class="n">UnitsDataArray</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">NodeException</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">node_eval</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -226,6 +228,7 @@
         <span class="p">}</span>
 
 <div class="viewcode-block" id="Algorithm.eval"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Algorithm.html#podpac.algorithm.Algorithm.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="nd">@node_eval</span>
     <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evalutes this nodes using the supplied coordinates. </span>
 <span class="sd">        </span>
@@ -254,16 +257,22 @@
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">output_coordinates</span><span class="p">)</span>
-            <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
-        <span class="k">else</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">output_coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">result</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">output_coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
-                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">output_coordinates</span><span class="p">)</span>
-            <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">dims</span><span class="p">])</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">Coordinates</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">coords</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">UnitsDataArray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="n">NodeException</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
         <span class="k">return</span> <span class="n">output</span></div>
 
 <div class="viewcode-block" id="Algorithm.find_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Algorithm.html#podpac.algorithm.Algorithm.find_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">find_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

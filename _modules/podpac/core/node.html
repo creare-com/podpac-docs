@@ -182,6 +182,8 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="k">import</span> <span class="n">md5</span> <span class="k">as</span> <span class="n">hash_alg</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
@@ -191,6 +193,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.style</span> <span class="k">import</span> <span class="n">Style</span>
+<span class="kn">from</span> <span class="nn">podpac.core.cache</span> <span class="k">import</span> <span class="n">cache</span>
 
 <span class="n">COMMON_NODE_DOC</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;requested_coordinates&#39;</span><span class="p">:</span>
@@ -251,6 +254,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    cache_type : [None, &#39;disk&#39;, &#39;ram&#39;]</span>
 <span class="sd">        How the output of the nodes should be cached. By default, outputs are not cached.</span>
+<span class="sd">    cache_ctrl: :class:`podpac.core.cache.cache.CacheCtrl`</span>
+<span class="sd">        Class that controls caching. If not provided, uses default based on cache_type.</span>
 <span class="sd">    dtype : type</span>
 <span class="sd">        The numpy datatype of the output. Currently only ``float`` is supported.</span>
 <span class="sd">    node_defaults : dict</span>
@@ -271,6 +276,23 @@
     <span class="n">units</span> <span class="o">=</span> <span class="n">Units</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">dtype</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">cache_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;disk&#39;</span><span class="p">,</span> <span class="s1">&#39;ram&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cache_ctrl</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">cache</span><span class="o">.</span><span class="n">CacheCtrl</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;cache_ctrl&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_cache_ctrl_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_type</span> <span class="o">==</span> <span class="s1">&#39;ram&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Cachetype RAM has not been implemented&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_type</span> <span class="o">==</span> <span class="s1">&#39;disk&#39;</span><span class="p">:</span>
+            <span class="n">store</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">DiskCacheStore</span><span class="p">(</span><span class="n">root_cache_dir_path</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span><span class="p">)</span>
+            <span class="n">ctrl</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">CacheCtrl</span><span class="p">(</span><span class="n">cache_stores</span><span class="o">=</span><span class="p">[</span><span class="n">store</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">ctrl</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;cache_type&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_cache_type_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_ctrl_default</span><span class="p">()</span>
+
     <span class="n">node_defaults</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">style</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Style</span><span class="p">)</span>
 
@@ -278,9 +300,12 @@
     <span class="k">def</span> <span class="nf">_style_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Style</span><span class="p">()</span>
 
+    <span class="n">debug</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span> <span class="c1"># TODO replace with a setting</span>
+
     <span class="c1"># debugging</span>
     <span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">_output</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_from_cache</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="c1"># temporary messages</span>
     <span class="nd">@property</span>
@@ -570,7 +595,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hash_alg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Caching Interface</span>
@@ -599,9 +624,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;cached data not found for key &#39;</span><span class="si">%s</span><span class="s2">&#39; and cooordinates </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">))</span></div>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;cached data not found for key &#39;</span><span class="si">%s</span><span class="s2">&#39; and cooordinates </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">))</span>
 
-        <span class="c1"># return cache.get(self, data, key, coordinates=coordinates)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.put_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.put_cache">[docs]</a>    <span class="k">def</span> <span class="nf">put_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -625,9 +650,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cached data already exists for key &#39;</span><span class="si">%s</span><span class="s2">&#39; and coordinates </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">))</span></div>
-
-        <span class="c1"># cache.put(self, data, key, coordinates=coordinates, overwrite=overwrite)</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cached data already exists for key &#39;</span><span class="si">%s</span><span class="s2">&#39; and coordinates </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>  <span class="c1"># Without raising an error?</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.has_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.has_cache">[docs]</a>    <span class="k">def</span> <span class="nf">has_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -645,9 +672,9 @@
 <span class="sd">        bool</span>
 <span class="sd">            True if there is cached data for this node, key, and coordinates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="kc">False</span></div>
-        <span class="c1"># return cache.has(self, data, key, coordinates=coordinates)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.del_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.del_cache">[docs]</a>    <span class="k">def</span> <span class="nf">del_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -923,6 +950,50 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">(</span><span class="n">attr</span><span class="p">)):</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">node_eval</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator for Node eval methods that handles caching and a user provided output argument.</span>
+
+<span class="sd">    fn : function</span>
+<span class="sd">        Node eval method to wrap</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    wrapper : function</span>
+<span class="sd">        Wrapped node eval method</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="s1">&#39;output&#39;</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">cache_key</span>
+        <span class="n">cache_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span> <span class="c1"># order agnostic caching</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">order</span><span class="p">)[:]</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_from_cache</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_from_cache</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># transpose data to match the dims order of the requested coordinates</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
 </pre></div>
 
            </div>

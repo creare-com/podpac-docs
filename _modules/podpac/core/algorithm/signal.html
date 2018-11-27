@@ -196,7 +196,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
 <span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="k">import</span> <span class="n">Algorithm</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span><span class="p">,</span> <span class="n">node_eval</span>
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 <span class="n">COMMON_DOC</span><span class="p">[</span><span class="s1">&#39;full_kernel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;Kernel that contains all the dimensions of the input source, in the correct order.</span>
@@ -252,6 +252,7 @@
     <span class="n">_full_kernel</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
  
 <div class="viewcode-block" id="Convolution.eval"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="nd">@node_eval</span>
     <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates.</span>
 <span class="sd">        </span>
@@ -266,20 +267,18 @@
 <span class="sd">        -------</span>
 <span class="sd">        {eval_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
-        
         <span class="c1"># This should be aligned with coordinates&#39; dimension order</span>
         <span class="c1"># The size of this kernel is used to figure out the expanded size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_full_kernel</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-        <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span><span class="o">.</span><span class="n">shape</span>
         
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Kernel shape does not match source data shape&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;shape mismatch, kernel does not match source data (</span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
 
         <span class="c1"># expand the coordinates</span>
         <span class="n">exp_coords</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">exp_slice</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
             <span class="n">coord</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">):</span>
                 <span class="n">exp_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
@@ -296,20 +295,24 @@
                 <span class="n">coord</span><span class="o">.</span><span class="n">step</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">coord</span><span class="o">.</span><span class="n">properties</span><span class="p">))</span>
             <span class="n">exp_slice</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="o">-</span><span class="n">s_start</span><span class="p">,</span> <span class="o">-</span><span class="n">s_end</span><span class="p">))</span>
-        <span class="n">exp_coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">exp_coords</span><span class="p">)</span>
         <span class="n">exp_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">exp_slice</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expanded_coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">exp_coords</span><span class="p">)</span>
 
-        <span class="c1"># evaluate using expanded coordinates and then reduce down to originally requested coordinates</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Convolution</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">exp_coords</span><span class="p">)</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="n">exp_slice</span><span class="p">]</span>
+        <span class="c1"># evaluate source using expanded coordinates, convolve, and then slice out original coordinates</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expanded_coordinates</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">source</span><span class="p">)):</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;direct&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">exp_slice</span><span class="p">]</span>
+ 
         <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">result</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
-
-        <span class="c1"># debugging</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_expanded_coordinates</span> <span class="o">=</span> <span class="n">exp_coords</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
 
         <span class="k">return</span> <span class="n">output</span></div>
 
@@ -336,27 +339,7 @@
 <div class="viewcode-block" id="Convolution.get_full_kernel"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution.get_full_kernel">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{full_kernel}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span></div>
-
-<div class="viewcode-block" id="Convolution.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Computes the convolution of the source and the kernel</span>
-<span class="sd">        </span>
-<span class="sd">        Arguments</span>
-<span class="sd">        ----------</span>
-<span class="sd">        inputs : dict</span>
-<span class="sd">            evaluated outputs of the input nodes. The keys are the attribute names.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        np.ndarray</span>
-<span class="sd">            Resultant array. </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">])):</span>
-            <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;direct&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">res</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span></div></div>
 
 
 <div class="viewcode-block" id="TimeConvolution"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.TimeConvolution.html#podpac.algorithm.TimeConvolution">[docs]</a><span class="k">class</span> <span class="nc">TimeConvolution</span><span class="p">(</span><span class="n">Convolution</span><span class="p">):</span>

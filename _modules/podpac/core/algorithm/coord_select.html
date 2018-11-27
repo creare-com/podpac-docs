@@ -217,21 +217,6 @@
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;coordinates_source&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_default_coordinates_source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
-   
-    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Passthrough of the source data</span>
-<span class="sd">        </span>
-<span class="sd">        Arguments</span>
-<span class="sd">        ----------</span>
-<span class="sd">        inputs : dict</span>
-<span class="sd">            Evaluated output of the input nodes. The keys are the attribute names.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        UnitDataArray</span>
-<span class="sd">            Source evaluated at the expanded coordinates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span>
  
     <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -254,18 +239,23 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
-        
-        <span class="n">modified_coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modified_coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span>
             <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_modified_coordinates1d</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">modified_coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">modified_coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modified_coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modified_coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Modified coordinates do not intersect with source data (dim &#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="n">dim</span><span class="p">)</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ModifyCoordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">modified_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
 
-        <span class="c1"># debugging</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_modified_coordinates</span> <span class="o">=</span> <span class="n">modified_coordinates</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_modified_coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
         <span class="k">return</span> <span class="n">output</span>
 
 <div class="viewcode-block" id="ExpandCoordinates"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.ExpandCoordinates.html#podpac.algorithm.ExpandCoordinates">[docs]</a><span class="k">class</span> <span class="nc">ExpandCoordinates</span><span class="p">(</span><span class="n">ModifyCoordinates</span><span class="p">):</span>
