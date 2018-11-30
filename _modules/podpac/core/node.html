@@ -252,6 +252,10 @@
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
+<span class="sd">    cache_output: bool</span>
+<span class="sd">        Default if True. Should the node&#39;s output be cached? </span>
+<span class="sd">    cache_update: bool</span>
+<span class="sd">        Default is False. Should the node&#39;s cached output be updated from the source data? </span>
 <span class="sd">    cache_type : [None, &#39;disk&#39;, &#39;ram&#39;]</span>
 <span class="sd">        How the output of the nodes should be cached. By default, outputs are not cached.</span>
 <span class="sd">    cache_ctrl: :class:`podpac.core.cache.cache.CacheCtrl`</span>
@@ -275,6 +279,8 @@
 
     <span class="n">units</span> <span class="o">=</span> <span class="n">Units</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">dtype</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">cache_output</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cache_update</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">cache_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;disk&#39;</span><span class="p">,</span> <span class="s1">&#39;ram&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">cache_ctrl</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">cache</span><span class="o">.</span><span class="n">CacheCtrl</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -628,7 +634,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Node.put_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.put_cache">[docs]</a>    <span class="k">def</span> <span class="nf">put_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.put_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.put_cache">[docs]</a>    <span class="k">def</span> <span class="nf">put_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">raise_no_cache_exception</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Cache data for this node.</span>
 
@@ -640,19 +646,26 @@
 <span class="sd">            Unique key for the data, e.g. &#39;output&#39;</span>
 <span class="sd">        coordinates : podpac.Coordinates, optional</span>
 <span class="sd">            Coordinates that the cached data depends on. Omit for coordinate-independent data.</span>
-<span class="sd">        overwrite : bool</span>
+<span class="sd">        overwrite : bool, optional</span>
 <span class="sd">            Overwrite existing data, default False</span>
+<span class="sd">        raise_no_cache_exception: bool, optional</span>
+<span class="sd">            Raises a NodeException if trying to put data to the cache, but no cache is available.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NodeException</span>
 <span class="sd">            Cached data already exists (and overwrite is False)</span>
+<span class="sd">        NodeException</span>
+<span class="sd">            No cache_ctrl available and raise_no_cache_exception is True</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cached data already exists for key &#39;</span><span class="si">%s</span><span class="s2">&#39; and coordinates </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span>  <span class="c1"># Without raising an error?</span>
+            <span class="k">if</span> <span class="n">raise_no_cache_exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s1">&#39;Trying to cache data but no cache_ctrl available. Specify cache_type.&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
 
@@ -676,7 +689,7 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Node.del_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.del_cache">[docs]</a>    <span class="k">def</span> <span class="nf">del_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.rem_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.rem_cache">[docs]</a>    <span class="k">def</span> <span class="nf">rem_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">all_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Clear cached data for this node.</span>
 
@@ -687,270 +700,26 @@
 <span class="sd">        coordinates : podpac.Coordinates, optional</span>
 <span class="sd">            Delete cached objects for these coordinates. If None, cached data is deleted for all coordinates, including</span>
 <span class="sd">            coordinate-independent data.</span>
+<span class="sd">        mode: str, optional</span>
+<span class="sd">            Specify which cache stores are affected. </span>
+<span class="sd">        all_cache: bool, optional</span>
+<span class="sd">            Default is False. If True, deletes all of the cache.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        ---------</span>
+<span class="sd">        `podpac.core.cache.cache.CacheCtrl.rem`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">pass</span></div>
-        <span class="c1"># return cache.rem(self, data, key, coordinates=coordinates)</span>
-
-    <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
-    <span class="c1"># Deprecated methods</span>
-    <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
-
-    <span class="k">def</span> <span class="nf">_get_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">hash</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_get_output_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">outdir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">outdir</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outdir</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">outdir</span>
-
-<div class="viewcode-block" id="Node.write"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;pickle&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Write the most recent evaluation output to disk using the specified format</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        name : str</span>
-<span class="sd">            Name of the file prefix. The final filename will have &lt;name&gt;_&lt;node_hash&gt;_&lt;coordinates_hash&gt;.&lt;ext&gt;</span>
-<span class="sd">        outdir : None, optional</span>
-<span class="sd">            {outdir}</span>
-<span class="sd">        fmt : str</span>
-<span class="sd">            Output format, default &#39;pickle&#39;</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        --------</span>
-<span class="sd">        str</span>
-<span class="sd">            The path of the loaded file</span>
-
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        NotImplementedError</span>
-<span class="sd">            format not yet implemented</span>
-<span class="sd">        ValueError</span>
-<span class="sd">            invalid format</span>
-
-<span class="sd">        .. deprecated:: 0.2.0</span>
-<span class="sd">            This method will be removed and replaced by the caching module by version 0.2.0.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="kn">import</span> <span class="nn">warnings</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Node.write will be removed in a later release&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">cPickle</span>  <span class="c1"># Python 2.7</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">_pickle</span> <span class="k">as</span> <span class="nn">cPickle</span>
-
-        <span class="n">coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_output_path</span><span class="p">(</span><span class="n">outdir</span><span class="o">=</span><span class="n">outdir</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filename</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;pickle&#39;</span><span class="p">:</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="n">path</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;png&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;format &#39;</span><span class="si">%s</span><span class="s2">&#39; not yet implemented&quot;</span> <span class="o">%</span> <span class="n">fmt</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">fmt</span> <span class="o">==</span> <span class="s1">&#39;geotif&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;format &#39;</span><span class="si">%s</span><span class="s2">&#39; not yet implemented&quot;</span> <span class="o">%</span> <span class="n">fmt</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid format, &#39;</span><span class="si">%s</span><span class="s2">&#39; not recognized&quot;</span> <span class="o">%</span> <span class="n">fmt</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">path</span></div>
-
-<div class="viewcode-block" id="Node.load"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieves cached output from disk as though the node has been evaluated</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        name : str</span>
-<span class="sd">            Name of the file prefix.</span>
-<span class="sd">        coordinates : podpac.Coordinates</span>
-<span class="sd">            {requested_coordinates}</span>
-<span class="sd">        outdir : str, optional</span>
-<span class="sd">            {outdir}</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        --------</span>
-<span class="sd">        str</span>
-<span class="sd">            The path of the loaded file</span>
-
-<span class="sd">        .. deprecated:: 0.2.0</span>
-<span class="sd">            This method will be removed and replaced by the caching module by version 0.2.0.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="kn">import</span> <span class="nn">warnings</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Node.load will be removed in a later release&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">cPickle</span>  <span class="c1"># Python 2.7</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">_pickle</span> <span class="k">as</span> <span class="nn">cPickle</span>
-
-        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_output_path</span><span class="p">(</span><span class="n">outdir</span><span class="o">=</span><span class="n">outdir</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_filename</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">))</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.pkl&#39;</span> <span class="o">%</span> <span class="n">path</span> <span class="c1"># assumes pickle</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">path</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">cache_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the directory used for caching</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Path to the default cache directory</span>
-
-<span class="sd">        .. deprecated:: 0.2.0</span>
-<span class="sd">            This method will be removed and replaced by the caching module by version 0.2.0.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="kn">import</span> <span class="nn">warnings</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Node.cache_dir will be removed in a later release&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-
-        <span class="n">basedir</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span>
-        <span class="n">subdir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)[</span><span class="mi">8</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
-        <span class="n">dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">basedir</span><span class="p">]</span> <span class="o">+</span> <span class="n">subdir</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">dirs</span><span class="p">)</span>
-
-<div class="viewcode-block" id="Node.cache_path"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.cache_path">[docs]</a>    <span class="k">def</span> <span class="nf">cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the cache path for the file</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        filename : str</span>
-<span class="sd">            Name of the cached file</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Path to the cached file</span>
-
-<span class="sd">        .. deprecated:: 0.2.0</span>
-<span class="sd">            This method will be removed and replaced by the caching module by version 0.2.0.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="kn">import</span> <span class="nn">warnings</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Node.cache_path will be removed in a later release&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-
-        <span class="n">pre</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">pre</span>  <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="Node.cache_obj"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.cache_obj">[docs]</a>    <span class="k">def</span> <span class="nf">cache_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Cache the input object using the given filename</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        obj : object</span>
-<span class="sd">            Object to be cached to disk</span>
-<span class="sd">        filename : str</span>
-<span class="sd">            File name for the object to be cached</span>
-
-<span class="sd">        .. deprecated:: 0.2.0</span>
-<span class="sd">            This method will be removed and replaced by the caching module by version 0.2.0.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="kn">import</span> <span class="nn">warnings</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Node.cache_obj will be replaced by put_cache in a later release&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">cPickle</span>  <span class="c1"># Python 2.7</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">_pickle</span> <span class="k">as</span> <span class="nn">cPickle</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">boto3</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">boto3</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_TO_S3</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">):</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
-                <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">fid</span><span class="p">)</span><span class="c1">#, protocol=cPickle.HIGHEST_PROTOCOL)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span><span class="p">)</span>
-            <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
-            <span class="n">s3</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="Node.load_cached_obj"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.load_cached_obj">[docs]</a>    <span class="k">def</span> <span class="nf">load_cached_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retreive an object from cache</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        filename : str</span>
-<span class="sd">            File name of object to be retrieved from cache</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        object</span>
-<span class="sd">            Object loaded from cache</span>
-
-<span class="sd">        .. deprecated:: 0.2.0</span>
-<span class="sd">            This method will be removed and replaced by the caching module by version 0.2.0.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="kn">import</span> <span class="nn">warnings</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Node.load_cached_obj will be replaced by get_cache in a later release&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">cPickle</span>  <span class="c1"># Python 2.7</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">_pickle</span> <span class="k">as</span> <span class="nn">cPickle</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">boto3</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">boto3</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">CACHE_TO_S3</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
-                <span class="n">obj</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fid</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">S3_BUCKET_NAME</span><span class="p">)</span>
-            <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
-            <span class="n">s3</span><span class="o">.</span><span class="n">download_fileobj</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">io</span><span class="p">)</span>
-            <span class="n">io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-            <span class="n">obj</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">obj</span></div>
-
-<div class="viewcode-block" id="Node.clear_disk_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.clear_disk_cache">[docs]</a>    <span class="k">def</span> <span class="nf">clear_disk_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">node_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Helper function to clear disk cache.</span>
-
-<span class="sd">        WARNING: This function will permanently delete cached values</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        attr : str, optional</span>
-<span class="sd">            Default &#39;*&#39;. Specific attribute to be cleared for specific</span>
-<span class="sd">            instance of this Node. By default all attributes are cleared.</span>
-<span class="sd">        node_cache : bool, optional</span>
-<span class="sd">            Default False. If True, will ignore `attr` and clear all attributes</span>
-<span class="sd">            for all variants/instances of this Node.</span>
-<span class="sd">        all_cache : bool, optional</span>
-<span class="sd">            Default False. If True, will clear the entire podpac cache.</span>
-
-<span class="sd">        .. deprecated:: 0.2.0</span>
-<span class="sd">            This method will be removed and replaced by the caching module by version 0.2.0.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="kn">import</span> <span class="nn">warnings</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Node.clear_disk_cache will be replaced by del_cache in a later release&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-
-        <span class="kn">import</span> <span class="nn">glob</span>
-        <span class="kn">import</span> <span class="nn">shutil</span>
-
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> 
         <span class="k">if</span> <span class="n">all_cache</span><span class="p">:</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">node_cache</span><span class="p">:</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">rem</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">(</span><span class="n">attr</span><span class="p">)):</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">rem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div></div>
 
+
+<span class="c1">#--------------------------------------------------------#</span>
+<span class="c1">#  Decorators</span>
+<span class="c1">#--------------------------------------------------------#</span>
 
 <span class="k">def</span> <span class="nf">node_eval</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -973,7 +742,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
         <span class="n">key</span> <span class="o">=</span> <span class="n">cache_key</span>
         <span class="n">cache_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span> <span class="c1"># order agnostic caching</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_update</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
@@ -981,7 +750,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_from_cache</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_output</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_update</span><span class="p">,</span>
+                               <span class="n">raise_no_cache_exception</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_from_cache</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="c1"># transpose data to match the dims order of the requested coordinates</span>
@@ -992,8 +763,102 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">data</span>
 
         <span class="k">return</span> <span class="n">data</span>
-
     <span class="k">return</span> <span class="n">wrapper</span>
+
+<span class="k">def</span> <span class="nf">cache_func</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">depends</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raise_no_cache_exception</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorating for caching a function&#39;s output based on a key. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    key: str</span>
+<span class="sd">        Key used for caching.</span>
+<span class="sd">    depends: str, list, traitlets.All (optional)</span>
+<span class="sd">        Default is None. Any traits that the cached property depends on. The cached function may NOT</span>
+<span class="sd">        change the value of any of these dependencies (this will result in a RecursionError)</span>
+<span class="sd">    raise_no_cache_exception: bool, optional</span>
+<span class="sd">            Raises a NodeException if trying to put data to the cache, but no cache is available.</span>
+
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This decorator cannot handle function input parameters. </span>
+<span class="sd">    </span>
+<span class="sd">    If the function uses any tagged attributes, these will essentially operate like dependencies</span>
+<span class="sd">    because the cache key changes based on the node definition, which is affected by tagged attributes.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    ----------</span>
+<span class="sd">    &gt;&gt;&gt; from podpac import Node</span>
+<span class="sd">    &gt;&gt;&gt; from podpac.core.node import cache_func</span>
+<span class="sd">    &gt;&gt;&gt; import traitlets as tl</span>
+<span class="sd">    &gt;&gt;&gt; class MyClass(Node):</span>
+<span class="sd">           value = tl.Int(0)</span>
+<span class="sd">           @cache_func(&#39;add&#39;)</span>
+<span class="sd">           def add_value(self):</span>
+<span class="sd">               self.value += 1</span>
+<span class="sd">               return self.value</span>
+<span class="sd">           @cache_func(&#39;square&#39;, depends=&#39;value&#39;)</span>
+<span class="sd">           def square_value_depends(self):</span>
+<span class="sd">               return self.value</span>
+
+<span class="sd">    &gt;&gt;&gt; n = MyClass()</span>
+<span class="sd">    &gt;&gt;&gt; n.add_value()  # The function as defined is called</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; n.add_value()  # The function as defined is called again, since we have no caching specified</span>
+<span class="sd">    2</span>
+<span class="sd">    &gt;&gt;&gt; n.cache_type = &#39;disk&#39;</span>
+<span class="sd">    &gt;&gt;&gt; n.add_value()  # The function as defined is called again, and the value is stored to disk</span>
+<span class="sd">    3</span>
+<span class="sd">    &gt;&gt;&gt; n.add_value()  # The value is retrieved from disk, note the change in n.value is not captured</span>
+<span class="sd">    3</span>
+<span class="sd">    &gt;&gt;&gt; n.square_value_depends()  # The function as defined is called, and the value is stored to disk</span>
+<span class="sd">    16</span>
+<span class="sd">    &gt;&gt;&gt; n.square_value_depends()  # The value is retrieved from disk</span>
+<span class="sd">    16</span>
+<span class="sd">    &gt;&gt;&gt; n.value += 1</span>
+<span class="sd">    &gt;&gt;&gt; n.square_value_depends()  # The function as defined is called, and the value is stored to disk. Note the change in n.value is captured.</span>
+<span class="sd">    25</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># This is the actual decorator which will be evaluated and returns the wrapped function</span>
+    <span class="k">def</span> <span class="nf">cache_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="c1"># This is the initial wrapper that sets up the observations</span>
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">cache_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="c1"># This is the function that updates the cached based on observed traits</span>
+            <span class="k">def</span> <span class="nf">cache_updator</span><span class="p">(</span><span class="n">change</span><span class="p">):</span>
+                <span class="c1"># print(&quot;Updating value on self:&quot;, id(self))</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">raise_no_cache_exception</span><span class="o">=</span><span class="n">raise_no_cache_exception</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">depends</span><span class="p">:</span>
+                <span class="c1"># This sets up the observer on the dependent traits</span>
+                <span class="c1"># print (&quot;setting up observer on self: &quot;, id(self))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">cache_updator</span><span class="p">,</span> <span class="n">depends</span><span class="p">)</span>
+                <span class="c1"># Since attributes could change on instantiation, anything we previously </span>
+                <span class="c1"># stored is likely out of date. So, force and update to the cache.</span>
+                <span class="n">cache_updator</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># This is the final wrapper the continues to fetch data from cache</span>
+            <span class="c1"># after the observer has been set up.</span>
+            <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">cached_function</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span> 
+                    <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">NodeException</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">raise_no_cache_exception</span><span class="o">=</span><span class="n">raise_no_cache_exception</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">out</span>
+            
+            <span class="c1"># Since this is the first time the function is run, set the new wrapper </span>
+            <span class="c1"># on the class instance so that the current function won&#39;t be called again</span>
+            <span class="c1"># (which would set up an additional observer)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">cached_function</span><span class="p">)</span>
+            
+            <span class="c1"># Return the value on the first run</span>
+            <span class="k">return</span> <span class="n">cached_function</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cache_wrapper</span>
+    <span class="k">return</span> <span class="n">cache_decorator</span>
 </pre></div>
 
            </div>
