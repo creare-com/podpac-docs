@@ -188,7 +188,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
-<span class="kn">from</span> <span class="nn">podpac</span> <span class="k">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="k">import</span> <span class="n">Units</span><span class="p">,</span> <span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">create_data_array</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
@@ -208,7 +208,7 @@
 <span class="sd">            Unit-aware xarray DataArray containing the results of the node evaluation.</span>
 <span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
     <span class="s1">&#39;hash_return&#39;</span><span class="p">:</span> <span class="s1">&#39;A unique hash capturing the coordinates and parameters used to evaluate the node. &#39;</span><span class="p">,</span>
-    <span class="s1">&#39;outdir&#39;</span><span class="p">:</span> <span class="s1">&#39;Optional output directory. Uses :attr:`podpac.settings.CACHE_DIR` by default&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;outdir&#39;</span><span class="p">:</span> <span class="s2">&quot;Optional output directory. Uses :attr:`podpac.settings[&#39;CACHE_DIR&#39;]` by default&quot;</span><span class="p">,</span>
     <span class="s1">&#39;definition_return&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        OrderedDict</span>
@@ -291,7 +291,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_type</span> <span class="o">==</span> <span class="s1">&#39;ram&#39;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Cachetype RAM has not been implemented&#39;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_type</span> <span class="o">==</span> <span class="s1">&#39;disk&#39;</span><span class="p">:</span>
-            <span class="n">store</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">DiskCacheStore</span><span class="p">(</span><span class="n">root_cache_dir_path</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">CACHE_DIR</span><span class="p">)</span>
+            <span class="n">store</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">DiskCacheStore</span><span class="p">(</span><span class="n">root_cache_dir_path</span><span class="o">=</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">])</span>
             <span class="n">ctrl</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">CacheCtrl</span><span class="p">(</span><span class="n">cache_stores</span><span class="o">=</span><span class="p">[</span><span class="n">store</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">ctrl</span>
@@ -305,8 +305,6 @@
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_style_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Style</span><span class="p">()</span>
-
-    <span class="n">debug</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span> <span class="c1"># TODO replace with a setting</span>
 
     <span class="c1"># debugging</span>
     <span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -738,7 +736,7 @@
 
     <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
         <span class="n">key</span> <span class="o">=</span> <span class="n">cache_key</span>
         <span class="n">cache_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span> <span class="c1"># order agnostic caching</span>
@@ -759,7 +757,7 @@
         <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">order</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;debug&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">data</span>
 
         <span class="k">return</span> <span class="n">data</span>
@@ -767,7 +765,7 @@
 
 <span class="k">def</span> <span class="nf">cache_func</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">depends</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raise_no_cache_exception</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Decorating for caching a function&#39;s output based on a key. </span>
+<span class="sd">    Decorating for caching a function&#39;s output based on a key.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
@@ -782,7 +780,7 @@
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    This decorator cannot handle function input parameters. </span>
+<span class="sd">    This decorator cannot handle function input parameters.</span>
 <span class="sd">    </span>
 <span class="sd">    If the function uses any tagged attributes, these will essentially operate like dependencies</span>
 <span class="sd">    because the cache key changes based on the node definition, which is affected by tagged attributes.</span>
