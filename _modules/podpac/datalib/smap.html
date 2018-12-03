@@ -400,9 +400,6 @@
     <span class="n">_SMAP_BASE_URL</span> <span class="o">=</span> <span class="n">BASE_URL</span>
     <span class="k">return</span> <span class="n">BASE_URL</span>
 
-<span class="k">def</span> <span class="nf">SMAP_BASE_URL_REGEX</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">d&#39;</span><span class="p">,</span> <span class="n">SMAP_BASE_URL</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]))</span>   
-
 
 <div class="viewcode-block" id="SMAPSource"><a class="viewcode-back" href="../../../user/api/podpac.datalib.SMAPSource.html#podpac.datalib.SMAPSource">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SMAPSource</span><span class="p">(</span><span class="n">datatype</span><span class="o">.</span><span class="n">PyDAP</span><span class="p">):</span>
@@ -430,8 +427,8 @@
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;auth_session&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_auth_session_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_class</span><span class="p">(</span>
-            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">hostname_regex</span><span class="o">=</span><span class="n">SMAP_BASE_URL_REGEX</span><span class="p">())</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_class</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">product_url</span><span class="o">=</span><span class="n">SMAP_BASE_URL</span><span class="p">())</span>
+
         <span class="c1"># check url</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SMAP_BASE_URL</span><span class="p">())</span>
@@ -704,8 +701,7 @@
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;auth_session&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_auth_session_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_class</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">hostname_regex</span><span class="o">=</span><span class="n">SMAP_BASE_URL_REGEX</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">session</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_class</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">product_url</span><span class="o">=</span><span class="n">SMAP_BASE_URL</span><span class="p">())</span>
 
     <span class="n">base_url</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;base_url&#39;</span><span class="p">)</span>
@@ -960,8 +956,7 @@
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;auth_session&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_auth_session_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_class</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">hostname_regex</span><span class="o">=</span><span class="n">SMAP_BASE_URL_REGEX</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">session</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_class</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">product_url</span><span class="o">=</span><span class="n">SMAP_BASE_URL</span><span class="p">())</span>
 
     <span class="n">layerkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span>
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;layerkey&#39;</span><span class="p">)</span>
