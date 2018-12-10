@@ -17,7 +17,7 @@
   
   
   
-    <link rel="canonical" href="https://creare-com.github.io/podpac-docs_modules/podpac/core/data/types.html"/>
+    <link rel="canonical" href="https://podpac.org_modules/podpac/core/data/types.html"/>
   
 
   
@@ -56,7 +56,7 @@
 
           
             
-            <img src="../../../../_static/icon.png" class="logo" alt="Logo"/>
+            <img src="../../../../_static/icon.svg" class="logo" alt="Logo"/>
           
           </a>
 
@@ -503,15 +503,25 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_col</span><span class="p">)</span>
     
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Opens the data source</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        source : str, optional</span>
+<span class="sd">            Uses self.source by default. Path to the data source.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        pd.DataFrame</span>
 <span class="sd">            pd.read_csv(source)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">source</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     
     <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -542,54 +552,49 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
 
 
+<span class="c1"># TODO: rename &quot;Rasterio&quot; to be more consistent with other naming conventions</span>
 <div class="viewcode-block" id="Rasterio"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Rasterio</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource using Rasterio.</span>
-<span class="sd"> </span>
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    source : str, :class:`io.BytesIO`</span>
-<span class="sd">        Path to the data source</span>
-<span class="sd">    band : int</span>
-<span class="sd">        The &#39;band&#39; or index for the variable being accessed in files such as GeoTIFFs</span>
-
+<span class="sd">    </span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    dataset : :class:`rasterio._io.RasterReader`</span>
+<span class="sd">    band : int</span>
+<span class="sd">        The &#39;band&#39; or index for the variable being accessed in files such as GeoTIFFs</span>
+<span class="sd">    dataset : Any</span>
 <span class="sd">        A reference to the datasource opened by rasterio</span>
-<span class="sd">    native_coordinates : :class:`podpac.Coordinates`</span>
+<span class="sd">    native_coordinates : Coordinates</span>
 <span class="sd">        {native_coordinates}</span>
-
+<span class="sd">    source : str</span>
+<span class="sd">        Path to the data source</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">)],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
+    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">band</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CInt</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Opens the data source</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        source : str, optional</span>
+<span class="sd">            Uses self.source by default. Path to the data source.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`rasterio.io.DatasetReader`</span>
-<span class="sd">            Rasterio dataset</span>
+<span class="sd">        Any</span>
+<span class="sd">            raster.open(source)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">source</span>
 
         <span class="c1"># TODO: dataset should not open by default</span>
         <span class="c1"># prefer with as: syntax</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">BytesIO</span><span class="p">):</span>
-            <span class="c1"># https://rasterio.readthedocs.io/en/latest/topics/memory-files.html</span>
-            <span class="c1"># TODO: this is still not working quite right - likely need to work</span>
-            <span class="c1"># out the BytesIO format or how we are going to read/write in memory</span>
-            <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">MemoryFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span> <span class="k">as</span> <span class="n">memfile</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">memfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">driver</span><span class="o">=</span><span class="s1">&#39;GTiff&#39;</span><span class="p">)</span>
-
-        <span class="c1"># local file</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
     
 <div class="viewcode-block" id="Rasterio.close_dataset"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Closes the file for the datasource</span>
@@ -598,49 +603,31 @@
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_update_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="p">):</span>
-
-        <span class="c1"># only update dataset if dataset trait has been defined the first time</span>
-        <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;dataset&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_dataset</span><span class="p">()</span>
-
-            <span class="c1"># update native_coordinates if they have been defined</span>
-            <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;native_coordinates&#39;</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">change</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;native_coordinates&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
         
 <div class="viewcode-block" id="Rasterio.get_native_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
 <span class="sd">        </span>
-<span class="sd">        The default implementation tries to find the lat/lon coordinates based on dataset.affine.</span>
-<span class="sd">        It cannot determine the alt or time dimensions, so child classes may</span>
+<span class="sd">        The default implementation tries to find the lat/lon coordinates based on dataset.affine or dataset.transform</span>
+<span class="sd">        (depending on the version of rasterio). It cannot determine the alt or time dimensions, so child classes may</span>
 <span class="sd">        have to overload this method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="c1"># check to see if the coordinates are rotated used affine</span>
         <span class="n">affine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">transform</span>
+
+        <span class="n">left</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">bounds</span>
+
         <span class="k">if</span> <span class="n">affine</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="n">affine</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Rotated coordinates are not yet supported&quot;</span><span class="p">)</span>
 
-        <span class="c1"># TODO: fix coordinate reference system handling</span>
-        <span class="c1"># try:</span>
-        <span class="c1">#     crs = self.dataset.crs[&#39;init&#39;].upper()</span>
-        <span class="c1">#     if crs == &#39;EPSG:3857&#39;:</span>
-        <span class="c1">#         crs = &#39;SPHER_MERC&#39;</span>
-        <span class="c1">#     elif crs == &#39;EPSG:4326&#39;:</span>
-        <span class="c1">#         crs = &#39;WGS84&#39;</span>
-        <span class="c1">#     else:</span>
-        <span class="c1">#         crs = None</span>
-        <span class="c1"># except:</span>
-        <span class="c1">#     crs = None</span>
-        <span class="n">crs</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="c1"># get bounds</span>
-        <span class="n">left</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">bounds</span>
-
         <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span>
-            <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">bottom</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">crs</span><span class="p">),</span>
-            <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span>
-        <span class="p">],</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span></div>
+            <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">bottom</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lat&#39;</span><span class="p">),</span>
+            <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
+        <span class="p">])</span></div>
 
 <div class="viewcode-block" id="Rasterio.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
@@ -648,25 +635,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
         <span class="n">slc</span> <span class="o">=</span> <span class="n">coordinates_index</span>
-
-        <span class="c1"># rasterio reads data in with 0, 0 in the top left</span>
-        <span class="c1"># this is inverse to how we index lat coordinates, so we need to subtract slices off the height</span>
-        <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">height</span>
-        <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">width</span>
-        <span class="n">lat_start</span> <span class="o">=</span> <span class="n">height</span> <span class="o">-</span> <span class="p">(</span><span class="n">slc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span> <span class="ow">or</span> <span class="n">height</span><span class="p">)</span>
-        <span class="n">lat_stop</span> <span class="o">=</span> <span class="n">height</span> <span class="o">-</span> <span class="p">(</span><span class="n">slc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># 0 index the height</span>
-        <span class="n">lon_start</span> <span class="o">=</span> <span class="n">slc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="ow">or</span> <span class="mi">0</span>
-        <span class="n">lon_stop</span> <span class="o">=</span> <span class="n">slc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span> <span class="ow">or</span> <span class="n">width</span> <span class="o">-</span> <span class="mi">1</span>
-
-        <span class="c1"># create window to pull from</span>
-        <span class="n">window</span> <span class="o">=</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">Window</span><span class="o">.</span><span class="n">from_slices</span><span class="p">((</span><span class="n">lat_start</span><span class="p">,</span> <span class="n">lat_stop</span><span class="p">),</span> <span class="p">(</span><span class="n">lon_start</span><span class="p">,</span> <span class="n">lon_stop</span><span class="p">))</span>
-        
-        <span class="c1"># read data</span>
-        <span class="n">raster_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">,</span> <span class="n">out_shape</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
-
-        <span class="c1"># rasterio reads data inverse to how we index it (lat only)</span>
-        <span class="n">vflipped_raster_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">raster_data</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="n">vflipped_raster_data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="n">window</span><span class="o">=</span><span class="p">((</span><span class="n">slc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">slc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">),</span> <span class="p">(</span><span class="n">slc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">slc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">))</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">,</span> <span class="n">out_shape</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">data</span></div>
     
     <span class="nd">@cached_property</span>
@@ -782,7 +753,7 @@
     <span class="n">altkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Opens the data source</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
@@ -795,7 +766,6 @@
 <span class="sd">        Any</span>
 <span class="sd">            raster.open(source)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO: update this to remove block (see Rasterio)</span>
         <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
         <span class="k">else</span><span class="p">:</span>
@@ -812,10 +782,9 @@
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_update_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="p">):</span>
-        <span class="c1"># TODO: update this to look like Rasterio</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">close_dataset</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_dataset</span><span class="p">(</span><span class="n">change</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">change</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;native_coordinates&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
         
