@@ -194,7 +194,7 @@
 <span class="c1"># Settings Defaults</span>
 <span class="n">DEFAULT_SETTINGS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;DEBUG&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">:</span> <span class="s1">&#39;cache&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="s1">&#39;CACHE_TO_S3&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">),</span> <span class="s1">&#39;.podpac&#39;</span><span class="p">),</span>
     <span class="s1">&#39;AWS_ACCESS_KEY_ID&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -263,34 +263,17 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loaded</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="c1"># call dict init</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PodpacSettings</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
-        <span class="c1"># load default settings</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_load_defaults</span><span class="p">()</span>
-
-        <span class="c1"># load user settings</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_load_user_settings</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-
-        <span class="c1"># it breaks things to set the root path to None, set back to default if set to None</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_SETTINGS</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span>
-
-        <span class="c1"># TODO: handle this in the cache module</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;S3_BUCKET_NAME&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_TO_S3&#39;</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cache&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">])</span>
+        <span class="c1"># load settings from default locations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
 
         <span class="c1"># set loaded flag</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loaded</span> <span class="o">=</span> <span class="kc">True</span>
-
-        <span class="c1"># if no settings file exists, this will create one in the user&#39;s home directory</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 
@@ -325,36 +308,36 @@
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        path : str, optional</span>
-<span class="sd">            Full path to custom settings file</span>
-<span class="sd">        filename : str, optional</span>
+<span class="sd">        path : str</span>
+<span class="sd">            Full path to containing directory of settings file</span>
+<span class="sd">        filename : str</span>
 <span class="sd">            Filename of custom settings file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="c1"># custom file path - only used if path is not None</span>
         <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">default_path</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span>
-        <span class="n">default_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">default_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+        <span class="c1"># home path location is in the ROOT_PATH</span>
+        <span class="n">root_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">],</span> <span class="n">filename</span><span class="p">)</span>
         
+        <span class="c1"># cwd path</span>
+        <span class="n">cwd_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">filename</span><span class="p">)</span>
+
         <span class="c1"># set settings path to default to start</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span> <span class="o">=</span> <span class="n">default_filepath</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span> <span class="o">=</span> <span class="n">root_filepath</span>
 
         <span class="c1"># if input path is specifed, create the input path if it doesn&#39;t exist</span>
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 
             <span class="c1"># make empty settings path</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input podpac settings path does not exist: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 
-            <span class="c1"># write an empty settings file</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">({},</span> <span class="n">f</span><span class="p">)</span>
-
-        <span class="c1"># order of paths to check for settings</span>
+        <span class="c1"># order of paths to import settings - the later settings will overwrite earlier ones</span>
         <span class="n">filepath_choices</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">default_filepath</span><span class="p">,</span>                       <span class="c1"># default path</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">filename</span><span class="p">),</span>    <span class="c1"># current working directory</span>
-            <span class="n">filepath</span>                                <span class="c1"># input directory</span>
+            <span class="n">root_filepath</span><span class="p">,</span>
+            <span class="n">cwd_filepath</span><span class="p">,</span>
+            <span class="n">filepath</span>
         <span class="p">]</span>
 
         <span class="c1"># try path choices in order, overwriting earlier ones with later ones</span>
@@ -370,8 +353,8 @@
                         <span class="n">json_settings</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
                 <span class="k">except</span> <span class="n">JSONDecodeError</span><span class="p">:</span>
 
-                    <span class="c1"># if the default_filepath settings file is broken, raise</span>
-                    <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">default_filepath</span><span class="p">:</span>
+                    <span class="c1"># if the root_filepath settings file is broken, raise</span>
+                    <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">root_filepath</span><span class="p">:</span>
                         <span class="k">raise</span>
 
                 <span class="c1"># if path exists and settings loaded then load those settings into the dict</span>
@@ -381,20 +364,6 @@
 
                     <span class="c1"># save this path as the active</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span> <span class="o">=</span> <span class="n">p</span>
-
-    <span class="k">def</span> <span class="nf">_mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Wrapper for os.mkdirs(exist_ok=True)</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        path : str</span>
-<span class="sd">            path to directory</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">errno</span> <span class="o">!=</span> <span class="n">errno</span><span class="o">.</span><span class="n">EEXIST</span><span class="p">:</span>
-                <span class="k">raise</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">settings_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -414,20 +383,57 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">DEFAULT_SETTINGS</span>
     
-    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save current settings to active settings file</span>
 
 <span class="sd">        :attr:`settings.settings_path` shows the path to the currently active settings file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filepath : str, optional</span>
+<span class="sd">            Path to settings file to save. Defaults to :attr:`self.settings_filepath`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="c1"># custom filepath</span>
+        <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span> <span class="o">=</span> <span class="n">filepath</span>
+    
         <span class="c1"># if no settings path is found, create</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mkdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span><span class="p">))</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;settings.json&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a new settings file to be active</span>
+
+<span class="sd">        :attr:`settings.settings_path` shows the path to the currently active settings file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str, optional</span>
+<span class="sd">            Path to directory which contains the settings file. Defaults to :attr:`DEFAULT_SETTINGS[&#39;ROOT_PATH&#39;]`</span>
+<span class="sd">        filename : str, optional</span>
+<span class="sd">            Filename of the settings file. Defaults to &#39;settings.json&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># load default settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_defaults</span><span class="p">()</span>
+
+        <span class="c1"># load user settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_user_settings</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+        <span class="c1"># it breaks things to set the root path to None, set back to default if set to None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_SETTINGS</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span>
+
+        <span class="c1"># TODO: handle this in the cache module</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;S3_BUCKET_NAME&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_TO_S3&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cache&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">],</span> <span class="s1">&#39;cache&#39;</span><span class="p">))</span>
 
 
 
