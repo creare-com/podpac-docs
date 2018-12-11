@@ -503,14 +503,13 @@
         <span class="c1"># get data from data source</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
 
-        <span class="c1"># if not provided, create output using the evaluated coordinates, or</span>
-        <span class="c1"># if provided, set the order of coordinates to match the output dims</span>
+        <span class="c1"># if output is not input to evaluate, create it using the evaluated coordinates</span>
         <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">requested_dims</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">requested_dims</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span>
-            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+
+        <span class="c1"># set the order of dims to be the same as that of evaluated coordinates</span>
+        <span class="c1"># this is required in case the user supplied an output object with a different dims order</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
 
         <span class="c1"># interpolate data into output</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span>
@@ -518,9 +517,6 @@
                                                  <span class="n">coordinates</span><span class="p">,</span>
                                                  <span class="n">output</span><span class="p">)</span>
 
-        <span class="c1"># return the output to the originally requested output dims</span>
-        <span class="k">if</span> <span class="n">requested_dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">requested_dims</span> <span class="o">!=</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">requested_dims</span><span class="p">)</span>
         
         <span class="c1"># save output to private for debugging</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
