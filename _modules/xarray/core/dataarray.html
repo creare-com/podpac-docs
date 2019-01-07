@@ -183,7 +183,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">computation</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">indexing</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">resample</span><span class="p">,</span> <span class="n">rolling</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">computation</span><span class="p">,</span> <span class="n">dtypes</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">indexing</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">resample</span><span class="p">,</span> <span class="n">rolling</span><span class="p">,</span> <span class="n">utils</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..plot.plot</span> <span class="k">import</span> <span class="n">_PlotMethods</span>
 <span class="kn">from</span> <span class="nn">.accessors</span> <span class="k">import</span> <span class="n">DatetimeAccessor</span>
 <span class="kn">from</span> <span class="nn">.alignment</span> <span class="k">import</span> <span class="n">align</span><span class="p">,</span> <span class="n">reindex_like_indexers</span>
@@ -193,7 +194,7 @@
     <span class="n">assert_coordinate_consistent</span><span class="p">,</span> <span class="n">remap_label_indexers</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.dataset</span> <span class="k">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">merge_indexes</span><span class="p">,</span> <span class="n">split_indexes</span>
 <span class="kn">from</span> <span class="nn">.formatting</span> <span class="k">import</span> <span class="n">format_item</span>
-<span class="kn">from</span> <span class="nn">.options</span> <span class="k">import</span> <span class="n">OPTIONS</span><span class="p">,</span> <span class="n">_get_keep_attrs</span>
+<span class="kn">from</span> <span class="nn">.options</span> <span class="k">import</span> <span class="n">OPTIONS</span>
 <span class="kn">from</span> <span class="nn">.pycompat</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">basestring</span><span class="p">,</span> <span class="n">iteritems</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">_check_inplace</span><span class="p">,</span> <span class="n">decode_numpy_dict_values</span><span class="p">,</span> <span class="n">either_dict_or_kwargs</span><span class="p">,</span>
@@ -764,6 +765,9 @@
     <span class="k">def</span> <span class="nf">__dask_keys__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">__dask_keys__</span><span class="p">()</span>
 
+    <span class="k">def</span> <span class="nf">__dask_layers__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">__dask_layers__</span><span class="p">()</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">__dask_optimize__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">__dask_optimize__</span>
@@ -1171,8 +1175,8 @@
 <span class="sd">        interpolated: xr.DataArray</span>
 <span class="sd">            New dataarray on the new coordinates.</span>
 
-<span class="sd">        Note</span>
-<span class="sd">        ----</span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
 <span class="sd">        scipy is required.</span>
 
 <span class="sd">        See Also</span>
@@ -1227,8 +1231,8 @@
 <span class="sd">            Another dataarray by interpolating this dataarray&#39;s data along the</span>
 <span class="sd">            coordinates of the other object.</span>
 
-<span class="sd">        Note</span>
-<span class="sd">        ----</span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
 <span class="sd">        scipy is required.</span>
 <span class="sd">        If the dataarray has object-type coordinates, reindex is used for these</span>
 <span class="sd">        coordinates instead of the interpolation.</span>
@@ -2259,7 +2263,7 @@
         <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">shifts_kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">NA</span><span class="p">,</span> <span class="o">**</span><span class="n">shifts_kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Shift this array by an offset along one or more dimensions.</span>
 
 <span class="sd">        Only the data is moved; coordinates stay in place. Values shifted from</span>
@@ -2272,6 +2276,8 @@
 <span class="sd">            Integer offset to shift along each of the given dimensions.</span>
 <span class="sd">            Positive offsets shift to the right; negative offsets shift to the</span>
 <span class="sd">            left.</span>
+<span class="sd">        fill_value: scalar, optional</span>
+<span class="sd">            Value to use for newly missing values</span>
 <span class="sd">        **shifts_kwargs:</span>
 <span class="sd">            The keyword arguments form of ``shifts``.</span>
 <span class="sd">            One of shifts or shifts_kwarg must be provided.</span>
@@ -2296,8 +2302,9 @@
 <span class="sd">        Coordinates:</span>
 <span class="sd">          * x        (x) int64 0 1 2</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">shifts</span><span class="o">=</span><span class="n">shifts</span><span class="p">,</span> <span class="o">**</span><span class="n">shifts_kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+        <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span>
+            <span class="n">shifts</span><span class="o">=</span><span class="n">shifts</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span> <span class="o">**</span><span class="n">shifts_kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">variable</span><span class="o">=</span><span class="n">variable</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">roll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shifts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">roll_coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">shifts_kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Roll this array by an offset along one or more dimensions.</span>
@@ -2465,13 +2472,13 @@
 <span class="sd">            use when the desired quantile lies between two data points</span>
 <span class="sd">            ``i &lt; j``:</span>
 
-<span class="sd">                * linear: ``i + (j - i) * fraction``, where ``fraction`` is</span>
+<span class="sd">                - linear: ``i + (j - i) * fraction``, where ``fraction`` is</span>
 <span class="sd">                  the fractional part of the index surrounded by ``i`` and</span>
 <span class="sd">                  ``j``.</span>
-<span class="sd">                * lower: ``i``.</span>
-<span class="sd">                * higher: ``j``.</span>
-<span class="sd">                * nearest: ``i`` or ``j``, whichever is nearest.</span>
-<span class="sd">                * midpoint: ``(i + j) / 2``.</span>
+<span class="sd">                - lower: ``i``.</span>
+<span class="sd">                - higher: ``j``.</span>
+<span class="sd">                - nearest: ``i`` or ``j``, whichever is nearest.</span>
+<span class="sd">                - midpoint: ``(i + j) / 2``.</span>
 <span class="sd">        keep_attrs : bool, optional</span>
 <span class="sd">            If True, the dataset&#39;s attributes (`attrs`) will be copied from</span>
 <span class="sd">            the original object to the new one.  If False (default), the new</span>
@@ -2605,7 +2612,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, Creare
+        &copy; Copyright 2017-2019, Creare
 
     </p>
   </div>
@@ -2630,6 +2637,7 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
 
   
