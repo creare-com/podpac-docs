@@ -184,6 +184,8 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># Python 2/3 handling for JSONDecodeError</span>
 <span class="k">try</span><span class="p">:</span>
@@ -271,6 +273,11 @@
 
         <span class="c1"># load settings from default locations</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loaded podpac settings: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Active podpac settings file: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings_path</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;AUTOSAVE_SETTINGS&#39;</span><span class="p">]:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Auto-saving podpac settings to: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings_path</span><span class="p">))</span>
+
 
         <span class="c1"># set loaded flag</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loaded</span> <span class="o">=</span> <span class="kc">True</span>
@@ -303,6 +310,8 @@
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">DEFAULT_SETTINGS</span><span class="p">:</span>
             <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_SETTINGS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loaded podpac default settings&#39;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_load_user_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;settings.json&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Load user settings from settings.json file</span>
 <span class="sd">        </span>
@@ -326,10 +335,8 @@
         <span class="c1"># set settings path to default to start</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span> <span class="o">=</span> <span class="n">root_filepath</span>
 
-        <span class="c1"># if input path is specifed, create the input path if it doesn&#39;t exist</span>
+        <span class="c1"># if input path is specifed, make sure it is not empty</span>
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-
-            <span class="c1"># make empty settings path</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input podpac settings path does not exist: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 
@@ -351,11 +358,16 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                         <span class="n">json_settings</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loaded podpac settings from </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
                 <span class="k">except</span> <span class="n">JSONDecodeError</span><span class="p">:</span>
-
                     <span class="c1"># if the root_filepath settings file is broken, raise</span>
                     <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">root_filepath</span><span class="p">:</span>
                         <span class="k">raise</span>
+
+                    <span class="c1"># otherwise warn</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">_logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Failed to load podpac settings from </span><span class="si">{}</span><span class="s1"> with JSONDecodeError&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+
 
                 <span class="c1"># if path exists and settings loaded then load those settings into the dict</span>
                 <span class="k">if</span> <span class="n">json_settings</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
