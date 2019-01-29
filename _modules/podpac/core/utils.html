@@ -283,50 +283,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">has_trait</span><span class="p">(</span><span class="n">trait</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trait</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_trait_values</span>
 
-<span class="k">def</span> <span class="nf">optional_import</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">module_attr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_root</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Import optional packages if present.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    -----------</span>
-<span class="sd">    module_name: str</span>
-<span class="sd">        The name of the module to import</span>
-<span class="sd">    package: str, optional</span>
-<span class="sd">        Default is None. The root package, in case module_name is relative</span>
-<span class="sd">    module_attr: str</span>
-<span class="sd">        Class or function to be returned from package. Only available if return_root is False</span>
-<span class="sd">    return_root: bool</span>
-<span class="sd">        Default if False. If True, will return the root package instead of the module</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    ----------</span>
-<span class="sd">    &gt;&gt;&gt; bar = optional_import(&#39;foo.bar&#39;)  # Returns bar</span>
-<span class="sd">    &gt;&gt;&gt; foo = optional_import(&#39;foo.bar&#39;, return_root=True)  # Returns foo</span>
-<span class="sd">    &gt;&gt;&gt; bar = optional_import(&#39;foo&#39;, module_attr=&#39;bar&#39;)  # Returns function bar</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    --------</span>
-<span class="sd">    module</span>
-<span class="sd">        The imported module if available. None otherwise.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">return_root</span><span class="p">:</span>
-            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="fm">__import__</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">module_attr</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot defined &#39;module_attr&#39; if &#39;return_root == True&#39;&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">module_attr</span><span class="p">:</span>
-                <span class="n">module</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">module_attr</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="n">module</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span> <span class="c1"># Python 2.7</span>
-            <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="n">module</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">return</span> <span class="n">module</span>
 
 <span class="k">def</span> <span class="nf">create_logfile</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;podpac.log&#39;</span><span class="p">,</span>
                    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>

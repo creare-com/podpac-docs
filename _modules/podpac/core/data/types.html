@@ -201,21 +201,21 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># Core dependency of xarray</span>
 
 <span class="c1"># Helper utility for optional imports</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">optional_import</span>
+<span class="kn">from</span> <span class="nn">lazy_import</span> <span class="k">import</span> <span class="n">lazy_module</span>
 
 <span class="c1"># Optional dependencies</span>
-<span class="n">bs4</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;bs4&#39;</span><span class="p">)</span>
+<span class="n">bs4</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;bs4&#39;</span><span class="p">)</span>
 <span class="c1"># Not used directly, but used indirectly by bs4 so want to check if it&#39;s available</span>
-<span class="n">lxml</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;lxml&#39;</span><span class="p">)</span>
-<span class="n">pydap</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;pydap.client&#39;</span><span class="p">,</span> <span class="n">return_root</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">rasterio</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;rasterio&#39;</span><span class="p">)</span>
-<span class="n">h5py</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;h5py&#39;</span><span class="p">)</span>
-<span class="n">RasterToNumPyArray</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;arcpy.RasterToNumPyArray&#39;</span><span class="p">)</span>
-<span class="n">boto3</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;boto3&#39;</span><span class="p">)</span>
-<span class="n">requests</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;requests&#39;</span><span class="p">)</span>
+<span class="n">lxml</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;lxml&#39;</span><span class="p">)</span>
+<span class="n">pydap</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;pydap.client&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
+<span class="n">rasterio</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;rasterio&#39;</span><span class="p">)</span>
+<span class="n">h5py</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;h5py&#39;</span><span class="p">)</span>
+<span class="n">boto3</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;boto3&#39;</span><span class="p">)</span>
+<span class="n">requests</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;requests&#39;</span><span class="p">)</span>
 <span class="c1"># esri</span>
-<span class="n">urllib3</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;urllib3&#39;</span><span class="p">)</span>
-<span class="n">certifi</span> <span class="o">=</span> <span class="n">optional_import</span><span class="p">(</span><span class="s1">&#39;certifi&#39;</span><span class="p">)</span>
+<span class="n">RasterToNumPyArray</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;arcpy.RasterToNumPyArray&#39;</span><span class="p">)</span>
+<span class="n">urllib3</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;urllib3&#39;</span><span class="p">)</span>
+<span class="n">certifi</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;certifi&#39;</span><span class="p">)</span>
 
 <span class="c1"># Internal dependencies</span>
 <span class="kn">from</span> <span class="nn">podpac.core</span> <span class="k">import</span> <span class="n">authentication</span>
@@ -1079,7 +1079,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Do not have a URL request library to get WCS data.&quot;</span><span class="p">)</span>
                 
-                <span class="k">if</span> <span class="n">rasterio</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span> <span class="c1"># This works with rasterio v1.0a8 or greater, but not on python 2</span>
                         <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
                             <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -1098,7 +1098,7 @@
 
                         <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)</span> <span class="c1"># Clean up</span>
 
-                <span class="k">elif</span> <span class="n">RasterToNumPyArray</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
                     <span class="c1"># Writing the data to a temporary tiff and reading it from there is hacky</span>
                     <span class="c1"># However reading directly from r.data or io doesn&#39;t work</span>
                     <span class="c1"># Should improve in the future</span>
@@ -1141,7 +1141,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Do not have a URL request library to get WCS data.&quot;</span><span class="p">)</span>
             
-            <span class="k">if</span> <span class="n">rasterio</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span> <span class="c1"># This works with rasterio v1.0a8 or greater, but not on python 2</span>
                     <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">dotime</span><span class="p">:</span>
@@ -1158,14 +1158,15 @@
                     <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
                         <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)</span> <span class="c1"># Clean up</span>
-            <span class="k">elif</span> <span class="n">RasterToNumPyArray</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
                 <span class="c1"># Writing the data to a temporary tiff and reading it from there is hacky</span>
                 <span class="c1"># However reading directly from r.data or io doesn&#39;t work</span>
                 <span class="c1"># Should improve in the future</span>
                 <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;temp.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-                <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">RasterToNumPyArray</span><span class="p">(</span><span class="s1">&#39;temp.tiff&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Rasterio or Arcpy not available to read WCS feed.&#39;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">RasterToNumPyArray</span><span class="p">(</span><span class="s1">&#39;temp.tiff&#39;</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Rasterio or Arcpy not available to read WCS feed.&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">coordinates</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">is_descending</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">dotime</span><span class="p">:</span>
                 <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
