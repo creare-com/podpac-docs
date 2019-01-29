@@ -264,8 +264,6 @@
 <span class="sd">        Class that controls caching. If not provided, uses default based on cache_type.</span>
 <span class="sd">    dtype : type</span>
 <span class="sd">        The numpy datatype of the output. Currently only ``float`` is supported.</span>
-<span class="sd">    node_defaults : dict</span>
-<span class="sd">        Dictionary of defaults values for attributes of a Node.</span>
 <span class="sd">    style : :class:`podpac.Style`</span>
 <span class="sd">        Object discribing how the output of a node should be displayed. This attribute is planned for deprecation in the</span>
 <span class="sd">        future.</span>
@@ -301,7 +299,6 @@
     <span class="k">def</span> <span class="nf">_cache_type_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_ctrl_default</span><span class="p">()</span>
 
-    <span class="n">node_defaults</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">style</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Style</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;style&#39;</span><span class="p">)</span>
@@ -333,17 +330,6 @@
 <div class="viewcode-block" id="Node.__init__"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Do not overwrite me &quot;&quot;&quot;</span>
         <span class="n">tkwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_init</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-        <span class="c1"># Add default values listed in dictionary</span>
-        <span class="c1"># self.node_defaults.update(tkwargs) &lt;-- could almost do this...</span>
-        <span class="c1">#                                        but don&#39;t want to overwrite</span>
-        <span class="c1">#                                        node_defaults and want to</span>
-        <span class="c1">#                                        ignore &#39;node_defaults&#39;</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_defaults</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;node_defaults&#39;</span><span class="p">:</span>
-                <span class="k">continue</span>  <span class="c1"># ignore this entry</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tkwargs</span><span class="p">:</span>  <span class="c1"># Only add value if not in input</span>
-                <span class="n">tkwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
 
         <span class="c1"># Call traitlest constructor</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">tkwargs</span><span class="p">)</span>
