@@ -209,7 +209,7 @@
 <h1>podpac.coordinates.ArrayCoordinates1d<a class="headerlink" href="#podpac-coordinates-arraycoordinates1d" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="podpac.coordinates.ArrayCoordinates1d">
-<em class="property">class </em><code class="descclassname">podpac.coordinates.</code><code class="descname">ArrayCoordinates1d</code><span class="sig-paren">(</span><em>coords</em>, <em>name=None</em>, <em>ctype=None</em>, <em>units=None</em>, <em>extents=None</em>, <em>coord_ref_sys=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/array_coordinates1d.html#ArrayCoordinates1d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">podpac.coordinates.</code><code class="descname">ArrayCoordinates1d</code><span class="sig-paren">(</span><em>coords</em>, <em>name=None</em>, <em>ctype=None</em>, <em>units=None</em>, <em>segment_lengths=None</em>, <em>coord_ref_sys=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/array_coordinates1d.html#ArrayCoordinates1d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.core.coordinates.coordinates1d.Coordinates1d</span></code></p>
 <p>1-dimensional array of coordinates.</p>
 <p>ArrayCoordinates1d is a basic array of 1d coordinates created from an array of coordinate values. Numerical
@@ -226,8 +226,7 @@ coordinate values must all be of the same type.</p>
 <li><strong>units</strong> (<em>podpac.Units</em>) – Coordinate units.</li>
 <li><strong>coord_ref_sys</strong> (<em>str</em>) – Coordinate reference system.</li>
 <li><strong>ctype</strong> (<em>str</em>) – Coordinates type: ‘point’, ‘left’, ‘right’, or ‘midpoint’.</li>
-<li><strong>extents</strong> (<em>ndarray</em>) – When ctype != ‘point’, defines a custom acea bounds for the coordinates.
-<em>Note: To be replaced with segment_lengths.</em></li>
+<li><strong>segment_lengths</strong> (<em>array</em><em>, </em><em>float</em><em>, </em><em>timedelta</em>) – When ctype is a segment type, the segment lengths for the coordinates.</li>
 </ul>
 </td>
 </tr>
@@ -262,7 +261,7 @@ coordinate values must all be of the same type.</p>
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.__init__" title="podpac.coordinates.ArrayCoordinates1d.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(coords[,&nbsp;name,&nbsp;ctype,&nbsp;units,&nbsp;…])</td>
 <td>Create 1d coordinates from an array.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.copy" title="podpac.coordinates.ArrayCoordinates1d.copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a>(**kwargs)</td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.copy" title="podpac.coordinates.ArrayCoordinates1d.copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a>()</td>
 <td>Make a deep copy of the 1d Coordinates array.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">intersect</span></code>(other[,&nbsp;return_indices,&nbsp;outer])</td>
@@ -280,26 +279,32 @@ coordinate values must all be of the same type.</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.area_bounds" title="podpac.coordinates.ArrayCoordinates1d.area_bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">area_bounds</span></code></a></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">area_bounds</span></code></td>
 <td>Low and high coordinate area bounds.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.bounds" title="podpac.coordinates.ArrayCoordinates1d.bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bounds</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.argbounds" title="podpac.coordinates.ArrayCoordinates1d.argbounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">argbounds</span></code></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.bounds" title="podpac.coordinates.ArrayCoordinates1d.bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bounds</span></code></a></td>
 <td>Low and high coordinate bounds.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">coord_ref_sys</span></code></td>
-<td>Coordinate reference system.</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">coord_ref_sys</span></code></td>
+<td>An enum whose value must be in a given sequence.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.coordinates" title="podpac.coordinates.ArrayCoordinates1d.coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coordinates</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.coordinates" title="podpac.coordinates.ArrayCoordinates1d.coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coordinates</span></code></a></td>
 <td>Coordinate values.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.coords" title="podpac.coordinates.ArrayCoordinates1d.coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coords</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.coords" title="podpac.coordinates.ArrayCoordinates1d.coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coords</span></code></a></td>
 <td>User-defined coordinate values</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">ctype</span></code></td>
-<td>Coordinates type, one of ‘point’, ‘left’, ‘right’, or ‘midpoint’.</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">ctype</span></code></td>
+<td>An enum whose value must be in a given sequence.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.definition" title="podpac.coordinates.ArrayCoordinates1d.definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.definition" title="podpac.coordinates.ArrayCoordinates1d.definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></a></td>
 <td>Serializable 1d coordinates array definition.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">deltatype</span></code></td>
+<td></td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">dims</span></code></td>
 <td></td>
@@ -307,23 +312,23 @@ coordinate values must all be of the same type.</p>
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.dtype" title="podpac.coordinates.ArrayCoordinates1d.dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></a></td>
 <td>Coordinates dtype.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">extents</span></code></td>
-<td>:: <em>To be replaced.</em></td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.is_descending" title="podpac.coordinates.ArrayCoordinates1d.is_descending"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_descending</span></code></a></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_descending</span></code></td>
-<td>Are the coordinate values sorted in descending order.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.is_monotonic" title="podpac.coordinates.ArrayCoordinates1d.is_monotonic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_monotonic</span></code></a></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_monotonic</span></code></td>
-<td>Are the coordinate values unique and sorted.</td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.is_uniform" title="podpac.coordinates.ArrayCoordinates1d.is_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_uniform</span></code></a></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_uniform</span></code></td>
-<td>Are the coordinate values uniformly-spaced.</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></td>
+<td>An enum whose value must be in a given sequence.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></td>
-<td>Dimension name, one of ‘lat’, ‘lon’, ‘time’, or ‘alt’</td>
-</tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">properties</span></code></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">properties</span></code></td>
 <td>Dictionary of the coordinate properties.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment_lengths</span></code></td>
+<td>A trait which allows any value.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d.size" title="podpac.coordinates.ArrayCoordinates1d.size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">size</span></code></a></td>
 <td>Number of coordinates.</td>
@@ -332,7 +337,7 @@ coordinate values must all be of the same type.</p>
 <td></td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></td>
-<td>Coordinate units.</td>
+<td>A trait whose value must be an instance of a specified class.</td>
 </tr>
 </tbody>
 </table>
@@ -346,7 +351,7 @@ coordinate values must all be of the same type.</p>
 </table>
 <dl class="method">
 <dt id="podpac.coordinates.ArrayCoordinates1d.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>coords</em>, <em>name=None</em>, <em>ctype=None</em>, <em>units=None</em>, <em>extents=None</em>, <em>coord_ref_sys=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/array_coordinates1d.html#ArrayCoordinates1d.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>coords</em>, <em>name=None</em>, <em>ctype=None</em>, <em>units=None</em>, <em>segment_lengths=None</em>, <em>coord_ref_sys=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/array_coordinates1d.html#ArrayCoordinates1d.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create 1d coordinates from an array.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -358,8 +363,8 @@ coordinate values must all be of the same type.</p>
 <li><strong>units</strong> (<em>Units</em><em>, </em><em>optional</em>) – Coordinate units.</li>
 <li><strong>coord_ref_sys</strong> (<em>str</em><em>, </em><em>optional</em>) – Coordinate reference system.</li>
 <li><strong>ctype</strong> (<em>str</em><em>, </em><em>optional</em>) – Coordinates type: ‘point’, ‘left’, ‘right’, or ‘midpoint’.</li>
-<li><strong>extents</strong> (<em>(</em><em>low</em><em>, </em><em>high</em><em>)</em><em>, </em><em>optional</em>) – When ctype != ‘point’, defines custom (low, high) area bounds for the coordinates.
-<em>Note: To be replaced with segment_lengths.</em></li>
+<li><strong>segment_lengths</strong> (<em>array</em><em>, </em><em>optional</em>) – When ctype is a segment type, the segment lengths for the coordinates. The segment_lengths are required
+for nonmonotonic coordinates. The segment can be inferred from coordinate values for monotonic coordinates.</li>
 </ul>
 </td>
 </tr>
@@ -368,11 +373,9 @@ coordinate values must all be of the same type.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="podpac.coordinates.ArrayCoordinates1d.area_bounds">
-<code class="descname">area_bounds</code><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d.area_bounds" title="Permalink to this definition">¶</a></dt>
-<dd><p>Low and high coordinate area bounds.</p>
-<p>When ctype != ‘point’, this includes the portions of the segments beyond the coordinate bounds.</p>
-</dd></dl>
+<dt id="podpac.coordinates.ArrayCoordinates1d.argbounds">
+<code class="descname">argbounds</code><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d.argbounds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.coordinates.ArrayCoordinates1d.bounds">
@@ -410,26 +413,15 @@ coordinate values must all be of the same type.</p>
 
 <dl class="method">
 <dt id="podpac.coordinates.ArrayCoordinates1d.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/array_coordinates1d.html#ArrayCoordinates1d.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d.copy" title="Permalink to this definition">¶</a></dt>
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/array_coordinates1d.html#ArrayCoordinates1d.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make a deep copy of the 1d Coordinates array.</p>
-<p>The coordinates properties will be copied. Any provided keyword arguments will override these properties.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Dimension name. One of ‘lat’, ‘lon’, ‘alt’, and ‘time’.</li>
-<li><strong>units</strong> (<em>str</em><em>, </em><em>optional</em>) – Coordinates units.</li>
-<li><strong>coord_ref_sys</strong> (<em>str</em><em>, </em><em>optional</em>) – Coordinates reference system.</li>
-<li><strong>ctype</strong> (<em>str</em><em>, </em><em>optional</em>) – Coordinates type. One of ‘point’, ‘midpoint’, ‘left’, ‘right’.</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Copy of the coordinates.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Copy of the coordinates, with provided properties.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d" title="podpac.coordinates.ArrayCoordinates1d"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayCoordinates1d</span></code></a></p>
-</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#podpac.coordinates.ArrayCoordinates1d" title="podpac.coordinates.ArrayCoordinates1d"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArrayCoordinates1d</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -522,8 +514,8 @@ coordinate values must all be of the same type.</p>
 <li><strong>units</strong> (<em>Units</em><em>, </em><em>optional</em>) – Coordinate units.</li>
 <li><strong>coord_ref_sys</strong> (<em>str</em><em>, </em><em>optional</em>) – Coordinate reference system.</li>
 <li><strong>ctype</strong> (<em>str</em><em>, </em><em>optional</em>) – Coordinates type: ‘point’, ‘left’, ‘right’, or ‘midpoint’.</li>
-<li><strong>extents</strong> (<em>(</em><em>low</em><em>, </em><em>high</em><em>)</em><em>, </em><em>optional</em>) – When ctype != ‘point’, defines custom (low, high) area bounds for the coordinates.
-<em>Note: To be replaced with segment_lengths.</em></li>
+<li><strong>segment_lengths</strong> (<em>(</em><em>low</em><em>, </em><em>high</em><em>)</em><em>, </em><em>optional</em>) – When ctype is a segment type, the segment lengths for the coordinates. The segment_lengths are required
+for nonmonotonic coordinates. The segment can be inferred from coordinate values for monotonic coordinates.</li>
 </ul>
 </td>
 </tr>
@@ -536,6 +528,21 @@ coordinate values must all be of the same type.</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.coordinates.ArrayCoordinates1d.is_descending">
+<code class="descname">is_descending</code><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d.is_descending" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.coordinates.ArrayCoordinates1d.is_monotonic">
+<code class="descname">is_monotonic</code><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d.is_monotonic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.coordinates.ArrayCoordinates1d.is_uniform">
+<code class="descname">is_uniform</code><a class="headerlink" href="#podpac.coordinates.ArrayCoordinates1d.is_uniform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="podpac.coordinates.ArrayCoordinates1d.select">

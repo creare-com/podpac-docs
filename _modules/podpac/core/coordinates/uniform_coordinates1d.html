@@ -187,7 +187,7 @@
 
 <span class="c1"># from podpac.core.utils import cached_property, clear_cache</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="k">import</span> <span class="n">Units</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">make_coord_value</span><span class="p">,</span> <span class="n">make_coord_delta</span><span class="p">,</span> <span class="n">make_timedelta_string</span><span class="p">,</span> <span class="n">add_coord</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">make_coord_value</span><span class="p">,</span> <span class="n">make_coord_delta</span><span class="p">,</span> <span class="n">add_coord</span><span class="p">,</span> <span class="n">divide_delta</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="k">import</span> <span class="n">Coordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.array_coordinates1d</span> <span class="k">import</span> <span class="n">ArrayCoordinates1d</span>
 
@@ -221,31 +221,25 @@
 <span class="sd">        Coordinate reference system.</span>
 <span class="sd">    ctype : str</span>
 <span class="sd">        Coordinates type, one of&#39;point&#39;, &#39;left&#39;, &#39;right&#39;, or &#39;midpoint&#39;.</span>
-<span class="sd">    extents : ndarray</span>
-<span class="sd">        When ctype != &#39;point&#39;, defines custom area bounds for the coordinates.</span>
-<span class="sd">        *Note: To be replaced with segment_lengths.*</span>
+<span class="sd">    segment_lengths : array, float, timedelta</span>
+<span class="sd">        When ctype is a segment type, the segment lengths for the coordinates.</span>
 
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    :class:`Coordinates1d`, :class:`ArrayCoordinates1d`, :class:`crange`, :class:`clinspace`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">start</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)])</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)],</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">start</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;:float, datetime64: Start coordinate.&quot;</span>
     
-    <span class="n">stop</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)])</span>
+    <span class="n">stop</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)],</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">stop</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;:float, datetime64: Stop coordinate.&quot;</span>
 
-    <span class="n">step</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">)])</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">)],</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">step</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;:float, timedelta64: Signed, non-zero step between coordinates.&quot;</span>
 
-    <span class="n">is_monotonic</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CBool</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">is_monotonic</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;:bool: Are the coordinate values unique and sorted (always True).&quot;</span>
-    
-    <span class="n">is_uniform</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CBool</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">is_uniform</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;:bool: Are the coordinate values uniformly-spaced (always True).&quot;</span>
-
-<div class="viewcode-block" id="UniformCoordinates1d.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">extents</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="UniformCoordinates1d.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">segment_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create uniformly-spaced 1d coordinates from a `start`, `stop`, and `step` or `size`.</span>
 
@@ -259,6 +253,9 @@
 <span class="sd">            Signed, nonzero step between coordinates (either step or size required).</span>
 <span class="sd">        size : int</span>
 <span class="sd">            Number of coordinates (either step or size required).</span>
+<span class="sd">        segment_lengths: array, float, timedelta, optional</span>
+<span class="sd">            When ctype is a segment type, the segment lengths for the coordinates. By defaul, the segment_lengths are</span>
+<span class="sd">            equal the step.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -266,47 +263,18 @@
         <span class="k">elif</span> <span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;step&#39; or &#39;size&#39; is required&quot;</span><span class="p">)</span>
 
+        <span class="c1"># validate and set start, stop, and step</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">make_coord_value</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
         <span class="n">stop</span> <span class="o">=</span> <span class="n">make_coord_value</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">long</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;size must be an integer, not &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">size</span><span class="p">))</span>
-            <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;step must be nonzero&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">step</span> <span class="o">=</span> <span class="n">make_coord_delta</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">long</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="n">divide_delta</span><span class="p">(</span><span class="n">stop</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;size must be an integer, not &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">size</span><span class="p">))</span>
 
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="k">if</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ctype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctype</span>
-        <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
-        <span class="k">if</span> <span class="n">coord_ref_sys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;coord_ref_sys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord_ref_sys</span>
-        <span class="k">if</span> <span class="n">extents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;extents&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">extents</span>
-
-        <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_validate_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_start_stop_step</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
-
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;stop&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_validate_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_start_stop_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
-
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;step&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_validate_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_start_stop_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;UniformCoordinates1d step must be nonzero&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">_validate_start_stop_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
             <span class="n">fstep</span> <span class="o">=</span> <span class="n">step</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
@@ -321,26 +289,39 @@
         <span class="k">if</span> <span class="n">fstep</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">stop</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;UniformCoordinates1d step must be greater than zero if start &lt; stop.&quot;</span><span class="p">)</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_observe_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="p">):</span>
-        <span class="c1"># clear_cache(self, change, [&#39;coordinates&#39;, &#39;bounds&#39;])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;stop&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;is_descending&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;is_descending&#39;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">))</span>
-
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;extents&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_validate_extents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_validate_extents</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;coord_ref_sys&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_default_coord_ref_sys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_default_coord_ref_sys</span><span class="p">()</span>
-    
+        <span class="c1"># set common properties</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">segment_lengths</span><span class="o">=</span><span class="n">segment_lengths</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">coord_ref_sys</span><span class="p">)</span></div>
+        
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;ctype&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_default_ctype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_default_ctype</span><span class="p">()</span>
+        <span class="k">return</span> <span class="s1">&#39;midpoint&#39;</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_default_segment_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span> <span class="o">==</span> <span class="s1">&#39;point&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># not necessary</span>
+        <span class="c1"># if isinstance(other, UniformCoordinates1d):</span>
+        <span class="c1">#     if self.start != other.start or self.stop != other.stop or self.step != other.step:</span>
+        <span class="c1">#         return False</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ArrayCoordinates1d</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">coordinates</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Alternate Constructors</span>
@@ -410,32 +391,20 @@
         <span class="n">stop</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;stop&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="UniformCoordinates1d.copy"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="UniformCoordinates1d.copy"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make a deep copy of the uniform 1d Coordinates.</span>
-
-<span class="sd">        The coordinates properties will be copied. Any provided keyword arguments will override these properties.</span>
-
-<span class="sd">        Arguments</span>
-<span class="sd">        ---------</span>
-<span class="sd">        name : str, optional</span>
-<span class="sd">            Dimension name. One of &#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;, and &#39;time&#39;.</span>
-<span class="sd">        units : str, optional</span>
-<span class="sd">            Coordinates units.</span>
-<span class="sd">        coord_ref_sys : str, optional</span>
-<span class="sd">            Coordinates reference system.</span>
-<span class="sd">        ctype : str, optional</span>
-<span class="sd">            Coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`UniformCoordinates1d`</span>
-<span class="sd">            Copy of the coordinates, with provided properties.</span>
+<span class="sd">            Copy of the coordinates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
-        <span class="n">properties</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">properties</span><span class="p">)</span></div>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_segment_lengths</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span>
+        <span class="k">return</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Standard methods, array-like</span>
@@ -445,17 +414,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
 
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s1">&#39;index </span><span class="si">%d</span><span class="s1"> is out of bounds for coordinates with size </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="n">add_coord</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">*</span> <span class="n">index</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="n">add_coord</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="o">+</span><span class="n">index</span><span class="p">))</span>
-
-            <span class="k">return</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="c1"># start, stop, step</span>
             <span class="k">if</span> <span class="n">index</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
             <span class="k">elif</span> <span class="n">index</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -477,10 +437,37 @@
                 <span class="k">if</span> <span class="n">index</span><span class="o">.</span><span class="n">step</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">stop</span><span class="p">,</span> <span class="n">start</span>
 
-            <span class="k">return</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+            <span class="c1"># properties and segment_lengths</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span> <span class="o">!=</span> <span class="s1">&#39;point&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span> <span class="o">!=</span> <span class="n">step</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span>
+
+            <span class="c1"># reroute empty slices to the else clause</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">stop</span> <span class="ow">and</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="p">[[]]</span>
+
+            <span class="k">return</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+            <span class="c1"># coordinates</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="c1"># properties and segment_lengths</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span> <span class="o">!=</span> <span class="s1">&#39;point&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span>
+
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ctype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span>
+
+            <span class="k">return</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Properties</span>
@@ -529,6 +516,21 @@
         <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_monotonic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_descending</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_uniform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Low and high coordinate bounds. &quot;&quot;&quot;</span>
 
@@ -543,36 +545,11 @@
         <span class="k">return</span> <span class="n">bounds</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">area_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Low and high coordinate area bounds.</span>
-
-<span class="sd">        When ctype != &#39;point&#39;, this includes the portions of the segments beyond the coordinate bounds.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># point ctypes, just use bounds</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span> <span class="o">==</span> <span class="s1">&#39;point&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
-
-        <span class="c1"># segment ctypes, with explicit extents</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">extents</span>
-
-        <span class="c1"># segment ctypes, calculated</span>
-        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span> <span class="o">==</span> <span class="s1">&#39;left&#39;</span><span class="p">:</span>
-            <span class="n">hi</span> <span class="o">=</span> <span class="n">add_coord</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span> <span class="o">==</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span>
-            <span class="n">lo</span> <span class="o">=</span> <span class="n">add_coord</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span> <span class="o">==</span> <span class="s1">&#39;midpoint&#39;</span><span class="p">:</span>
-            <span class="c1"># TODO datetimes, need a dived_coord method</span>
-            <span class="n">lo</span> <span class="o">=</span> <span class="n">add_coord</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span>
-            <span class="n">hi</span> <span class="o">=</span> <span class="n">add_coord</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span>  <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span>
-
-        <span class="c1"># read-only array with the correct dtype</span>
-        <span class="n">area_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-        <span class="n">area_bounds</span><span class="o">.</span><span class="n">setflags</span><span class="p">(</span><span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">area_bounds</span>
+    <span class="k">def</span> <span class="nf">argbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_descending</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -589,14 +566,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;stop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;stop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">make_timedelta_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;stop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_segment_lengths</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span>
         <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">d</span>
 
@@ -661,12 +635,16 @@
         <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">hi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-        <span class="n">imin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">lo</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)))</span>
-        <span class="n">imax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">hi</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)))</span>
+        <span class="n">fmin</span> <span class="o">=</span> <span class="p">(</span><span class="n">lo</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+        <span class="n">fmax</span> <span class="o">=</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+        <span class="n">imin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">fmin</span><span class="p">))</span>
+        <span class="n">imax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">fmax</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">outer</span><span class="p">:</span>
-            <span class="n">imin</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="n">imax</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">imin</span> <span class="o">!=</span> <span class="n">fmin</span><span class="p">:</span>
+                <span class="n">imin</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">imax</span> <span class="o">!=</span> <span class="n">fmax</span><span class="p">:</span>
+                <span class="n">imax</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="n">imax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">imax</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
         <span class="n">imin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">imin</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
@@ -678,14 +656,11 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_descending</span><span class="p">:</span>
             <span class="n">imax</span><span class="p">,</span> <span class="n">imin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">imin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">imax</span>
 
-        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="n">imin</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span>
-        <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="p">(</span><span class="n">imax</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
-
+        <span class="n">I</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">imin</span><span class="p">,</span> <span class="n">imax</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">c</span><span class="p">,</span> <span class="nb">slice</span><span class="p">(</span><span class="n">imin</span><span class="p">,</span> <span class="n">imax</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">I</span><span class="p">],</span> <span class="n">I</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">c</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">I</span><span class="p">]</span></div></div>
 </pre></div>
 
            </div>

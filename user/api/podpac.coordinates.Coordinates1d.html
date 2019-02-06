@@ -209,7 +209,7 @@
 <h1>podpac.coordinates.Coordinates1d<a class="headerlink" href="#podpac-coordinates-coordinates1d" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="podpac.coordinates.Coordinates1d">
-<em class="property">class </em><code class="descclassname">podpac.coordinates.</code><code class="descname">Coordinates1d</code><span class="sig-paren">(</span><em>name=None</em>, <em>ctype=None</em>, <em>units=None</em>, <em>extents=None</em>, <em>coord_ref_sys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/coordinates1d.html#Coordinates1d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.Coordinates1d" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">podpac.coordinates.</code><code class="descname">Coordinates1d</code><span class="sig-paren">(</span><em>name=None</em>, <em>ctype=None</em>, <em>units=None</em>, <em>segment_lengths=None</em>, <em>coord_ref_sys=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/coordinates1d.html#Coordinates1d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.Coordinates1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.core.coordinates.base_coordinates.BaseCoordinates</span></code></p>
 <p>Base class for 1-dimensional coordinates.</p>
 <p>Coordinates1d objects contain values and metadata for a single dimension of coordinates. <a class="reference internal" href="podpac.coordinates.Coordinates.html#podpac.coordinates.Coordinates" title="podpac.coordinates.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coordinates</span></code></a> and
@@ -236,8 +236,8 @@ portion of the segments above and below the <a href="#id1"><span class="problema
 <li><strong>units</strong> (<em>podpac.Units</em>) – Coordinate units.</li>
 <li><strong>coord_ref_sys</strong> (<em>str</em>) – Coordinate reference system.</li>
 <li><strong>ctype</strong> (<em>str</em>) – Coordinates type: ‘point’, ‘left’, ‘right’, or ‘midpoint’.</li>
-<li><strong>extents</strong> (<em>(</em><em>low</em><em>, </em><em>high</em><em>)</em>) – When ctype != ‘point’, defines custom (low, high) area bounds for the coordinates.
-<em>Note: To be replaced with segment_lengths.</em></li>
+<li><strong>segment_lengths</strong> (<em>array</em><em>, </em><em>float</em><em>, </em><em>timedelta</em>) – When ctype is a segment type, the segment lengths for the coordinates. This may be single coordinate delta for
+uniform segment lengths or an array of coordinate deltas corresponding to the coordinates for variable lengths.</li>
 </ul>
 </td>
 </tr>
@@ -266,7 +266,7 @@ portion of the segments above and below the <a href="#id1"><span class="problema
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.__init__" title="podpac.coordinates.Coordinates1d.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([name,&nbsp;ctype,&nbsp;units,&nbsp;extents,&nbsp;…])</td>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.__init__" title="podpac.coordinates.Coordinates1d.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([name,&nbsp;ctype,&nbsp;units,&nbsp;…])</td>
 <td><em>Do not use.</em></td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.copy" title="podpac.coordinates.Coordinates1d.copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a>(**kwargs)</td>
@@ -294,49 +294,52 @@ portion of the segments above and below the <a href="#id1"><span class="problema
 <td>Low and high coordinate bounds.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.coord_ref_sys" title="podpac.coordinates.Coordinates1d.coord_ref_sys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coord_ref_sys</span></code></a></td>
-<td>Coordinate reference system.</td>
+<td>An enum whose value must be in a given sequence.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.coordinates" title="podpac.coordinates.Coordinates1d.coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coordinates</span></code></a></td>
 <td>Full array of coordinates values.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.ctype" title="podpac.coordinates.Coordinates1d.ctype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ctype</span></code></a></td>
-<td>Coordinates type, one of ‘point’, ‘left’, ‘right’, or ‘midpoint’.</td>
+<td>An enum whose value must be in a given sequence.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.definition" title="podpac.coordinates.Coordinates1d.definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></a></td>
 <td>Serializable 1d coordinates definition.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.dims" title="podpac.coordinates.Coordinates1d.dims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dims</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.deltatype" title="podpac.coordinates.Coordinates1d.deltatype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">deltatype</span></code></a></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.dtype" title="podpac.coordinates.Coordinates1d.dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.dims" title="podpac.coordinates.Coordinates1d.dims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dims</span></code></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.dtype" title="podpac.coordinates.Coordinates1d.dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></a></td>
 <td>Coordinates dtype.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.extents" title="podpac.coordinates.Coordinates1d.extents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extents</span></code></a></td>
-<td>:: <em>To be replaced.</em></td>
-</tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.is_descending" title="podpac.coordinates.Coordinates1d.is_descending"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_descending</span></code></a></td>
-<td>Are the coordinate values sorted in descending order.</td>
+<td></td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.is_monotonic" title="podpac.coordinates.Coordinates1d.is_monotonic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_monotonic</span></code></a></td>
-<td>Are the coordinate values unique and sorted.</td>
+<td></td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.is_uniform" title="podpac.coordinates.Coordinates1d.is_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_uniform</span></code></a></td>
-<td>Are the coordinate values uniformly-spaced.</td>
+<td></td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.name" title="podpac.coordinates.Coordinates1d.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></td>
-<td>Dimension name, one of ‘lat’, ‘lon’, ‘time’, or ‘alt’</td>
+<td>An enum whose value must be in a given sequence.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.properties" title="podpac.coordinates.Coordinates1d.properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">properties</span></code></a></td>
 <td>Dictionary of the coordinate properties.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.size" title="podpac.coordinates.Coordinates1d.size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">size</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.segment_lengths" title="podpac.coordinates.Coordinates1d.segment_lengths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segment_lengths</span></code></a></td>
+<td>A trait which allows any value.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.size" title="podpac.coordinates.Coordinates1d.size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">size</span></code></a></td>
 <td>Number of coordinates.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.udims" title="podpac.coordinates.Coordinates1d.udims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">udims</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.udims" title="podpac.coordinates.Coordinates1d.udims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">udims</span></code></a></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.units" title="podpac.coordinates.Coordinates1d.units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></a></td>
-<td>Coordinate units.</td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.coordinates.Coordinates1d.units" title="podpac.coordinates.Coordinates1d.units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></a></td>
+<td>A trait whose value must be an instance of a specified class.</td>
 </tr>
 </tbody>
 </table>
@@ -350,7 +353,7 @@ portion of the segments above and below the <a href="#id1"><span class="problema
 </table>
 <dl class="method">
 <dt id="podpac.coordinates.Coordinates1d.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>name=None</em>, <em>ctype=None</em>, <em>units=None</em>, <em>extents=None</em>, <em>coord_ref_sys=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/coordinates1d.html#Coordinates1d.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.Coordinates1d.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name=None</em>, <em>ctype=None</em>, <em>units=None</em>, <em>segment_lengths=None</em>, <em>coord_ref_sys=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/coordinates1d.html#Coordinates1d.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.coordinates.Coordinates1d.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>Do not use.</em></p>
 </dd></dl>
 
@@ -370,15 +373,7 @@ portion of the segments above and below the <a href="#id1"><span class="problema
 <dl class="attribute">
 <dt id="podpac.coordinates.Coordinates1d.coord_ref_sys">
 <code class="descname">coord_ref_sys</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.coord_ref_sys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Coordinate reference system.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">str</td>
-</tr>
-</tbody>
-</table>
+<dd><p>An enum whose value must be in a given sequence.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -426,15 +421,7 @@ portion of the segments above and below the <a href="#id1"><span class="problema
 <dl class="attribute">
 <dt id="podpac.coordinates.Coordinates1d.ctype">
 <code class="descname">ctype</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.ctype" title="Permalink to this definition">¶</a></dt>
-<dd><p>Coordinates type, one of ‘point’, ‘left’, ‘right’, or ‘midpoint’.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">str</td>
-</tr>
-</tbody>
-</table>
+<dd><p>An enum whose value must be in a given sequence.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -442,6 +429,11 @@ portion of the segments above and below the <a href="#id1"><span class="problema
 <code class="descname">definition</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.definition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serializable 1d coordinates definition.</p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.coordinates.Coordinates1d.deltatype">
+<code class="descname">deltatype</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.deltatype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.coordinates.Coordinates1d.dims">
@@ -461,12 +453,6 @@ portion of the segments above and below the <a href="#id1"><span class="problema
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="podpac.coordinates.Coordinates1d.extents">
-<code class="descname">extents</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.extents" title="Permalink to this definition">¶</a></dt>
-<dd><p>:: <em>To be replaced.</em></p>
 </dd></dl>
 
 <dl class="method">
@@ -547,57 +533,22 @@ coordinates bounds but <em>inside</em> its area bounds:</p>
 <dl class="attribute">
 <dt id="podpac.coordinates.Coordinates1d.is_descending">
 <code class="descname">is_descending</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.is_descending" title="Permalink to this definition">¶</a></dt>
-<dd><p>Are the coordinate values sorted in descending order.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">bool</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.coordinates.Coordinates1d.is_monotonic">
 <code class="descname">is_monotonic</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.is_monotonic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Are the coordinate values unique and sorted.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">bool</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.coordinates.Coordinates1d.is_uniform">
 <code class="descname">is_uniform</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.is_uniform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Are the coordinate values uniformly-spaced.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">bool</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.coordinates.Coordinates1d.name">
 <code class="descname">name</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dimension name, one of ‘lat’, ‘lon’, ‘time’, or ‘alt’</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">str</td>
-</tr>
-</tbody>
-</table>
+<dd><p>An enum whose value must be in a given sequence.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -612,6 +563,12 @@ coordinates bounds but <em>inside</em> its area bounds:</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.coordinates.Coordinates1d.segment_lengths">
+<code class="descname">segment_lengths</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.segment_lengths" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trait which allows any value.</p>
 </dd></dl>
 
 <dl class="method">
@@ -676,15 +633,9 @@ coordinates bounds but <em>inside</em> its area bounds:</p>
 <dl class="attribute">
 <dt id="podpac.coordinates.Coordinates1d.units">
 <code class="descname">units</code><a class="headerlink" href="#podpac.coordinates.Coordinates1d.units" title="Permalink to this definition">¶</a></dt>
-<dd><p>Coordinate units.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">Units</td>
-</tr>
-</tbody>
-</table>
+<dd><p>A trait whose value must be an instance of a specified class.</p>
+<p>The value can also be an instance of a subclass of the specified class.</p>
+<p>Subclasses can declare default classes by overriding the klass attribute</p>
 </dd></dl>
 
 </dd></dl>

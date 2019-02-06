@@ -235,10 +235,7 @@
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># TODO dict vs tuple?</span>
-    <span class="n">_coords</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Tuple</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates1d</span><span class="p">))</span>
-
-    <span class="c1"># TODO default coord_ref_sys, ctype, distance_units, time_units</span>
+    <span class="n">_coords</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Tuple</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates1d</span><span class="p">),</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <div class="viewcode-block" id="StackedCoordinates.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -261,40 +258,73 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">):</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
-
+            <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unrecognized coords type &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
 
-        <span class="c1"># set 1d coordinates defaults</span>
-        <span class="c1"># TODO JXM factor out, etc, maybe move to observe so that it gets validated first</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Stacked coords must have at least 2 coords, got </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid coordinates of type &#39;</span><span class="si">%s</span><span class="s2">&#39; in stacked coords at position </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">i</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_sizes</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_names</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_coord_ref_sys</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="p">)</span>
+
+        <span class="c1"># validation is complete, set properties, then set _coords trait</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_properties</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;_coords&#39;</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">StackedCoordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_check_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">[:</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Duplicate dimension name &#39;</span><span class="si">%s</span><span class="s2">&#39; in stacked coords at position </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_check_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sizes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sizes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">size</span> <span class="o">!=</span> <span class="n">sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Size mismatch in stacked coords </span><span class="si">%d</span><span class="s2"> != </span><span class="si">%d</span><span class="s2"> at position </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">i</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_check_coord_ref_sys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># the coord_ref_sys should be the same, and should match the input coord_ref_sys if defined</span>
+        <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coord_ref_sys</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;coord_ref_sys&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">properties</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">coord_ref_sys</span> <span class="o">!=</span> <span class="n">crs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;coord_ref_sys mismatch in stacked coords </span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2"> at position </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">coord_ref_sys</span><span class="p">,</span> <span class="n">crs</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;ctype&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">_trait_values</span> <span class="ow">and</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">c</span><span class="o">.</span><span class="n">ctype</span> <span class="o">=</span> <span class="n">ctype</span>
-            <span class="k">if</span> <span class="s1">&#39;coord_ref_sys&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">_trait_values</span> <span class="ow">and</span> <span class="n">coord_ref_sys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">c</span><span class="o">.</span><span class="n">coord_ref_sys</span> <span class="o">=</span> <span class="n">coord_ref_sys</span>
-            <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">_trait_values</span> <span class="ow">and</span> <span class="n">distance_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">]:</span>
-                <span class="n">c</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">distance_units</span>
+            <span class="k">if</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;ctype&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;ctype&#39;</span><span class="p">,</span> <span class="n">ctype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">distance_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="s1">&#39;units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="n">distance_units</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">coord_ref_sys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;coord_ref_sys&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;coord_ref_sys&#39;</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="p">)</span>
 
-        <span class="nb">super</span><span class="p">(</span><span class="n">StackedCoordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_coords</span><span class="o">=</span><span class="n">coords</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;_coords&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_validate_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="n">val</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Stacked coords must have at least 2 coords, got </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+        <span class="c1"># shortcuts</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Size mismatch in stacked coords </span><span class="si">%d</span><span class="s2"> != </span><span class="si">%d</span><span class="s2"> at position </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
-            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Duplicate dimension name &#39;</span><span class="si">%s</span><span class="s2">&#39; in stacked coords at position </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
-                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="c1"># full check of underlying coordinates</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_coords</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="k">return</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Alternate constructors</span>
@@ -323,7 +353,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">dims</span> <span class="o">=</span> <span class="n">xcoords</span><span class="o">.</span><span class="n">indexes</span><span class="p">[</span><span class="n">xcoords</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">names</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">([</span><span class="n">ArrayCoordinates1d</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">xcoords</span><span class="p">[</span><span class="n">dims</span><span class="p">])</span> <span class="k">for</span> <span class="n">dims</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">])</span></div>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">ArrayCoordinates1d</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">xcoords</span><span class="p">[</span><span class="n">dims</span><span class="p">])</span> <span class="k">for</span> <span class="n">dims</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">coord_ref_sys</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="n">distance_units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StackedCoordinates.from_definition"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.from_definition">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -358,22 +389,9 @@
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="StackedCoordinates.copy"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="StackedCoordinates.copy"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Make a deep copy of the stacked coordinates.</span>
-
-<span class="sd">        The coordinates properties will be copied.</span>
-
-<span class="sd">        Arguments</span>
-<span class="sd">        ---------</span>
-<span class="sd">        name : str, optional</span>
-<span class="sd">            Dimension names joined by an underscore.</span>
-<span class="sd">        coord_ref_sys : str, optional</span>
-<span class="sd">            Default coordinates reference system</span>
-<span class="sd">        ctype : str, optional</span>
-<span class="sd">            Default coordinates type.</span>
-<span class="sd">        distance_units : Units, optional</span>
-<span class="sd">            Default distance units.</span>
+<span class="sd">        Make a copy of the stacked coordinates.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -381,10 +399,7 @@
 <span class="sd">            Copy of the stacked coordinates, with provided properties and name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">c</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="k">return</span> <span class="n">c</span></div>
+        <span class="k">return</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># standard methods, tuple-like</span>
@@ -438,9 +453,11 @@
         <span class="n">names</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid name &#39;</span><span class="si">%s</span><span class="s2">&#39; for StackedCoordinates with length </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_names</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="n">names</span><span class="p">):</span>
             <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_coords</span><span class="p">({</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">})</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -451,16 +468,21 @@
     <span class="k">def</span> <span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:pandas.MultiIndex: MultiIndex of stacked coordinates values.&quot;&quot;&quot;</span>
 
-        <span class="c1"># TODO don&#39;t recompute this every time (but also don&#39;t compute it until requested)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:dict-like: xarray coordinates (container of coordinate arrays)&quot;&quot;&quot;</span>
 
-        <span class="c1"># TODO don&#39;t recompute this every time (but also don&#39;t compute it until requested)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">coords</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coord_ref_sys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:str: coordinate reference system.&quot;&quot;&quot;</span>
+
+        <span class="c1"># the coord_ref_sys is the same for all coords</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coord_ref_sys</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

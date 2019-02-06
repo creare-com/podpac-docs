@@ -207,14 +207,9 @@
 <span class="n">bs4</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;bs4&#39;</span><span class="p">)</span>
 <span class="c1"># Not used directly, but used indirectly by bs4 so want to check if it&#39;s available</span>
 <span class="n">lxml</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;lxml&#39;</span><span class="p">)</span>
-<span class="c1"># Let&#39;s not lazy-load pydap</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">pydap.client</span>
-    <span class="kn">import</span> <span class="nn">pydap.model</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="n">pydap</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="c1">#pydap = lazy_module(&#39;pydap.client&#39;, level=&#39;base&#39;)</span>
-<span class="c1">#pydap = lazy_module(&#39;pydap.model&#39;, level=&#39;base&#39;)</span>
+<span class="n">pydap</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;pydap&#39;</span><span class="p">)</span>
+<span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;pydap.client&#39;</span><span class="p">)</span>
+<span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;pydap.model&#39;</span><span class="p">)</span>
 <span class="n">rasterio</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;rasterio&#39;</span><span class="p">)</span>
 <span class="n">h5py</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;h5py&#39;</span><span class="p">)</span>
 <span class="n">boto3</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;boto3&#39;</span><span class="p">)</span>
@@ -569,6 +564,13 @@
 <span class="sd">    native_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">        {native_coordinates}</span>
 
+
+<span class="sd">    Notes</span>
+<span class="sd">    ------</span>
+<span class="sd">    The source could be a path to an s3 bucket file, e.g.: s3://landsat-pds/L8/139/045/LC81390452014295LGN00/LC81390452014295LGN00_B1.TIF  </span>
+<span class="sd">    In that case, make sure to set the environmental variable: </span>
+<span class="sd">    * Windows: set CURL_CA_BUNDLE=&lt;path_to_conda_env&gt;\Library\ssl\cacert.pem</span>
+<span class="sd">    * Linux: export CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">)],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
