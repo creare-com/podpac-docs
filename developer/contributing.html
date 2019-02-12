@@ -129,6 +129,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#integration-testing">Integration testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#skip-test-on-ci">Skip Test on CI</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#code-coverage">Code Coverage</a></li>
 </ul>
 </li>
@@ -464,6 +465,28 @@ To run integration tests from the command line:</p>
 </pre></div>
 </div>
 <p>See <a class="reference external" href="https://docs.pytest.org/en/latest/example/markers.html">working with custom markers</a> for more details on how to use markers in pytest.</p>
+</div>
+<div class="section" id="skip-test-on-ci">
+<h3>Skip Test on CI<a class="headerlink" href="#skip-test-on-ci" title="Permalink to this headline">¶</a></h3>
+<p>In some circumstances, we don’t want tests to run during the CI process (i.e. when the test will incur charges from a cloud provider).</p>
+<p>To specify that a test should not be run on the CI test, use a pytest skipif statement that reads <code class="docutils literal notranslate"><span class="pre">--ci</span></code> config option:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="nd">@pytest.mark.skipif</span><span class="p">(</span><span class="n">pytest</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getoption</span><span class="p">(</span><span class="s1">&#39;--ci&#39;</span><span class="p">),</span> <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;not a ci test&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="nd">@pytest.mark.skipif</span><span class="p">(</span><span class="n">pytest</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getoption</span><span class="p">(</span><span class="s1">&#39;--ci&#39;</span><span class="p">),</span> <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;not a ci test&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>To invoke tests with <code class="docutils literal notranslate"><span class="pre">--ci</span></code> command line option:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pytest --ci podpac
+</pre></div>
+</div>
 </div>
 <div class="section" id="code-coverage">
 <h3>Code Coverage<a class="headerlink" href="#code-coverage" title="Permalink to this headline">¶</a></h3>
