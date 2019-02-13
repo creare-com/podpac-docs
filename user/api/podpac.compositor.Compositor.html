@@ -253,21 +253,6 @@ native_coordinates.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="podpac.compositor.Compositor.n_threads">
-<code class="descname">n_threads</code><a class="headerlink" href="#podpac.compositor.Compositor.n_threads" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default is 10 – used when threaded is True.
-NASA data servers seem to have a hard limit of 10 simultaneous requests, which determined the default value.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="podpac.compositor.Compositor.shared_coordinates">
 <code class="descname">shared_coordinates</code><a class="headerlink" href="#podpac.compositor.Compositor.shared_coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Coordinates that are shared amongst all of the composited sources</p>
@@ -325,25 +310,6 @@ subselect the nodes that will be evaluated.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="podpac.compositor.Compositor.threaded">
-<code class="descname">threaded</code><a class="headerlink" href="#podpac.compositor.Compositor.threaded" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default if False.
-When threaded is False, the compositor stops evaluated sources once the output is completely filled.
-When threaded is True, the compositor must evaluate every source.
-The result is the same, but note that because of this, threaded=False could be faster than threaded=True,
-especially if n_threads is low. For example, threaded with n_threads=1 could be much slower than non-threaded
-if the output is completely filled after the first few sources.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">bool, optional</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
 <dt>
 <code class="descname">source_coordinates</code></dt>
 <dd><p>Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the
@@ -360,6 +326,18 @@ user-requested coordinates. It is an optimization.</p>
 
 <p class="rubric">Notes</p>
 <p>Developers of new Compositor nodes need to implement the <cite>composite</cite> method.</p>
+<dl class="docutils">
+<dt>Multitheading::</dt>
+<dd><ul class="first last simple">
+<li>When MULTITHREADING is False, the compositor stops evaluated sources once the output is completely filled.</li>
+<li>When MULTITHREADING is True, the compositor must evaluate every source.
+The result is the same, but note that because of this, disabling multithreading could sometimes be faster,
+especially if the number of threads is low.</li>
+<li>NASA data servers seem to have a hard limit of 10 simultaneous requests, so a max of 10 threads is recommend
+for most use-cases.</li>
+</ul>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -463,35 +441,29 @@ user-requested coordinates. It is an optimization.</p>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.compositor.Compositor.n_threads" title="podpac.compositor.Compositor.n_threads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_threads</span></code></a></td>
-<td>An int trait.</td>
-</tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></td>
 <td>Create a pipeline node from this node</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">requested_coordinates</span></code></td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">requested_coordinates</span></code></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.compositor.Compositor.shared_coordinates" title="podpac.compositor.Compositor.shared_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_coordinates</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.compositor.Compositor.shared_coordinates" title="podpac.compositor.Compositor.shared_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_coordinates</span></code></a></td>
 <td>A trait whose value must be an instance of a specified class.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#podpac.compositor.Compositor.source" title="podpac.compositor.Compositor.source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.compositor.Compositor.source" title="podpac.compositor.Compositor.source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source</span></code></a></td>
 <td>A trait for unicode strings.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#podpac.compositor.Compositor.source_coordinates" title="podpac.compositor.Compositor.source_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_coordinates</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#podpac.compositor.Compositor.source_coordinates" title="podpac.compositor.Compositor.source_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_coordinates</span></code></a></td>
 <td>A trait whose value must be an instance of a specified class.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#podpac.compositor.Compositor.sources" title="podpac.compositor.Compositor.sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#podpac.compositor.Compositor.sources" title="podpac.compositor.Compositor.sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span></code></a></td>
 <td>A coercing numpy array trait.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></td>
 <td>A trait whose value must be an instance of a specified class.</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="#podpac.compositor.Compositor.threaded" title="podpac.compositor.Compositor.threaded"><code class="xref py py-obj docutils literal notranslate"><span class="pre">threaded</span></code></a></td>
-<td>A boolean (True, False) trait.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></td>
 <td>Units Summary</td>
@@ -657,12 +629,6 @@ This may be implemented by derived classes, and is an optimization that allows e
 </table>
 </dd></dl>
 
-<dl class="attribute">
-<dt>
-<code class="descname">n_threads</code></dt>
-<dd><p>An int trait.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="podpac.compositor.Compositor.select_sources">
 <code class="descname">select_sources</code><span class="sig-paren">(</span><em>coordinates</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/compositor.html#Compositor.select_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.compositor.Compositor.select_sources" title="Permalink to this definition">¶</a></dt>
@@ -709,12 +675,6 @@ when <a class="reference internal" href="#podpac.compositor.Compositor.source_co
 <dt>
 <code class="descname">sources</code></dt>
 <dd><p>A coercing numpy array trait.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="descname">threaded</code></dt>
-<dd><p>A boolean (True, False) trait.</p>
 </dd></dl>
 
 </dd></dl>

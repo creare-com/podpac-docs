@@ -189,6 +189,7 @@
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
 <span class="c1"># Internal imports</span>
+<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">merge_dims</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
@@ -218,9 +219,6 @@
 <span class="sd">        coordinates could include the year-month-day of the source, but the actual source also has hour-minute-second</span>
 <span class="sd">        information. In that case, source_coordinates is incomplete. This flag is used to automatically construct</span>
 <span class="sd">        native_coordinates.</span>
-<span class="sd">    n_threads : int</span>
-<span class="sd">        Default is 10 -- used when threaded is True.</span>
-<span class="sd">        NASA data servers seem to have a hard limit of 10 simultaneous requests, which determined the default value.</span>
 <span class="sd">    shared_coordinates : :class:`podpac.Coordinates`, optional</span>
 <span class="sd">        Coordinates that are shared amongst all of the composited sources</span>
 <span class="sd">    source : str</span>
@@ -230,13 +228,6 @@
 <span class="sd">    sources : :class:`np.ndarray`</span>
 <span class="sd">        An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to</span>
 <span class="sd">        subselect the nodes that will be evaluated.</span>
-<span class="sd">    threaded : bool, optional</span>
-<span class="sd">        Default if False.</span>
-<span class="sd">        When threaded is False, the compositor stops evaluated sources once the output is completely filled.</span>
-<span class="sd">        When threaded is True, the compositor must evaluate every source.</span>
-<span class="sd">        The result is the same, but note that because of this, threaded=False could be faster than threaded=True,</span>
-<span class="sd">        especially if n_threads is low. For example, threaded with n_threads=1 could be much slower than non-threaded</span>
-<span class="sd">        if the output is completely filled after the first few sources.</span>
 <span class="sd">    source_coordinates : :class:`podpac.Coordinates`, optional</span>
 <span class="sd">        Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the</span>
 <span class="sd">        user-requested coordinates. It is an optimization.</span>
@@ -244,6 +235,14 @@
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    Developers of new Compositor nodes need to implement the `composite` method.</span>
+
+<span class="sd">    Multitheading::</span>
+<span class="sd">      * When MULTITHREADING is False, the compositor stops evaluated sources once the output is completely filled.</span>
+<span class="sd">      * When MULTITHREADING is True, the compositor must evaluate every source.</span>
+<span class="sd">        The result is the same, but note that because of this, disabling multithreading could sometimes be faster,</span>
+<span class="sd">        especially if the number of threads is low.</span>
+<span class="sd">      * NASA data servers seem to have a hard limit of 10 simultaneous requests, so a max of 10 threads is recommend</span>
+<span class="sd">        for most use-cases.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">shared_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -256,9 +255,6 @@
     <span class="n">cache_native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
     
     <span class="n">interpolation</span> <span class="o">=</span> <span class="n">interpolation_trait</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-    <span class="n">threaded</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">n_threads</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
     
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_source_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -390,12 +386,12 @@
                 <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="s1">&#39;native_coordinates&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
                     <span class="n">s</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="o">=</span> <span class="n">nc</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">threaded</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;MULTITHREADING&#39;</span><span class="p">]:</span>
             <span class="c1"># TODO pool of pre-allocated scratch space</span>
             <span class="c1"># TODO: docstring?</span>
             <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">src</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-            <span class="n">pool</span> <span class="o">=</span> <span class="n">ThreadPool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_threads</span><span class="p">)</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">ThreadPool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;N_THREADS&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
             <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="n">src</span><span class="p">])</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">src_subset</span><span class="p">]</span>
             
             <span class="k">for</span> <span class="n">src</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_subset</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
