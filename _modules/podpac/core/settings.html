@@ -186,6 +186,8 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># Python 2/3 handling for JSONDecodeError</span>
 <span class="k">try</span><span class="p">:</span>
@@ -196,15 +198,8 @@
 <span class="c1"># Settings Defaults</span>
 <span class="n">DEFAULT_SETTINGS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;DEBUG&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="s1">&#39;DEFAULT_CACHE&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;ram&#39;</span><span class="p">],</span>
-    <span class="s1">&#39;CACHE_OUTPUT_DEFAULT&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="s1">&#39;RAM_CACHE_MAX_BYTES&#39;</span><span class="p">:</span> <span class="mf">1e9</span><span class="p">,</span> <span class="c1"># ~1GB</span>
-    <span class="s1">&#39;DISK_CACHE_MAX_BYTES&#39;</span><span class="p">:</span> <span class="mf">10e9</span><span class="p">,</span> <span class="c1"># ~10GB</span>
-    <span class="s1">&#39;DISK_CACHE_DIR&#39;</span><span class="p">:</span> <span class="s1">&#39;cache&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;S3_CACHE_DIR&#39;</span><span class="p">:</span> <span class="s1">&#39;cache&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;RAM_CACHE_ENABLED&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="s1">&#39;DISK_CACHE_ENABLED&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="s1">&#39;S3_CACHE_ENABLED&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;CACHE_TO_S3&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">),</span> <span class="s1">&#39;.podpac&#39;</span><span class="p">),</span>
     <span class="s1">&#39;AWS_ACCESS_KEY_ID&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="s1">&#39;AWS_SECRET_ACCESS_KEY&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -260,24 +255,10 @@
 <span class="sd">        for more details.</span>
 <span class="sd">    AWS_REGION_NAME : str</span>
 <span class="sd">        Name of the AWS region, e.g. us-west-1, us-west-2, etc.</span>
-<span class="sd">    DEFAULT_CACHE : list</span>
-<span class="sd">        Defines a default list of cache stores in priority order. Defaults to `[&#39;ram&#39;]`.</span>
-<span class="sd">    CACHE_OUTPUT_DEFAULT : bool</span>
-<span class="sd">        Default value for node ``cache_output`` trait.</span>
-<span class="sd">    RAM_CACHE_MAX_BYTES : int</span>
-<span class="sd">        Maximum RAM cache size in bytes. Defaults to ``1e9`` (~1G).</span>
-<span class="sd">    DISK_CACHE_MAX_BYTES : int</span>
-<span class="sd">        Maximum disk space for use by the disk cache in bytes. Defaults to ``10e9`` (~10G).</span>
-<span class="sd">    DISK_CACHE_DIR : str</span>
-<span class="sd">        Subdirectory to use for the disk cache. Defaults to ``&#39;cache&#39;`` in the podpac root directory.</span>
-<span class="sd">    S3_CACHE_DIR : str</span>
-<span class="sd">        Subdirectory to use for S3 cache (within the specified S3 bucket). Defaults to ``&#39;cache&#39;``.</span>
-<span class="sd">    RAM_CACHE_ENABLED: bool</span>
-<span class="sd">        Enable caching to RAM. Note that if disabled, some nodes may fail. Defaults to ``True``.</span>
-<span class="sd">    DISK_CACHE_ENABLED: bool</span>
-<span class="sd">        Enable caching to disk. Note that if disabled, some nodes may fail. Defaults to ``True``.</span>
-<span class="sd">    S3_CACHE_ENABLED: bool</span>
-<span class="sd">        Enable caching to RAM. Note that if disabled, some nodes may fail. Defaults to ``True``.</span>
+<span class="sd">    CACHE_DIR : str</span>
+<span class="sd">        Directory to use as a cache locally or on S3. Defaults to ``&#39;cache&#39;``.</span>
+<span class="sd">    CACHE_TO_S3 : bool</span>
+<span class="sd">        Cache results to the AWS S3 bucket.</span>
 <span class="sd">    ROOT_PATH : str</span>
 <span class="sd">        Path to primary podpac working directory. Defaults to the ``.podpac`` directory in the users home directory.</span>
 <span class="sd">    S3_BUCKET_NAME : str</span>
@@ -305,6 +286,11 @@
 
         <span class="c1"># load settings from default locations</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loaded podpac settings&#39;</span><span class="p">)</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Active podpac settings file: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings_path</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;AUTOSAVE_SETTINGS&#39;</span><span class="p">]:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Auto-saving podpac settings to: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings_path</span><span class="p">))</span>
+
 
         <span class="c1"># set loaded flag</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loaded</span> <span class="o">=</span> <span class="kc">True</span>
@@ -337,6 +323,8 @@
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">DEFAULT_SETTINGS</span><span class="p">:</span>
             <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_SETTINGS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loaded podpac default settings&#39;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_load_user_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;settings.json&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Load user settings from settings.json file</span>
 <span class="sd">        </span>
@@ -360,10 +348,8 @@
         <span class="c1"># set settings path to default to start</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span> <span class="o">=</span> <span class="n">root_filepath</span>
 
-        <span class="c1"># if input path is specifed, create the input path if it doesn&#39;t exist</span>
+        <span class="c1"># if input path is specifed, make sure it is not empty</span>
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-
-            <span class="c1"># make empty settings path</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input podpac settings path does not exist: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 
@@ -385,11 +371,16 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                         <span class="n">json_settings</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loaded podpac settings from </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
                 <span class="k">except</span> <span class="n">JSONDecodeError</span><span class="p">:</span>
-
                     <span class="c1"># if the root_filepath settings file is broken, raise</span>
                     <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">root_filepath</span><span class="p">:</span>
                         <span class="k">raise</span>
+
+                    <span class="c1"># otherwise warn</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">_logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Failed to load podpac settings from </span><span class="si">{}</span><span class="s1"> with JSONDecodeError&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+
 
                 <span class="c1"># if path exists and settings loaded then load those settings into the dict</span>
                 <span class="k">if</span> <span class="n">json_settings</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -438,7 +429,7 @@
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;settings.json&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -459,19 +450,22 @@
         <span class="c1"># load user settings</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_load_user_settings</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 
-        <span class="c1"># it breaks things to set these paths to None, set back to default if set to None</span>
+        <span class="c1"># it breaks things to set the root path to None, set back to default if set to None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_SETTINGS</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;DISK_CACHE_DIR&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;DISK_CACHE_DIR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_SETTINGS</span><span class="p">[</span><span class="s1">&#39;DISK_CACHE_DIR&#39;</span><span class="p">]</span>
-        
-        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;S3_CACHE_DIR&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;S3_CACHE_DIR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_SETTINGS</span><span class="p">[</span><span class="s1">&#39;S3_CACHE_DIR&#39;</span><span class="p">]</span>
-
+        <span class="c1"># TODO: handle this in the cache module</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;S3_BUCKET_NAME&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_TO_S3&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;cache&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">],</span> <span class="s1">&#39;cache&#39;</span><span class="p">))</span>
 
 <span class="c1"># load settings dict when module is loaded</span>
 <span class="n">settings</span> <span class="o">=</span> <span class="n">PodpacSettings</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;LOG_TO_FILE&#39;</span><span class="p">]:</span>
+    <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">create_logfile</span>
+    <span class="n">create_logfile</span><span class="p">()</span>
 </pre></div>
 
            </div>
