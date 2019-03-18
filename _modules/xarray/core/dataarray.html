@@ -104,6 +104,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../user/coordinates.html">Coordinates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user/nodes.html">Nodes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user/pipelines.html">Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user/cache.html">Cache</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user/earthdata.html">NASA Earth Data Login</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user/references.html">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user/api.html">API Reference</a></li>
@@ -177,10 +178,9 @@
            <div itemprop="articleBody">
             
   <h1>Source code for xarray.core.dataarray</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-
-<span class="kn">import</span> <span class="nn">functools</span>
+<span></span><span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -192,15 +192,13 @@
 <span class="kn">from</span> <span class="nn">.alignment</span> <span class="k">import</span> <span class="n">align</span><span class="p">,</span> <span class="n">reindex_like_indexers</span>
 <span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">AbstractArray</span><span class="p">,</span> <span class="n">DataWithCoords</span>
 <span class="kn">from</span> <span class="nn">.coordinates</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">DataArrayCoordinates</span><span class="p">,</span> <span class="n">Indexes</span><span class="p">,</span> <span class="n">LevelCoordinatesSource</span><span class="p">,</span>
-    <span class="n">assert_coordinate_consistent</span><span class="p">,</span> <span class="n">remap_label_indexers</span><span class="p">)</span>
+    <span class="n">DataArrayCoordinates</span><span class="p">,</span> <span class="n">LevelCoordinatesSource</span><span class="p">,</span> <span class="n">assert_coordinate_consistent</span><span class="p">,</span>
+    <span class="n">remap_label_indexers</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.dataset</span> <span class="k">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">merge_indexes</span><span class="p">,</span> <span class="n">split_indexes</span>
 <span class="kn">from</span> <span class="nn">.formatting</span> <span class="k">import</span> <span class="n">format_item</span>
+<span class="kn">from</span> <span class="nn">.indexes</span> <span class="k">import</span> <span class="n">Indexes</span><span class="p">,</span> <span class="n">default_indexes</span>
 <span class="kn">from</span> <span class="nn">.options</span> <span class="k">import</span> <span class="n">OPTIONS</span>
-<span class="kn">from</span> <span class="nn">.pycompat</span> <span class="k">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">basestring</span><span class="p">,</span> <span class="n">iteritems</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">zip</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">_check_inplace</span><span class="p">,</span> <span class="n">decode_numpy_dict_values</span><span class="p">,</span> <span class="n">either_dict_or_kwargs</span><span class="p">,</span>
-    <span class="n">ensure_us_time_resolution</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">_check_inplace</span><span class="p">,</span> <span class="n">either_dict_or_kwargs</span>
 <span class="kn">from</span> <span class="nn">.variable</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">IndexVariable</span><span class="p">,</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">as_compatible_data</span><span class="p">,</span> <span class="n">as_variable</span><span class="p">,</span>
     <span class="n">assert_unique_multiindex_level_names</span><span class="p">)</span>
@@ -215,7 +213,7 @@
                          <span class="s1">&#39;which does not match the </span><span class="si">%s</span><span class="s1"> dimensions of the &#39;</span>
                          <span class="s1">&#39;data&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)))</span>
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">,)</span>
 
     <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -235,7 +233,7 @@
         <span class="n">dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;dimension </span><span class="si">%s</span><span class="s1"> is not a string&#39;</span> <span class="o">%</span> <span class="n">d</span><span class="p">)</span>
 
     <span class="n">new_coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -339,12 +337,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_groupby_cls</span> <span class="o">=</span> <span class="n">groupby</span><span class="o">.</span><span class="n">DataArrayGroupBy</span>
     <span class="n">_rolling_cls</span> <span class="o">=</span> <span class="n">rolling</span><span class="o">.</span><span class="n">DataArrayRolling</span>
+    <span class="n">_coarsen_cls</span> <span class="o">=</span> <span class="n">rolling</span><span class="o">.</span><span class="n">DataArrayCoarsen</span>
     <span class="n">_resample_cls</span> <span class="o">=</span> <span class="n">resample</span><span class="o">.</span><span class="n">DataArrayResample</span>
 
     <span class="n">dt</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">DatetimeAccessor</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fastpath</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                 <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">indexes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fastpath</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -371,13 +370,16 @@
 <span class="sd">        attrs : dict_like or None, optional</span>
 <span class="sd">            Attributes to assign to the new instance. By default, an empty</span>
 <span class="sd">            attribute dictionary is initialized.</span>
-<span class="sd">        encoding : dict_like or None, optional</span>
-<span class="sd">            Dictionary specifying how to encode this array&#39;s data into a</span>
-<span class="sd">            serialized format like netCDF4. Currently used keys (for netCDF)</span>
-<span class="sd">            include &#39;_FillValue&#39;, &#39;scale_factor&#39;, &#39;add_offset&#39;, &#39;dtype&#39;,</span>
-<span class="sd">            &#39;units&#39; and &#39;calendar&#39; (the later two only for datetime arrays).</span>
-<span class="sd">            Unrecognized keys are ignored.</span>
+<span class="sd">        encoding : deprecated</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">encoding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s1">&#39;The `encoding` argument to `DataArray` is deprecated, and . &#39;</span>
+                <span class="s1">&#39;will be removed in 0.13. &#39;</span>
+                <span class="s1">&#39;Instead, specify the encoding when writing to disk or &#39;</span>
+                <span class="s1">&#39;set the `encoding` attribute directly.&#39;</span><span class="p">,</span>
+                <span class="ne">FutureWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">fastpath</span><span class="p">:</span>
             <span class="n">variable</span> <span class="o">=</span> <span class="n">data</span>
             <span class="k">assert</span> <span class="n">dims</span> <span class="ow">is</span> <span class="kc">None</span>
@@ -415,6 +417,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_variable</span> <span class="o">=</span> <span class="n">variable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">coords</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="c1"># TODO(shoyer): document this argument, once it becomes part of the</span>
+        <span class="c1"># public interface.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_indexes</span> <span class="o">=</span> <span class="n">indexes</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_obj</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -648,14 +654,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_maybe_drop_dims</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getitem_coord</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># xarray-style array indexing</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">indexers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_key_to_dict</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Coordinates in key, value and self[key] should be consistent.</span>
@@ -713,9 +719,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;OrderedDict of pandas.Index objects used for label based indexing</span>
+        <span class="sd">&quot;&quot;&quot;Mapping of pandas.Index objects used for label based indexing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">Indexes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sizes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_indexes</span> <span class="o">=</span> <span class="n">default_indexes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Indexes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_indexes</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -942,7 +950,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># mutable objects should not be hashable</span>
-    <span class="fm">__hash__</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># https://github.com/python/mypy/issues/4266</span>
+    <span class="fm">__hash__</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1483,9 +1492,9 @@
 <span class="sd">          * y        (y) int64 0 1 2</span>
 <span class="sd">        &gt;&gt;&gt; stacked = arr.stack(z=(&#39;x&#39;, &#39;y&#39;))</span>
 <span class="sd">        &gt;&gt;&gt; stacked.indexes[&#39;z&#39;]</span>
-<span class="sd">        MultiIndex(levels=[[u&#39;a&#39;, u&#39;b&#39;], [0, 1, 2]],</span>
+<span class="sd">        MultiIndex(levels=[[&#39;a&#39;, &#39;b&#39;], [0, 1, 2]],</span>
 <span class="sd">                   labels=[[0, 0, 0, 1, 1, 1], [0, 1, 2, 0, 1, 2]],</span>
-<span class="sd">                   names=[u&#39;x&#39;, u&#39;y&#39;])</span>
+<span class="sd">                   names=[&#39;x&#39;, &#39;y&#39;])</span>
 
 <span class="sd">        See also</span>
 <span class="sd">        --------</span>
@@ -1526,9 +1535,9 @@
 <span class="sd">          * y        (y) int64 0 1 2</span>
 <span class="sd">        &gt;&gt;&gt; stacked = arr.stack(z=(&#39;x&#39;, &#39;y&#39;))</span>
 <span class="sd">        &gt;&gt;&gt; stacked.indexes[&#39;z&#39;]</span>
-<span class="sd">        MultiIndex(levels=[[u&#39;a&#39;, u&#39;b&#39;], [0, 1, 2]],</span>
+<span class="sd">        MultiIndex(levels=[[&#39;a&#39;, &#39;b&#39;], [0, 1, 2]],</span>
 <span class="sd">                   labels=[[0, 0, 0, 1, 1, 1], [0, 1, 2, 0, 1, 2]],</span>
-<span class="sd">                   names=[u&#39;x&#39;, u&#39;y&#39;])</span>
+<span class="sd">                   names=[&#39;x&#39;, &#39;y&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; roundtripped = stacked.unstack()</span>
 <span class="sd">        &gt;&gt;&gt; arr.identical(roundtripped)</span>
 <span class="sd">        True</span>
@@ -1556,8 +1565,9 @@
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        Although this operation returns a view of this array&#39;s data, it is</span>
-<span class="sd">        not lazy -- the data will be fully loaded.</span>
+<span class="sd">        This operation returns a view of this array&#39;s data. It is</span>
+<span class="sd">        lazy for dask-backed DataArrays but not for numpy-backed DataArrays</span>
+<span class="sd">        -- the data will be fully loaded.</span>
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
@@ -1930,7 +1940,7 @@
 
         <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convert this xarray.DataArray into a dictionary following xarray</span>
 <span class="sd">        naming conventions.</span>
@@ -1939,22 +1949,20 @@
 <span class="sd">        Useful for coverting to json. To avoid datetime incompatibility</span>
 <span class="sd">        use decode_times=False kwarg in xarrray.open_dataset.</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : bool, optional</span>
+<span class="sd">            Whether to include the actual data in the dictionary. When set to</span>
+<span class="sd">            False, returns just the schema.</span>
+
 <span class="sd">        See also</span>
 <span class="sd">        --------</span>
 <span class="sd">        DataArray.from_dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;coords&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;attrs&#39;</span><span class="p">:</span> <span class="n">decode_numpy_dict_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">),</span>
-             <span class="s1">&#39;dims&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">}</span>
-
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;coords&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">})</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">ensure_us_time_resolution</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-                <span class="n">k</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
-                    <span class="s1">&#39;dims&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span>
-                    <span class="s1">&#39;attrs&#39;</span><span class="p">:</span> <span class="n">decode_numpy_dict_values</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">)}})</span>
-
-        <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">ensure_us_time_resolution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
-                  <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">})</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">d</span>
 
     <span class="nd">@classmethod</span>
@@ -2213,7 +2221,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">one_dims</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">coord</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">coord</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">one_dims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{dim}</span><span class="s1"> = </span><span class="si">{v}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="n">format_item</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">values</span><span class="p">)))</span>
@@ -2597,6 +2605,53 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">differentiate</span><span class="p">(</span>
             <span class="n">coord</span><span class="p">,</span> <span class="n">edge_order</span><span class="p">,</span> <span class="n">datetime_unit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">datetime_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; integrate the array with the trapezoidal rule.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This feature is limited to simple cartesian geometry, i.e. coord</span>
+<span class="sd">            must be one dimensional.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dim: str, or a sequence of str</span>
+<span class="sd">            Coordinate(s) used for the integration.</span>
+<span class="sd">        datetime_unit: str, optional</span>
+<span class="sd">            Can be used to specify the unit if datetime coordinate is used.</span>
+<span class="sd">            One of {&#39;Y&#39;, &#39;M&#39;, &#39;W&#39;, &#39;D&#39;, &#39;h&#39;, &#39;m&#39;, &#39;s&#39;, &#39;ms&#39;, &#39;us&#39;, &#39;ns&#39;,</span>
+<span class="sd">                    &#39;ps&#39;, &#39;fs&#39;, &#39;as&#39;}</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        integrated: DataArray</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.trapz: corresponding numpy function</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; da = xr.DataArray(np.arange(12).reshape(4, 3), dims=[&#39;x&#39;, &#39;y&#39;],</span>
+<span class="sd">        ...                   coords={&#39;x&#39;: [0, 0.1, 1.1, 1.2]})</span>
+<span class="sd">        &gt;&gt;&gt; da</span>
+<span class="sd">        &lt;xarray.DataArray (x: 4, y: 3)&gt;</span>
+<span class="sd">        array([[ 0,  1,  2],</span>
+<span class="sd">               [ 3,  4,  5],</span>
+<span class="sd">               [ 6,  7,  8],</span>
+<span class="sd">               [ 9, 10, 11]])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * x        (x) float64 0.0 0.1 1.1 1.2</span>
+<span class="sd">        Dimensions without coordinates: y</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; da.integrate(&#39;x&#39;)</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([5.4, 6.6, 7.8])</span>
+<span class="sd">        Dimensions without coordinates: y</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">datetime_unit</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
 
