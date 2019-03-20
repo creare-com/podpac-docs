@@ -189,6 +189,7 @@
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">numbers</span> <span class="k">import</span> <span class="n">Number</span>
 <span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 
 <span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
 <span class="kn">import</span> <span class="nn">base64</span>
@@ -201,6 +202,8 @@
 <span class="n">ureg</span> <span class="o">=</span> <span class="n">UnitRegistry</span><span class="p">()</span>
 
 <span class="kn">import</span> <span class="nn">podpac</span>
+<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">trait_is_defined</span>
 
 <span class="k">class</span> <span class="nc">UnitsNode</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">TraitType</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;UnitsNode Summary</span>
@@ -229,7 +232,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
-            <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;ENABLE_UNITS&#39;</span><span class="p">]:</span>
                 <span class="n">u</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">])(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)(</span><span class="n">value</span><span class="o">.</span><span class="n">units</span><span class="o">*</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">value</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
@@ -270,22 +273,37 @@
 <span class="k">class</span> <span class="nc">UnitsDataArray</span><span class="p">(</span><span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Like xarray.DataArray, but transfers units</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
+        <span class="c1"># Deserialize units </span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">],</span> <span class="n">string_types</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ureg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">u</span>
+
+        <span class="c1"># Deserialize layer_stylers</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;layer_style&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;layer_style&#39;</span><span class="p">],</span> <span class="n">string_types</span><span class="p">):</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;layer_style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">Style</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;layer_style&#39;</span><span class="p">])</span> 
+       
+            
     <span class="k">def</span> <span class="nf">__array_wrap__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">new_var</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__array_wrap__</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">):</span>
-            <span class="n">new_var</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">)))</span><span class="o">.</span><span class="n">u</span>
+            <span class="k">if</span> <span class="n">context</span> <span class="ow">and</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;ENABLE_UNITS&#39;</span><span class="p">]:</span>
+                <span class="n">new_var</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">)))</span><span class="o">.</span><span class="n">u</span>
+            <span class="k">elif</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;ENABLE_UNITS&#39;</span><span class="p">]:</span>
+                <span class="n">new_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_copy_units</span><span class="p">(</span><span class="n">new_var</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_var</span>
 
     <span class="k">def</span> <span class="nf">_apply_binary_op_to_units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span> <span class="ow">and</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;ENABLE_UNITS&#39;</span><span class="p">]:</span>
             <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">)),</span>
                                     <span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">)))</span><span class="o">.</span><span class="n">u</span>
         <span class="k">return</span> <span class="n">x</span>
 
     <span class="k">def</span> <span class="nf">_get_unit_multiplier</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="n">multiplier</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span> <span class="ow">and</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;ENABLE_UNITS&#39;</span><span class="p">]:</span>
             <span class="n">otheru</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">))</span>
             <span class="n">myu</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">))</span>
             <span class="n">multiplier</span> <span class="o">=</span> <span class="n">otheru</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">myu</span><span class="o">.</span><span class="n">u</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
@@ -295,7 +313,7 @@
     <span class="c1"># unit of argument (which must be unitless)</span>
     <span class="k">def</span> <span class="nf">__pow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__pow__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;ENABLE_UNITS&#39;</span><span class="p">]:</span>
             <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span>
                 <span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">)),</span>
                 <span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">))</span>
@@ -308,17 +326,22 @@
         <span class="k">return</span> <span class="n">x</span>
 
     <span class="k">def</span> <span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Converts the UnitsDataArray units to the requested unit</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        unit : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        unit : pint.UnitsRegistry unit</span>
+<span class="sd">            The desired unit from podpac.unit</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        UnitsDataArray</span>
+<span class="sd">            The array converted to the desired unit</span>
+<span class="sd">            </span>
+<span class="sd">        Raises</span>
+<span class="sd">        --------</span>
+<span class="sd">        DimensionalityError</span>
+<span class="sd">            If the requested unit is not dimensionally consistent with the original unit.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
@@ -328,13 +351,13 @@
             <span class="n">x</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span>
         <span class="k">return</span> <span class="n">x</span>
 
-    <span class="k">def</span> <span class="nf">to_base_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+    <span class="k">def</span> <span class="nf">to_base_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="sd">&quot;&quot;&quot;Converts the UnitsDataArray units to the base SI units.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        UnitsDataArray</span>
+<span class="sd">            The units data array converted to the base SI units</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
             <span class="n">myu</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">to_base_units</span><span class="p">()</span>
@@ -342,6 +365,18 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
+    <span class="k">def</span> <span class="nf">to_netcdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;layer_style&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;layer_style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;layer_style&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">json</span>
+            
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span>
+    
+    
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="c1"># special cases when key is also a DataArray</span>
         <span class="c1"># and has only one dimension</span>
@@ -360,18 +395,26 @@
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
+<span class="c1">#     def reduce(self, func, *args, **kwargs):</span>
+<span class="c1">#         new_var = super(UnitsDataArray, self).reduce(func, *args, **kwargs)</span>
+<span class="c1">#         if self.attrs.get(&quot;units&quot;, None):</span>
+<span class="c1">#            new_var.attrs[&#39;units&#39;] = self.units</span>
+<span class="c1">#         return new_var</span>
+
     <span class="k">def</span> <span class="nf">part_transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_dims</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
+        <span class="sd">&quot;&quot;&quot;Partially transpose the UnitsDataArray based on the input dimensions. The remaining</span>
+<span class="sd">        dimensions will have their original order, and will be included at the end of the </span>
+<span class="sd">        transpose.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        new_dims : TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        new_dims : list</span>
+<span class="sd">            List of dimensions in the order they should be transposed</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        UnitsDataArray</span>
+<span class="sd">            The UnitsDataArray transposed according to the user inputs</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">shared_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">new_dims</span> <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
         <span class="n">self_only_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_dims</span><span class="p">]</span>
@@ -386,15 +429,14 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        value : TYPE</span>
-<span class="sd">            Description</span>
-<span class="sd">        mask : TYPE</span>
-<span class="sd">            Description</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
+<span class="sd">        value : Number</span>
+<span class="sd">            A constant number that will replace the masked values.</span>
+<span class="sd">        mask : UnitsDataArray</span>
+<span class="sd">            A UnitsDataArray representing a boolean index.</span>
+<span class="sd">            </span>
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        This function modifies the UnitsDataArray inplace</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span><span class="n">UnitsDataArray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="n">Number</span><span class="p">):</span>
