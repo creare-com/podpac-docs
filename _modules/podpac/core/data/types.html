@@ -202,7 +202,6 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># Core dependency of xarray</span>
-<span class="kn">import</span> <span class="nn">xarray</span>  <span class="k">as</span> <span class="nn">xr</span>
 
 <span class="c1"># Helper utility for optional imports</span>
 <span class="kn">from</span> <span class="nn">lazy_import</span> <span class="k">import</span> <span class="n">lazy_module</span>
@@ -599,6 +598,44 @@
         <span class="c1"># local file</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+
+    <span class="c1"># TODO: remove when the reprojection is enabled</span>
+    <span class="k">def</span> <span class="nf">_reproject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_crs</span><span class="o">=</span><span class="s1">&#39;epsg:4326&#39;</span><span class="p">):</span>
+        <span class="c1"># https://rasterio.readthedocs.io/en/latest/topics/reproject.html#reprojecting-a-geotiff-dataset</span>
+         
+        <span class="c1"># format for rasterio</span>
+        <span class="n">dst_crs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;init&#39;</span><span class="p">:</span> <span class="n">dst_crs</span><span class="o">.</span><span class="n">lower</span><span class="p">()}</span>
+
+        <span class="c1"># use self.dataset as source</span>
+        <span class="n">src_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span>
+
+        <span class="c1"># calculate default transform</span>
+        <span class="n">transform</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">warp</span><span class="o">.</span><span class="n">calculate_default_transform</span><span class="p">(</span><span class="n">src_dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span>
+                                                                             <span class="n">dst_crs</span><span class="p">,</span>
+                                                                             <span class="n">src_dataset</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+                                                                             <span class="n">src_dataset</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                                                                             <span class="o">*</span><span class="n">src_dataset</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">src_dataset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;crs&#39;</span><span class="p">:</span> <span class="n">dst_crs</span><span class="p">,</span>
+            <span class="s1">&#39;transform&#39;</span><span class="p">:</span> <span class="n">transform</span><span class="p">,</span>
+            <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">width</span><span class="p">,</span>
+            <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="n">height</span>
+        <span class="p">})</span>
+
+        <span class="c1"># write out new file with new projection</span>
+        <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">MemoryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">src_dataset</span><span class="o">.</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">rasterio</span><span class="o">.</span><span class="n">warp</span><span class="o">.</span><span class="n">reproject</span><span class="p">(</span>
+                        <span class="n">source</span><span class="o">=</span><span class="n">rasterio</span><span class="o">.</span><span class="n">band</span><span class="p">(</span><span class="n">src_dataset</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                        <span class="n">destination</span><span class="o">=</span><span class="n">rasterio</span><span class="o">.</span><span class="n">band</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+                        <span class="n">src_transform</span><span class="o">=</span><span class="n">src_dataset</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span>
+                        <span class="n">src_crs</span><span class="o">=</span><span class="n">src_dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span>
+                        <span class="n">dst_transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+                        <span class="n">dst_crs</span><span class="o">=</span><span class="n">dst_crs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
     
 <div class="viewcode-block" id="Rasterio.close_dataset"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Closes the file for the datasource</span>
@@ -962,7 +999,7 @@
             <span class="n">r</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_capabilities_url</span><span class="p">)</span>
             <span class="n">capabilities</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">data</span>
             <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server:&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_capabilities_url</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Do not have a URL request library to get WCS data.&quot;</span><span class="p">)</span>
 
@@ -1075,7 +1112,7 @@
                 <span class="k">if</span> <span class="n">requests</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get data from WCS server:&quot;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get data from WCS server&quot;</span><span class="p">)</span>
                     <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
                     <span class="n">content</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">content</span>
 
@@ -1087,7 +1124,7 @@
                         <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">()</span>
                     <span class="n">r</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server:&quot;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server&quot;</span><span class="p">)</span>
                     <span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">data</span>
                     <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -1137,7 +1174,7 @@
             <span class="k">if</span> <span class="n">requests</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get data from WCS server:&quot;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get data from WCS server&quot;</span><span class="p">)</span>
                 <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
                 <span class="n">content</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">content</span>
 
@@ -1149,7 +1186,7 @@
                     <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">()</span>
                 <span class="n">r</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server:&quot;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server&quot;</span><span class="p">)</span>
                 <span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">data</span>
                 <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1400,66 +1437,6 @@
             <span class="nb">super</span><span class="p">(</span><span class="n">S3</span><span class="p">)</span><span class="o">.</span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_file_cleanup</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
-
-
-<span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a DataSource node using xarray.open_dataset.</span>
-<span class="sd">    </span>
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    datakey : str</span>
-<span class="sd">        The &#39;key&#39; for the data to be retrieved from the file. Datasource may have multiple keys, so this key</span>
-<span class="sd">        determines which variable is returned from the source.</span>
-<span class="sd">    dataset : xarray.Dataset, optional</span>
-<span class="sd">        The xarray dataset from which to retrieve data. If not specified, will be automatically created from the &#39;source&#39;</span>
-<span class="sd">    native_coordinates : Coordinates</span>
-<span class="sd">        {native_coordinates}</span>
-<span class="sd">    source : str</span>
-<span class="sd">        Path to the data source</span>
-<span class="sd">    extra_dim : dict</span>
-<span class="sd">        In cases where the data contain dimensions other than [&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, &#39;alt&#39;], these dimensions need to be selected. </span>
-<span class="sd">        For example, if the data contains [&#39;lat&#39;, &#39;lon&#39;, &#39;channel&#39;], the second channel can be selected using `extra_dim=dict(channel=1)`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="n">extra_dim</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">({})</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">datakey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">)</span>
-        
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_dataset_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
-    
-    <span class="nd">@property</span>
-    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;{native_coordinates}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># we have to remove any dimensions not in &#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, &#39;alt&#39; for the &#39;get_data&#39; machinery to work properly</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">datakey</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span>
-        <span class="n">crds</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">dims</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">]:</span>
-                <span class="k">continue</span>
-            <span class="n">crds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-            <span class="n">dims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">crds</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
-    
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span>
-                                        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">datakey</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">extra_dim</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">coordinates_index</span><span class="p">])</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The list of available keys from the xarray dataset.</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        List</span>
-<span class="sd">            The list of available keys from the xarray dataset. Any of these keys can be set as self.datakey.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 </pre></div>
 
            </div>
