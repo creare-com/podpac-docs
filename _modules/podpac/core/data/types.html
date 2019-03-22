@@ -600,14 +600,15 @@
             <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
 
     <span class="c1"># TODO: remove when the reprojection is enabled</span>
-    <span class="k">def</span> <span class="nf">_reproject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_crs</span><span class="o">=</span><span class="s1">&#39;epsg:4326&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reproject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dst_crs</span><span class="o">=</span><span class="s1">&#39;epsg:4326&#39;</span><span class="p">):</span>
         <span class="c1"># https://rasterio.readthedocs.io/en/latest/topics/reproject.html#reprojecting-a-geotiff-dataset</span>
          
         <span class="c1"># format for rasterio</span>
         <span class="n">dst_crs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;init&#39;</span><span class="p">:</span> <span class="n">dst_crs</span><span class="o">.</span><span class="n">lower</span><span class="p">()}</span>
 
         <span class="c1"># use self.dataset as source</span>
-        <span class="n">src_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span>
+        <span class="k">if</span> <span class="n">src_dataset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">src_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span>
 
         <span class="c1"># calculate default transform</span>
         <span class="n">transform</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">warp</span><span class="o">.</span><span class="n">calculate_default_transform</span><span class="p">(</span><span class="n">src_dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span>
@@ -635,7 +636,7 @@
                         <span class="n">src_crs</span><span class="o">=</span><span class="n">src_dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span>
                         <span class="n">dst_transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
                         <span class="n">dst_crs</span><span class="o">=</span><span class="n">dst_crs</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
     
 <div class="viewcode-block" id="Rasterio.close_dataset"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Closes the file for the datasource</span>
