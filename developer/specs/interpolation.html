@@ -182,39 +182,42 @@
   <div class="section" id="requirements">
 <h1>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li>decide and run interpolate before request to <code class="docutils literal notranslate"><span class="pre">get_data</span></code> to minimize data on the wire, if possible<ul>
-<li>handle points/segments at the edge of a data source boundary</li>
-<li>handle out-of-extents cases</li>
+<li><p>decide and run interpolate before request to <code class="docutils literal notranslate"><span class="pre">get_data</span></code> to minimize data on the wire, if possible</p>
+<ul>
+<li><p>handle points/segments at the edge of a data source boundary</p></li>
+<li><p>handle out-of-extents cases</p></li>
 </ul>
 </li>
-<li>support most used geospatial temporal interpolation methods</li>
-<li>require minimal configuration for generic types of interpolation</li>
-<li>configuration works in python or in pipeline equally</li>
-<li>handle stacked and unstacked coordinates in the same pipelines</li>
-<li>specify priority for interpolators</li>
-<li>Each interpolator should know what coordinates it can interpolate to/from</li>
-<li>Each interpolator should know how to select appropriate coordinates from the datasource
-Multiple interpolators may be required for each request:<ul>
-<li>Time could use NN interpolation</li>
-<li>lat/lon could use bilinear with a specified CRS/Projection</li>
+<li><p>support most used geospatial temporal interpolation methods</p></li>
+<li><p>require minimal configuration for generic types of interpolation</p></li>
+<li><p>configuration works in python or in pipeline equally</p></li>
+<li><p>handle stacked and unstacked coordinates in the same pipelines</p></li>
+<li><p>specify priority for interpolators</p></li>
+<li><p>Each interpolator should know what coordinates it can interpolate to/from</p></li>
+<li><p>Each interpolator should know how to select appropriate coordinates from the datasource
+Multiple interpolators may be required for each request:</p>
+<ul>
+<li><p>Time could use NN interpolation</p></li>
+<li><p>lat/lon could use bilinear with a specified CRS/Projection</p></li>
 </ul>
 </li>
-<li>The order of these multiple interpolators matters from an optimization perpsective<ul>
-<li>Consider the size of the dataset before/after interpolation</li>
-<li>Consider the cost of the interpolation operation</li>
+<li><p>The order of these multiple interpolators matters from an optimization perpsective</p>
+<ul>
+<li><p>Consider the size of the dataset before/after interpolation</p></li>
+<li><p>Consider the cost of the interpolation operation</p></li>
 </ul>
 </li>
-<li><strong>TODO</strong>: support custom interpolator classes?</li>
-<li><strong>TODO</strong>: support <code class="docutils literal notranslate"><span class="pre">+</span></code> (<code class="docutils literal notranslate"><span class="pre">__add__</span></code>) for Interpolators?</li>
+<li><p><strong>TODO</strong>: support custom interpolator classes?</p></li>
+<li><p><strong>TODO</strong>: support <code class="docutils literal notranslate"><span class="pre">+</span></code> (<code class="docutils literal notranslate"><span class="pre">__add__</span></code>) for Interpolators?</p></li>
 </ul>
 </div>
 <div class="section" id="example-use-cases">
 <h1>Example Use cases<a class="headerlink" href="#example-use-cases" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li>user requests a single value at a point between coordinates in a datasource</li>
-<li>user requests an array of coordinates from a dataset with a different coordinate system</li>
-<li>user requests data at coordinates that overlap the extent of the native dataset</li>
-<li>user requests a different type of interpolation for lat/long and time</li>
+<li><p>user requests a single value at a point between coordinates in a datasource</p></li>
+<li><p>user requests an array of coordinates from a dataset with a different coordinate system</p></li>
+<li><p>user requests data at coordinates that overlap the extent of the native dataset</p></li>
+<li><p>user requests a different type of interpolation for lat/long and time</p></li>
 </ul>
 </div>
 <div class="section" id="user-interface">
@@ -314,12 +317,13 @@ Multiple interpolators may be required for each request:<ul>
 <div class="section" id="constants">
 <h2>Constants<a class="headerlink" href="#constants" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_METHODS</span></code>: dict of shortcut: InterpolationMethod class</li>
-<li><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_SHORTCUTS</span></code>: List<ul>
-<li>Only include the supported interpolation options</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_METHODS</span></code>: dict of shortcut: InterpolationMethod class</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_SHORTCUTS</span></code>: List</p>
+<ul>
+<li><p>Only include the supported interpolation options</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_DEFAULT</span></code>: ‘nearest’, interpolation method if none is specified to datasource or if dimensions are left out of the dict</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INTERPOLATION_DEFAULT</span></code>: ‘nearest’, interpolation method if none is specified to datasource or if dimensions are left out of the dict</p></li>
 </ul>
 </div>
 <div class="section" id="utility-methods">
@@ -331,23 +335,26 @@ Multiple interpolators may be required for each request:<ul>
 <div class="section" id="traits">
 <h3>Traits<a class="headerlink" href="#traits" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">method</span></code>: tl.Unicode() - current interpolation method name</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">method</span></code>: tl.Unicode() - current interpolation method name</p></li>
 </ul>
 </div>
 <div class="section" id="methods">
 <h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">validate(requested_coordinates,</span> <span class="pre">source_coordinates)</span></code><ul>
-<li>check to see if the Interpolator supports the requested/soruce coordinate pair for the current method</li>
-<li><code class="docutils literal notranslate"><span class="pre">InterpolationMethod</span></code> raises a <code class="docutils literal notranslate"><span class="pre">NotImplemented</span></code> if child does not overide</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">validate(requested_coordinates,</span> <span class="pre">source_coordinates)</span></code></p>
+<ul>
+<li><p>check to see if the Interpolator supports the requested/soruce coordinate pair for the current method</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InterpolationMethod</span></code> raises a <code class="docutils literal notranslate"><span class="pre">NotImplemented</span></code> if child does not overide</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">interpolate(source_coordinates,</span> <span class="pre">source_data,</span> <span class="pre">requested_coordinates,</span> <span class="pre">requested_data)</span></code><ul>
-<li><code class="docutils literal notranslate"><span class="pre">InterpolationMethod</span></code> raises a <code class="docutils literal notranslate"><span class="pre">NotImplemented</span></code> if child does not overide</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interpolate(source_coordinates,</span> <span class="pre">source_data,</span> <span class="pre">requested_coordinates,</span> <span class="pre">requested_data)</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">InterpolationMethod</span></code> raises a <code class="docutils literal notranslate"><span class="pre">NotImplemented</span></code> if child does not overide</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">select_coordinates(requested_coordinates,</span> <span class="pre">source_coordinates,</span> <span class="pre">source_coordinates_idx)</span></code><ul>
-<li><code class="docutils literal notranslate"><span class="pre">InterpolationMethod</span></code> raises a <code class="docutils literal notranslate"><span class="pre">NotImplemented</span></code> if child does not overide</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">select_coordinates(requested_coordinates,</span> <span class="pre">source_coordinates,</span> <span class="pre">source_coordinates_idx)</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">InterpolationMethod</span></code> raises a <code class="docutils literal notranslate"><span class="pre">NotImplemented</span></code> if child does not overide</p></li>
 </ul>
 </li>
 </ul>
@@ -358,7 +365,7 @@ Multiple interpolators may be required for each request:<ul>
 <div class="section" id="nearestpreview">
 <h3><code class="docutils literal notranslate"><span class="pre">NearestPreview</span></code><a class="headerlink" href="#nearestpreview" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>can select coordinates</li>
+<li><p>can select coordinates</p></li>
 </ul>
 </div>
 <div class="section" id="rasterio">
@@ -373,10 +380,11 @@ Multiple interpolators may be required for each request:<ul>
 <div class="section" id="constructor">
 <h3>Constructor<a class="headerlink" href="#constructor" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">__init__(definition,</span> <span class="pre">coordinates,</span> <span class="pre">**kwargs)</span></code>:<ul>
-<li><code class="docutils literal notranslate"><span class="pre">definition</span></code>: (str, dict, tuple)</li>
-<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code></li>
-<li>kwargs will get passed through the Interpolator classes</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__(definition,</span> <span class="pre">coordinates,</span> <span class="pre">**kwargs)</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">definition</span></code>: (str, dict, tuple)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coordinates</span></code></p></li>
+<li><p>kwargs will get passed through the Interpolator classes</p></li>
 </ul>
 </li>
 </ul>
@@ -387,17 +395,19 @@ Multiple interpolators may be required for each request:<ul>
 <div class="section" id="private-members">
 <h3>Private members<a class="headerlink" href="#private-members" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">_definition</span></code>: dict { dim: (‘method’, [Interpolator]) }</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_definition</span></code>: dict { dim: (‘method’, [Interpolator]) }</p></li>
 </ul>
 <p><strong>Cost Optimization</strong></p>
 <p>TODO: figure out where to implement optimization steps</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">cost_func</span></code>: tl.CFloat(-1)<ul>
-<li>rough cost FLOPS/DOF to do interpolation</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cost_func</span></code>: tl.CFloat(-1)</p>
+<ul>
+<li><p>rough cost FLOPS/DOF to do interpolation</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">cost_setup</span></code>: tl.CFloat(-1)<ul>
-<li>rough cost FLOPS/DOF to set up the interpolator</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cost_setup</span></code>: tl.CFloat(-1)</p>
+<ul>
+<li><p>rough cost FLOPS/DOF to set up the interpolator</p></li>
 </ul>
 </li>
 </ul>
@@ -405,17 +415,17 @@ Multiple interpolators may be required for each request:<ul>
 <div class="section" id="id1">
 <h3>Methods<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">interpolate(source_coordinates,</span> <span class="pre">source_data,</span> <span class="pre">requested_coordinates,</span> <span class="pre">requested_data)</span></code>: run the interpolator</li>
-<li><code class="docutils literal notranslate"><span class="pre">select_coordinates(requested_coordinates,</span> <span class="pre">source_coordinates,</span> <span class="pre">source_coordinates_idx)</span></code>: interpolate child coordinates</li>
-<li><code class="docutils literal notranslate"><span class="pre">to_pipeline()</span></code>: export interpolator class to pipeline</li>
-<li><code class="docutils literal notranslate"><span class="pre">from_pipeline()</span></code>: create interpolator class from pipeline</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interpolate(source_coordinates,</span> <span class="pre">source_data,</span> <span class="pre">requested_coordinates,</span> <span class="pre">requested_data)</span></code>: run the interpolator</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">select_coordinates(requested_coordinates,</span> <span class="pre">source_coordinates,</span> <span class="pre">source_coordinates_idx)</span></code>: interpolate child coordinates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">to_pipeline()</span></code>: export interpolator class to pipeline</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">from_pipeline()</span></code>: create interpolator class from pipeline</p></li>
 </ul>
 </div>
 </div>
 <div class="section" id="interpolatorexception">
 <h2>InterpolatorException<a class="headerlink" href="#interpolatorexception" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>custom exception for interpolation errors</li>
+<li><p>custom exception for interpolation errors</p></li>
 </ul>
 </div>
 </div>

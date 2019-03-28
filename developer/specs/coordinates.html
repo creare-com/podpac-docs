@@ -182,22 +182,24 @@
   <div class="section" id="requirements">
 <h1>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li>Support lat, lon, alt, and time dimensions</li>
-<li>Support arbitrary stacking of coordinates (eg. lat_lon lat_time, lat_lon_time, alt_time, etc.)</li>
-<li>Support dimensions for coordinates, but allow overwriting to ignore dimensions</li>
-<li>Support different coordinate reference systems for lat, lon dimensions</li>
-<li>Support arbitrary start, end, steps that get filled with the native coordinates when requested</li>
-<li>Support intersection of coodinates</li>
-<li>Support addition of coordinates</li>
-<li>Support dropping coordintes</li>
-<li>Support replacement of coordinates for certain dimensions</li>
-<li>Support sub-selection of coordinates based on index</li>
-<li>Support multiple types of calculated, and explicitly labelled coordinates<ul>
-<li>This includes:<ul>
-<li>Explicit lists of coordinates</li>
-<li>Uniform or linspace coordinates</li>
-<li>Rotated coordinates</li>
-<li>Mapped coordinates (mapping based on i/j(/k/l) index of data array)</li>
+<li><p>Support lat, lon, alt, and time dimensions</p></li>
+<li><p>Support arbitrary stacking of coordinates (eg. lat_lon lat_time, lat_lon_time, alt_time, etc.)</p></li>
+<li><p>Support dimensions for coordinates, but allow overwriting to ignore dimensions</p></li>
+<li><p>Support different coordinate reference systems for lat, lon dimensions</p></li>
+<li><p>Support arbitrary start, end, steps that get filled with the native coordinates when requested</p></li>
+<li><p>Support intersection of coodinates</p></li>
+<li><p>Support addition of coordinates</p></li>
+<li><p>Support dropping coordintes</p></li>
+<li><p>Support replacement of coordinates for certain dimensions</p></li>
+<li><p>Support sub-selection of coordinates based on index</p></li>
+<li><p>Support multiple types of calculated, and explicitly labelled coordinates</p>
+<ul>
+<li><p>This includes:</p>
+<ul>
+<li><p>Explicit lists of coordinates</p></li>
+<li><p>Uniform or linspace coordinates</p></li>
+<li><p>Rotated coordinates</p></li>
+<li><p>Mapped coordinates (mapping based on i/j(/k/l) index of data array)</p></li>
 </ul>
 </li>
 </ul>
@@ -207,19 +209,19 @@
 <div class="section" id="example-use-cases">
 <h1>Example Use cases<a class="headerlink" href="#example-use-cases" title="Permalink to this headline">¶</a></h1>
 <ol class="simple">
-<li>I want to create a regularly spaced set of (lat, lon) coordinates</li>
-<li>I want to create an irregularly spaced set of (time) coordinates</li>
-<li>I want to create a rotated lat,lon coordinate system</li>
-<li>I want to create a regularly spaced line of (lat_lon) coordinates</li>
-<li>I have a set of native_coordinates, and I want to sub-select based on a window of coordinates. The step size of the native_coordinates should be preserved</li>
-<li>I have a set of native_coordinates, but I only want every 5th element in the time dimension</li>
-<li>I have a set of native_coordinates, but I want to replace the coordinates of the time dimension with a different coordinate</li>
-<li>I have a set of (lat_lon) stacked coordinates but I want a new set of coordinates that describe a box containing all of these (lat_lon) coordinates – this should be at the resolution of the lat_lon coordinates</li>
-<li>I want to create (lat,lon) coordinates in UTM-feet using zone T18 with the NAD87 CRS</li>
-<li>I want the intersection of the (lat,lon) coordinates in UTM-feet using zone T18 with the NAD87 CRS with another coordinate system using CRS WGS84 in geodetic coordinates.</li>
-<li>I want to specify a single (lat, lon) coordinate represented as a single point. Intersections with another coordinate should only give results at the point.</li>
-<li>I want to specify a single (lat, lon) coordinate representing an area of a certiain size (dlat, dlon). Intersections with another coordinate will give resoluts over this area.</li>
-<li>TODO:</li>
+<li><p>I want to create a regularly spaced set of (lat, lon) coordinates</p></li>
+<li><p>I want to create an irregularly spaced set of (time) coordinates</p></li>
+<li><p>I want to create a rotated lat,lon coordinate system</p></li>
+<li><p>I want to create a regularly spaced line of (lat_lon) coordinates</p></li>
+<li><p>I have a set of native_coordinates, and I want to sub-select based on a window of coordinates. The step size of the native_coordinates should be preserved</p></li>
+<li><p>I have a set of native_coordinates, but I only want every 5th element in the time dimension</p></li>
+<li><p>I have a set of native_coordinates, but I want to replace the coordinates of the time dimension with a different coordinate</p></li>
+<li><p>I have a set of (lat_lon) stacked coordinates but I want a new set of coordinates that describe a box containing all of these (lat_lon) coordinates – this should be at the resolution of the lat_lon coordinates</p></li>
+<li><p>I want to create (lat,lon) coordinates in UTM-feet using zone T18 with the NAD87 CRS</p></li>
+<li><p>I want the intersection of the (lat,lon) coordinates in UTM-feet using zone T18 with the NAD87 CRS with another coordinate system using CRS WGS84 in geodetic coordinates.</p></li>
+<li><p>I want to specify a single (lat, lon) coordinate represented as a single point. Intersections with another coordinate should only give results at the point.</p></li>
+<li><p>I want to specify a single (lat, lon) coordinate representing an area of a certiain size (dlat, dlon). Intersections with another coordinate will give resoluts over this area.</p></li>
+<li><p>TODO:</p></li>
 </ol>
 </div>
 <div class="section" id="specification">
@@ -227,12 +229,13 @@
 <div class="section" id="general">
 <h2>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Coordinate values are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code></li>
-<li>Coordinate deltas are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">np.timedelta64</span></code></li>
-<li>When input:<ul>
-<li>numerical values and deltas are cast to <code class="docutils literal notranslate"><span class="pre">float</span></code></li>
-<li>string values are parsed with <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code></li>
-<li>string deltas are split and then parsed by <code class="docutils literal notranslate"><span class="pre">np.timedelta64</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">'1,D'</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">np.timedelta(1,</span> <span class="pre">'D')</span></code>)</li>
+<li><p>Coordinate values are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code></p></li>
+<li><p>Coordinate deltas are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">np.timedelta64</span></code></p></li>
+<li><p>When input:</p>
+<ul>
+<li><p>numerical values and deltas are cast to <code class="docutils literal notranslate"><span class="pre">float</span></code></p></li>
+<li><p>string values are parsed with <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code></p></li>
+<li><p>string deltas are split and then parsed by <code class="docutils literal notranslate"><span class="pre">np.timedelta64</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">'1,D'</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">np.timedelta(1,</span> <span class="pre">'D')</span></code>)</p></li>
 </ul>
 </li>
 </ul>
@@ -244,21 +247,21 @@
 <p><code class="docutils literal notranslate"><span class="pre">BaseCoordinates1d</span></code> is the base class for Coordinates1d and StackedCoordinates.</p>
 <p>Common Attributes:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">dims</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">size</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">is_uniform</span></code></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dims</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_uniform</span></code></p></li>
 </ul>
 <p>Common Methods:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">select(bounds,</span> <span class="pre">outer=False)</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">intersect(other,</span> <span class="pre">outer=False)</span></code></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">select(bounds,</span> <span class="pre">outer=False)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">intersect(other,</span> <span class="pre">outer=False)</span></code></p></li>
 </ul>
 <p>Common Operators:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">len</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">[]</span></code>: supports integer, slice, index array, or boolean array</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">len</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[]</span></code>: supports integer, slice, index array, or boolean array</p></li>
 </ul>
 </div>
 <div class="section" id="coordinates1d-basecoordinates1d">
@@ -266,56 +269,61 @@
 <p>Base class for a singe dimension of coordinates.</p>
 <p>Common Traits:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Enum(‘lat’, ‘lon’, ‘time’, ‘alt’)</li>
-<li><code class="docutils literal notranslate"><span class="pre">units</span></code>: Units</li>
-<li><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: string, default: ‘WGS84’</li>
-<li><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘point’, ‘left’, ‘rigth’, ‘midpoint’), default: ‘midpoint’</li>
-<li><code class="docutils literal notranslate"><span class="pre">extents</span></code>: array, shape (2,), optional</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Enum(‘lat’, ‘lon’, ‘time’, ‘alt’)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">units</span></code>: Units</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: string, default: ‘WGS84’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ctype</span></code>: Enum(‘point’, ‘left’, ‘rigth’, ‘midpoint’), default: ‘midpoint’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extents</span></code>: array, shape (2,), optional</p></li>
 </ul>
 <p>Common Properties</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only array</li>
-<li><code class="docutils literal notranslate"><span class="pre">properties</span></code>: dictionary of coordinate properties</li>
-<li><code class="docutils literal notranslate"><span class="pre">dtype</span></code>: <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code> or <code class="docutils literal notranslate"><span class="pre">float</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: int</li>
-<li><code class="docutils literal notranslate"><span class="pre">bounds</span></code>: read-only array, <code class="docutils literal notranslate"><span class="pre">[float,</span> <span class="pre">float]</span></code>. Coordinate values min and max.</li>
-<li><code class="docutils literal notranslate"><span class="pre">area_bounds</span></code>: read-only array, <code class="docutils literal notranslate"><span class="pre">[float,</span> <span class="pre">float]</span></code>.<ul>
-<li>For point coordinates, this is just the <code class="docutils literal notranslate"><span class="pre">bounds</span></code>.</li>
-<li>For segment coordinates, use <code class="docutils literal notranslate"><span class="pre">extents</span></code> when available, otherwise calculated depending on the ctype mode.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: read-only array</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">properties</span></code>: dictionary of coordinate properties</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dtype</span></code>: <code class="docutils literal notranslate"><span class="pre">np.datetime64</span></code> or <code class="docutils literal notranslate"><span class="pre">float</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bounds</span></code>: read-only array, <code class="docutils literal notranslate"><span class="pre">[float,</span> <span class="pre">float]</span></code>. Coordinate values min and max.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">area_bounds</span></code>: read-only array, <code class="docutils literal notranslate"><span class="pre">[float,</span> <span class="pre">float]</span></code>.</p>
+<ul>
+<li><p>For point coordinates, this is just the <code class="docutils literal notranslate"><span class="pre">bounds</span></code>.</p></li>
+<li><p>For segment coordinates, use <code class="docutils literal notranslate"><span class="pre">extents</span></code> when available, otherwise calculated depending on the ctype mode.</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: bool</li>
-<li><code class="docutils literal notranslate"><span class="pre">is_descending</span></code>: bool</li>
-<li><code class="docutils literal notranslate"><span class="pre">is_uniform</span></code>: bool</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: bool</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_descending</span></code>: bool</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_uniform</span></code>: bool</p></li>
 </ul>
 <p>Common Methods</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">select(bounds,</span> <span class="pre">outer=False)</span></code>: select coordinates within the given bounds<ul>
-<li>returns a new Coordinates1d</li>
-<li>if <code class="docutils literal notranslate"><span class="pre">outer</span></code> is true, the coordinates just outside the bounds are returned</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">select(bounds,</span> <span class="pre">outer=False)</span></code>: select coordinates within the given bounds</p>
+<ul>
+<li><p>returns a new Coordinates1d</p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">outer</span></code> is true, the coordinates just outside the bounds are returned</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">intersect(other,</span> <span class="pre">outer=False)</span></code>: intersect these coordinates with other coordinates<ul>
-<li>returns a new Coordinates1d</li>
-<li>if <code class="docutils literal notranslate"><span class="pre">other</span></code> is Coordinates1d, raises an exception if <code class="docutils literal notranslate"><span class="pre">other.name</span> <span class="pre">!=</span> <span class="pre">self.name</span></code></li>
-<li>if <code class="docutils literal notranslate"><span class="pre">other</span></code> is StackedCoordinates or Coordinates, intersects with <code class="docutils literal notranslate"><span class="pre">other[self.name]</span></code></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">intersect(other,</span> <span class="pre">outer=False)</span></code>: intersect these coordinates with other coordinates</p>
+<ul>
+<li><p>returns a new Coordinates1d</p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">other</span></code> is Coordinates1d, raises an exception if <code class="docutils literal notranslate"><span class="pre">other.name</span> <span class="pre">!=</span> <span class="pre">self.name</span></code></p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">other</span></code> is StackedCoordinates or Coordinates, intersects with <code class="docutils literal notranslate"><span class="pre">other[self.name]</span></code></p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">add</span></code>: add delta value to each coordinate value<ul>
-<li>returns a new Coordinates1d object by default, or can be modified in-place</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add</span></code>: add delta value to each coordinate value</p>
+<ul>
+<li><p>returns a new Coordinates1d object by default, or can be modified in-place</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: concatenate additional coordinates<ul>
-<li>returns a new Coordinates1d object by default, or can be used in-place</li>
-<li>raises an exception if <code class="docutils literal notranslate"><span class="pre">other.name</span> <span class="pre">!=</span> <span class="pre">self.name</span></code></li>
-<li><em>not sure we need this…</em></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: concatenate additional coordinates</p>
+<ul>
+<li><p>returns a new Coordinates1d object by default, or can be used in-place</p></li>
+<li><p>raises an exception if <code class="docutils literal notranslate"><span class="pre">other.name</span> <span class="pre">!=</span> <span class="pre">self.name</span></code></p></li>
+<li><p><em>not sure we need this…</em></p></li>
 </ul>
 </li>
 </ul>
 <p>Operators</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">+=</span></code>: wraps add</li>
-<li><code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">-=</span></code>: wraps add</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">+=</span></code>: wraps add</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">-=</span></code>: wraps add</p></li>
 </ul>
 </div>
 <div class="section" id="arraycoordinates1d-coordinates1d">
@@ -323,17 +331,17 @@
 <p>A 1d array of coordinates.</p>
 <p>Constructor:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d()</span></code>: empty coordinates</li>
-<li><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d(value)</span></code>: a singleton array with one coordinate</li>
-<li><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d(values)</span></code>: an array of coordinates</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d()</span></code>: empty coordinates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d(value)</span></code>: a singleton array with one coordinate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d(values)</span></code>: an array of coordinates</p></li>
 </ul>
 <p>Alternate Constructors:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d.from_xarray(xcoords)</span></code>: Create coordinates from an xarray dimension (a named DataArray)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d.from_xarray(xcoords)</span></code>: Create coordinates from an xarray dimension (a named DataArray)</p></li>
 </ul>
 <p>Traits:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">coords</span></code>: array</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coords</span></code>: array</p></li>
 </ul>
 </div>
 <div class="section" id="uniformcoordinates1d-coordinates1d">
@@ -341,19 +349,19 @@
 <p>Uniformly-spaced coordinates, parameterized by a start, stop, and step.</p>
 <p>Constructor</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">step=step)</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">size=N)</span></code></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">step=step)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">size=N)</span></code></p></li>
 </ul>
 <p>Alternate Constructors</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d.from_tuple(items)</span></code>: items is either (start, stop, step) or (start, stop, size)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d.from_tuple(items)</span></code>: items is either (start, stop, step) or (start, stop, size)</p></li>
 </ul>
 <p>Traits:</p>
 <ul class="simple">
-<li>start: float or datetime64</li>
-<li>stop: float or datetime64</li>
-<li>step: float or timedelta64</li>
+<li><p>start: float or datetime64</p></li>
+<li><p>stop: float or datetime64</p></li>
+<li><p>step: float or timedelta64</p></li>
 </ul>
 </div>
 <div class="section" id="stackedcoordinates-basecoordinates1d">
@@ -361,29 +369,32 @@
 <p>Coordinates for two or more physical dimensions that are indexed together (aligned, as opposed to defining a grid). This class should be considered an implementation detail that behaves like a tuple (is iterable) but also facilitates a common interface with Coordinates1d by mapping indexing and other methods to its Coordinates1d objects.</p>
 <p>Properties</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: dimension names joined by an underscore, e.g. <code class="docutils literal notranslate"><span class="pre">'lat_lon'</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple of dimension names</li>
-<li><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: pandas.MultiIndex</li>
-<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: int</li>
-<li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: if all of its dimensions are monotonic</li>
-<li><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: if all of its dimensions are uniform</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: dimension names joined by an underscore, e.g. <code class="docutils literal notranslate"><span class="pre">'lat_lon'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple of dimension names</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coordinates</span></code>: pandas.MultiIndex</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: if all of its dimensions are monotonic</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_monotonic</span></code>: if all of its dimensions are uniform</p></li>
 </ul>
 <p>Methods</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">select(bounds)</span></code>: select coordinates within the given bounds<ul>
-<li>returns a new StackedCoordinates object</li>
-<li>TODO: how are bounds defined? is this necessary</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">select(bounds)</span></code>: select coordinates within the given bounds</p>
+<ul>
+<li><p>returns a new StackedCoordinates object</p></li>
+<li><p>TODO: how are bounds defined? is this necessary</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">intersect(other)</span></code>: intersect these coordinates with other coordinates<ul>
-<li>outer=False, intersection of intersect in each dimension</li>
-<li>outer=True, union of intersection in each dimension</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">intersect(other)</span></code>: intersect these coordinates with other coordinates</p>
+<ul>
+<li><p>outer=False, intersection of intersect in each dimension</p></li>
+<li><p>outer=True, union of intersection in each dimension</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: concatenate additional coordinates<ul>
-<li>returns a new StackedCoordinates object by default, or can be used in-place</li>
-<li>raises an exception if <code class="docutils literal notranslate"><span class="pre">other.name</span> <span class="pre">!=</span> <span class="pre">self.name</span></code></li>
-<li><em>not sure we need this…</em></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: concatenate additional coordinates</p>
+<ul>
+<li><p>returns a new StackedCoordinates object by default, or can be used in-place</p></li>
+<li><p>raises an exception if <code class="docutils literal notranslate"><span class="pre">other.name</span> <span class="pre">!=</span> <span class="pre">self.name</span></code></p></li>
+<li><p><em>not sure we need this…</em></p></li>
 </ul>
 </li>
 </ul>
@@ -399,12 +410,13 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li>Similar to np.arange, but<ul>
-<li>contains the stop value if it falls exactly on a step</li>
-<li>supports time coordinates, either datetime64/timedelta64 or strings</li>
+<li><p>Similar to np.arange, but</p>
+<ul>
+<li><p>contains the stop value if it falls exactly on a step</p></li>
+<li><p>supports time coordinates, either datetime64/timedelta64 or strings</p></li>
 </ul>
 </li>
-<li>Under the hood, this is implemented by mapping directly to <code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code></li>
+<li><p>Under the hood, this is implemented by mapping directly to <code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code></p></li>
 </ul>
 </div>
 <div class="section" id="clinspace">
@@ -417,21 +429,22 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li>Similar to np.linspace, but<ul>
-<li>supports time coordinates, either datetime64 or strings</li>
-<li>supports stacked coordinates</li>
+<li><p>Similar to np.linspace, but</p>
+<ul>
+<li><p>supports time coordinates, either datetime64 or strings</p></li>
+<li><p>supports stacked coordinates</p></li>
 </ul>
 </li>
-<li>Under the hood, this is implemented by mapping to <code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">size=N)</span></code> and <code class="docutils literal notranslate"><span class="pre">StackedCoordinates</span></code></li>
+<li><p>Under the hood, this is implemented by mapping to <code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d(start,</span> <span class="pre">stop,</span> <span class="pre">size=N)</span></code> and <code class="docutils literal notranslate"><span class="pre">StackedCoordinates</span></code></p></li>
 </ul>
 </div>
 <div class="section" id="shorthand-aliases">
 <h3>Shorthand/aliases<a class="headerlink" href="#shorthand-aliases" title="Permalink to this headline">¶</a></h3>
 <p>For ease-of-use, the following aliases will be available in the toplevel <code class="docutils literal notranslate"><span class="pre">podpac</span></code> package:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">_ca</span></code>: <code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">_cu</span></code>: <code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">_stacked</span></code>: <code class="docutils literal notranslate"><span class="pre">StackedCoordinates</span></code></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_ca</span></code>: <code class="docutils literal notranslate"><span class="pre">ArrayCoordinates1d</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_cu</span></code>: <code class="docutils literal notranslate"><span class="pre">UniformCoordinates1d</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_stacked</span></code>: <code class="docutils literal notranslate"><span class="pre">StackedCoordinates</span></code></p></li>
 </ul>
 <p>16 shortcut functions <em>may</em> also be defined, e.g. <code class="docutils literal notranslate"><span class="pre">_ca_lat</span></code>, <code class="docutils literal notranslate"><span class="pre">_cu_time</span></code>, etc</p>
 <p>So that the following single coordinates are equivalent</p>
@@ -473,66 +486,67 @@
 <h3>Coordinate Creation<a class="headerlink" href="#coordinate-creation" title="Permalink to this headline">¶</a></h3>
 <p>Coordinates are created from a list or dict containing BaseCoordinates1d objects (Coordinates1d or StackedCoordinates).</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates()</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates([coords1d,</span> <span class="pre">coords1d])</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates([StackedCoordinates([coords1d,</span> <span class="pre">coords1d]),</span> <span class="pre">coords1d])</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates([(coords1d,</span> <span class="pre">coords1d),</span> <span class="pre">coords1d])</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates([array1d,</span> <span class="pre">array1d],</span> <span class="pre">dims=['lat',</span> <span class="pre">'lon'])</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates([(array1d,</span> <span class="pre">array1d),</span> <span class="pre">array],</span> <span class="pre">dims=['lat_lon',</span> <span class="pre">'time'])</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates([array2d,</span> <span class="pre">array1d],</span> <span class="pre">dims=['lat_lon',</span> <span class="pre">'time'])</span></code></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates()</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates([coords1d,</span> <span class="pre">coords1d])</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates([StackedCoordinates([coords1d,</span> <span class="pre">coords1d]),</span> <span class="pre">coords1d])</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates([(coords1d,</span> <span class="pre">coords1d),</span> <span class="pre">coords1d])</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates([array1d,</span> <span class="pre">array1d],</span> <span class="pre">dims=['lat',</span> <span class="pre">'lon'])</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates([(array1d,</span> <span class="pre">array1d),</span> <span class="pre">array],</span> <span class="pre">dims=['lat_lon',</span> <span class="pre">'time'])</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates([array2d,</span> <span class="pre">array1d],</span> <span class="pre">dims=['lat_lon',</span> <span class="pre">'time'])</span></code></p></li>
 </ul>
 </div>
 <div class="section" id="alternate-constructors">
 <h3>Alternate Constructors<a class="headerlink" href="#alternate-constructors" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates.from_xarray(xcoords)</span></code>: maps multi-dimensional xarray <code class="docutils literal notranslate"><span class="pre">DataArrayCoordinates</span></code> to podpac <code class="docutils literal notranslate"><span class="pre">Coordinates</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates.grid(...)</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates.points(...)</span></code></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates.from_xarray(xcoords)</span></code>: maps multi-dimensional xarray <code class="docutils literal notranslate"><span class="pre">DataArrayCoordinates</span></code> to podpac <code class="docutils literal notranslate"><span class="pre">Coordinates</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates.grid(...)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates.points(...)</span></code></p></li>
 </ul>
 </div>
 <div class="section" id="traits">
 <h3>Traits<a class="headerlink" href="#traits" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: Unicode</li>
-<li><code class="docutils literal notranslate"><span class="pre">default_distance_units</span></code>: Units</li>
-<li><code class="docutils literal notranslate"><span class="pre">default_ctype</span></code>: Enum(‘left’, ‘right’, ‘midpoint’, ‘point’)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord_ref_sys</span></code>: Unicode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">default_distance_units</span></code>: Units</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">default_ctype</span></code>: Enum(‘left’, ‘right’, ‘midpoint’, ‘point’)</p></li>
 </ul>
 </div>
 <div class="section" id="properties">
 <h3>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple(str, str, …)</li>
-<li><code class="docutils literal notranslate"><span class="pre">shape</span></code>: tuple(int, int, …)</li>
-<li><code class="docutils literal notranslate"><span class="pre">ndim</span></code>: int</li>
-<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: int</li>
-<li><code class="docutils literal notranslate"><span class="pre">udims</span></code>: tuple(str, str, …), “unstacked”</li>
-<li><code class="docutils literal notranslate"><span class="pre">coords</span></code>: <code class="docutils literal notranslate"><span class="pre">xarray.core.DataArrayCoordinates</span></code></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dims</span></code>: tuple(str, str, …)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shape</span></code>: tuple(int, int, …)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ndim</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code>: int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">udims</span></code>: tuple(str, str, …), “unstacked”</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coords</span></code>: <code class="docutils literal notranslate"><span class="pre">xarray.core.DataArrayCoordinates</span></code></p></li>
 </ul>
 </div>
 <div class="section" id="methods">
 <h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
 <p>In general, methods will return a new Coordinates object by default, with an option to modify the Coordinates in-place.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">keys()</span></code>: return dims, stacked</li>
-<li><code class="docutils literal notranslate"><span class="pre">values()</span></code>: returns BaseCoordinates1d, stacked</li>
-<li><code class="docutils literal notranslate"><span class="pre">items()</span></code>: zips keys and values</li>
-<li><code class="docutils literal notranslate"><span class="pre">get(key,</span> <span class="pre">default=None)</span></code>: wraps [] with fallback</li>
-<li><code class="docutils literal notranslate"><span class="pre">add</span></code>: TODO</li>
-<li><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: TODO</li>
-<li><code class="docutils literal notranslate"><span class="pre">intersect(other,</span> <span class="pre">outer=False)</span></code>: maps intersection to each dimension, returns new Coordinates object</li>
-<li><code class="docutils literal notranslate"><span class="pre">drop(dims)</span></code>: remove dimensions, stacked dimensions are removed together</li>
-<li><code class="docutils literal notranslate"><span class="pre">udrop(dims)</span></code>: remove dimensions, stacked dimensions can be removed individually</li>
-<li><code class="docutils literal notranslate"><span class="pre">transpose</span></code>: TODO</li>
-<li><code class="docutils literal notranslate"><span class="pre">iterchunks</span></code>: TODO</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">keys()</span></code>: return dims, stacked</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">values()</span></code>: returns BaseCoordinates1d, stacked</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">items()</span></code>: zips keys and values</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get(key,</span> <span class="pre">default=None)</span></code>: wraps [] with fallback</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add</span></code>: TODO</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">concat(other)</span></code>: TODO</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">intersect(other,</span> <span class="pre">outer=False)</span></code>: maps intersection to each dimension, returns new Coordinates object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">drop(dims)</span></code>: remove dimensions, stacked dimensions are removed together</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">udrop(dims)</span></code>: remove dimensions, stacked dimensions can be removed individually</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transpose</span></code>: TODO</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iterchunks</span></code>: TODO</p></li>
 </ul>
 </div>
 <div class="section" id="operators">
 <h3>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">[dim]</span></code>: Get the BaseCoordinates1d object for the given dimension, stacked or unstacked</li>
-<li><code class="docutils literal notranslate"><span class="pre">[dim]</span> <span class="pre">=</span> <span class="pre">&lt;BaseCoordinates1d&gt;</span></code>: Set the coordinates for this dimension.<ul>
-<li>If the dimension is part of stacked dimensions, raises an exception (<em>we could change this to allow setting part of stacked coordinates and just validate that the size is the same</em>)</li>
-<li>If the dimension is missing, raises an exception (<em>we could change this to add dimensions</em>)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[dim]</span></code>: Get the BaseCoordinates1d object for the given dimension, stacked or unstacked</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[dim]</span> <span class="pre">=</span> <span class="pre">&lt;BaseCoordinates1d&gt;</span></code>: Set the coordinates for this dimension.</p>
+<ul>
+<li><p>If the dimension is part of stacked dimensions, raises an exception (<em>we could change this to allow setting part of stacked coordinates and just validate that the size is the same</em>)</p></li>
+<li><p>If the dimension is missing, raises an exception (<em>we could change this to add dimensions</em>)</p></li>
 </ul>
 </li>
 </ul>

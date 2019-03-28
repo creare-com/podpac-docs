@@ -184,7 +184,6 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
@@ -375,6 +374,18 @@
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="se">\n\t</span><span class="s1">method: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span> <span class="nb">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interpolator definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            String name of interpolator. Must correspond to key in `INTERPOLATORS`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__name__</span>
 
 <div class="viewcode-block" id="Interpolator.init"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.data.Interpolator.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -954,6 +965,14 @@
 
         <span class="k">return</span> <span class="n">output_data</span></div>
 
+<span class="n">INTERPOLATORS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;NearestNeighbor&#39;</span><span class="p">:</span> <span class="n">NearestNeighbor</span><span class="p">,</span>
+    <span class="s1">&#39;NearestPreview&#39;</span><span class="p">:</span> <span class="n">NearestPreview</span><span class="p">,</span>
+    <span class="s1">&#39;Rasterio&#39;</span><span class="p">:</span> <span class="n">NearestPreview</span><span class="p">,</span>
+    <span class="s1">&#39;ScipyPoint&#39;</span><span class="p">:</span> <span class="n">ScipyPoint</span><span class="p">,</span>
+    <span class="s1">&#39;ScipyGrid&#39;</span><span class="p">:</span> <span class="n">ScipyGrid</span>
+<span class="p">}</span>
+<span class="sd">&quot;&quot;&quot;dict : Dictionary of a string interpolator name and associated interpolator class&quot;&quot;&quot;</span>
 
 <span class="n">INTERPOLATION_METHODS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;nearest_preview&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">NearestPreview</span><span class="p">],</span>
@@ -1170,19 +1189,18 @@
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a valid interpolation params definition. &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">+</span>
                                 <span class="s1">&#39;Interpolation params must be a dict&#39;</span><span class="p">)</span>
 
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">interpolator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">interpolators</span><span class="p">):</span>
-                
-                <span class="c1"># convert string class name to class in this module (bit of a hack)</span>
-                <span class="c1"># this will come from definition</span>
-                <span class="c1"># TODO: move interpolators to seperate module</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">interpolator</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
-                    <span class="n">this_module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="vm">__name__</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">interpolator</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">this_module</span><span class="p">):</span>
-                        <span class="n">interpolator</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">this_module</span><span class="p">,</span> <span class="n">interpolator</span><span class="p">)</span>
-                        <span class="n">interpolators</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolator</span>
-                    <span class="k">else</span><span class="p">:</span> 
-                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a valid interpolator.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">interpolator</span><span class="p">))</span>
 
+            <span class="c1"># handle when interpolator is a string (most commonly from a pipeline)</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">interpolator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">interpolators</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">interpolator</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">interpolator</span> <span class="ow">in</span> <span class="n">INTERPOLATORS</span><span class="p">:</span>
+                        <span class="n">interpolators</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">INTERPOLATORS</span><span class="p">[</span><span class="n">interpolator</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span> 
+                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Interpolator &quot;</span><span class="si">{}</span><span class="s1">&quot; is not in the dictionary of valid &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">interpolator</span><span class="p">)</span> <span class="o">+</span> 
+                                        <span class="s1">&#39;interpolators: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">INTERPOLATORS</span><span class="p">))</span>
+
+            <span class="c1"># validate interpolator class</span>
+            <span class="k">for</span> <span class="n">interpolator</span> <span class="ow">in</span> <span class="n">interpolators</span><span class="p">:</span>                
                 <span class="bp">self</span><span class="o">.</span><span class="n">_validate_interpolator</span><span class="p">(</span><span class="n">interpolator</span><span class="p">)</span>
 
             <span class="c1"># if all checks pass, return the definition</span>
