@@ -191,7 +191,7 @@
 <span class="kn">import</span> <span class="nn">importlib</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -436,9 +436,10 @@
             <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_timedelta_string</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         
         <span class="c1"># Interpolator</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">tl</span><span class="o">.</span><span class="n">traitlets</span><span class="o">.</span><span class="n">MetaHasTraits</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">Interpolator</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">elif</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">interpolation</span><span class="o">.</span><span class="n">INTERPOLATORS</span><span class="p">:</span>
+            <span class="n">interpolater_class</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="n">interpolator</span> <span class="o">=</span> <span class="n">interpolater_class</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">definition</span>
 
         <span class="c1"># default</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
