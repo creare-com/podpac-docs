@@ -206,6 +206,16 @@
 <span class="c1"># Helper utility for optional imports</span>
 <span class="kn">from</span> <span class="nn">lazy_import</span> <span class="k">import</span> <span class="n">lazy_module</span>
 
+<span class="c1"># Internal dependencies</span>
+<span class="kn">from</span> <span class="nn">podpac.core</span> <span class="k">import</span> <span class="n">authentication</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">cached_property</span><span class="p">,</span> <span class="n">clear_cache</span><span class="p">,</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">trait_is_defined</span><span class="p">,</span> <span class="n">ArrayTrait</span>
+<span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="k">import</span> <span class="n">COMMON_DATA_DOC</span><span class="p">,</span> <span class="n">DataSource</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="n">ArrayCoordinates1d</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
+<span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="k">import</span> <span class="n">Algorithm</span>
+<span class="kn">from</span> <span class="nn">podpac.core.data.interpolation</span> <span class="k">import</span> <span class="n">interpolation_trait</span>
+
 <span class="c1"># Optional dependencies</span>
 <span class="n">bs4</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;bs4&#39;</span><span class="p">)</span>
 <span class="c1"># Not used directly, but used indirectly by bs4 so want to check if it&#39;s available</span>
@@ -221,17 +231,6 @@
 <span class="n">RasterToNumPyArray</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;arcpy.RasterToNumPyArray&#39;</span><span class="p">)</span>
 <span class="n">urllib3</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;urllib3&#39;</span><span class="p">)</span>
 <span class="n">certifi</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;certifi&#39;</span><span class="p">)</span>
-
-<span class="c1"># Internal dependencies</span>
-<span class="kn">from</span> <span class="nn">podpac.core</span> <span class="k">import</span> <span class="n">authentication</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">Node</span>
-<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">cached_property</span><span class="p">,</span> <span class="n">clear_cache</span><span class="p">,</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">trait_is_defined</span><span class="p">,</span> <span class="n">ArrayTrait</span>
-<span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="k">import</span> <span class="n">COMMON_DATA_DOC</span><span class="p">,</span> <span class="n">DataSource</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="n">ArrayCoordinates1d</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
-<span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="k">import</span> <span class="n">Algorithm</span>
-<span class="kn">from</span> <span class="nn">podpac.core.data.interpolation</span> <span class="k">import</span> <span class="n">interpolation_trait</span>
-
 
 <span class="c1"># Set up logging</span>
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -679,7 +678,10 @@
         <span class="c1">#         crs = None</span>
         <span class="c1"># except:</span>
         <span class="c1">#     crs = None</span>
-        <span class="n">crs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">[</span><span class="s1">&#39;init&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># get bounds</span>
         <span class="n">left</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">bounds</span>

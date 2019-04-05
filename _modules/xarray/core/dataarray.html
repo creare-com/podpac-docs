@@ -179,15 +179,16 @@
             
   <h1>Source code for xarray.core.dataarray</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
+<span class="kn">from</span> <span class="nn">..plot.plot</span> <span class="k">import</span> <span class="n">_PlotMethods</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">computation</span><span class="p">,</span> <span class="n">dtypes</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">indexing</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">resample</span><span class="p">,</span> <span class="n">rolling</span><span class="p">,</span> <span class="n">utils</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">..plot.plot</span> <span class="k">import</span> <span class="n">_PlotMethods</span>
 <span class="kn">from</span> <span class="nn">.accessors</span> <span class="k">import</span> <span class="n">DatetimeAccessor</span>
 <span class="kn">from</span> <span class="nn">.alignment</span> <span class="k">import</span> <span class="n">align</span><span class="p">,</span> <span class="n">reindex_like_indexers</span>
 <span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">AbstractArray</span><span class="p">,</span> <span class="n">DataWithCoords</span>
@@ -409,9 +410,6 @@
             <span class="n">data</span> <span class="o">=</span> <span class="n">as_compatible_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span> <span class="o">=</span> <span class="n">_infer_coords_and_dims</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span>
             <span class="n">variable</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">fastpath</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="c1"># uncomment for a useful consistency check:</span>
-        <span class="c1"># assert all(isinstance(v, Variable) for v in coords.values())</span>
 
         <span class="c1"># These fully describe a DataArray</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_variable</span> <span class="o">=</span> <span class="n">variable</span>
@@ -1318,7 +1316,7 @@
         <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">swap_dims</span><span class="p">(</span><span class="n">dims_dict</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">expand_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">expand_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">dim_kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a new object with an additional axis (or axes) inserted at</span>
 <span class="sd">        the corresponding position in the array shape.</span>
 
@@ -1327,21 +1325,53 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        dim : str or sequence of str.</span>
+<span class="sd">        dim : str, sequence of str, dict, or None</span>
 <span class="sd">            Dimensions to include on the new variable.</span>
-<span class="sd">            dimensions are inserted with length 1.</span>
+<span class="sd">            If provided as str or sequence of str, then dimensions are inserted</span>
+<span class="sd">            with length 1. If provided as a dict, then the keys are the new</span>
+<span class="sd">            dimensions and the values are either integers (giving the length of</span>
+<span class="sd">            the new dimensions) or sequence/ndarray (giving the coordinates of</span>
+<span class="sd">            the new dimensions). **WARNING** for python 3.5, if ``dim`` is</span>
+<span class="sd">            dict-like, then it must be an ``OrderedDict``. This is to ensure</span>
+<span class="sd">            that the order in which the dims are given is maintained.</span>
 <span class="sd">        axis : integer, list (or tuple) of integers, or None</span>
 <span class="sd">            Axis position(s) where new axis is to be inserted (position(s) on</span>
 <span class="sd">            the result array). If a list (or tuple) of integers is passed,</span>
 <span class="sd">            multiple axes are inserted. In this case, dim arguments should be</span>
 <span class="sd">            same length list. If axis=None is passed, all the axes will be</span>
 <span class="sd">            inserted to the start of the result array.</span>
+<span class="sd">        **dim_kwargs : int or sequence/ndarray</span>
+<span class="sd">            The keywords are arbitrary dimensions being inserted and the values</span>
+<span class="sd">            are either the lengths of the new dims (if int is given), or their</span>
+<span class="sd">            coordinates. Note, this is an alternative to passing a dict to the</span>
+<span class="sd">            dim kwarg and will only be used if dim is None. **WARNING** for</span>
+<span class="sd">            python 3.5 ``dim_kwargs`` is not available.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        expanded : same type as caller</span>
 <span class="sd">            This object, but with an additional dimension(s).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;dim should be str or sequence of strs or dict&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(((</span><span class="n">dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">),))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dim</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;dims should not contain duplicate values.&#39;</span><span class="p">)</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(((</span><span class="n">d</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dim</span><span class="p">))</span>
+
+        <span class="c1"># TODO: get rid of the below code block when python 3.5 is no longer</span>
+        <span class="c1">#   supported.</span>
+        <span class="n">python36_plus</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">5</span>
+        <span class="n">not_ordereddict</span> <span class="o">=</span> <span class="n">dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">python36_plus</span> <span class="ow">and</span> <span class="n">not_ordereddict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;dim must be an OrderedDict for python &lt;3.6&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">python36_plus</span> <span class="ow">and</span> <span class="n">dim_kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dim_kwargs isn&#39;t available for python &lt;3.6&quot;</span><span class="p">)</span>
+        <span class="n">dim_kwargs</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">dim_kwargs</span><span class="p">)</span>
+
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">either_dict_or_kwargs</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim_kwargs</span><span class="p">,</span> <span class="s1">&#39;expand_dims&#39;</span><span class="p">)</span>
         <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 

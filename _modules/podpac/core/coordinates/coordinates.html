@@ -184,7 +184,8 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 
-<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -197,10 +198,10 @@
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
 <span class="kn">import</span> <span class="nn">xarray.core.coordinates</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
+<span class="kn">import</span> <span class="nn">pyproj</span>
 
 <span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">OrderedDictTrait</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">GDAL_CRS</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.base_coordinates</span> <span class="k">import</span> <span class="n">BaseCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="k">import</span> <span class="n">Coordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.array_coordinates1d</span> <span class="k">import</span> <span class="n">ArrayCoordinates1d</span>
@@ -257,7 +258,7 @@
 <span class="sd">             * &#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;, or &#39;time&#39; for unstacked coordinates</span>
 <span class="sd">             * dimension names joined by an underscore for stacked coordinates</span>
 <span class="sd">        coord_ref_sys : str, optional</span>
-<span class="sd">            Default coordinates reference system</span>
+<span class="sd">            Default coordinates reference system. Supports any PROJ4 compliant string (https://proj4.org/index.html).</span>
 <span class="sd">        ctype : str, optional</span>
 <span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
 <span class="sd">        distance_units : Units</span>
@@ -835,34 +836,33 @@
 
         <span class="k">return</span> <span class="n">hash_alg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
-    <span class="c1"># #@property</span>
-    <span class="c1"># #def gdal_transform(self):</span>
-    <span class="c1">#     if self[&#39;lon&#39;].regularity == &#39;regular&#39; and self[&#39;lat&#39;].regularity == &#39;regular&#39;:</span>
-    <span class="c1">#         lon_bounds = self[&#39;lon&#39;].area_bounds</span>
-    <span class="c1">#         lat_bounds = self[&#39;lat&#39;].area_bounds</span>
-    <span class="c1">#         transform = [lon_bounds[0], self[&#39;lon&#39;].delta, 0, lat_bounds[0], 0, -self[&#39;lat&#39;].delta]</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         raise NotImplementedError</span>
-    <span class="c1">#     return transform</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coord_ref_sys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:str: coordinate reference system.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :str: coordinate reference system.</span>
 
+<span class="sd">        .. deprecated:: 1.0.0</span>
+<span class="sd">              `coord_ref_sys` will be removed in podpac 1.0.0, it is replaced by</span>
+<span class="sd">              `crs` for consistency</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;`coord_ref_sys` has been replaced with `crs` and will be deprecated in future releases&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">crs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:str: coordinate reference system.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         
         <span class="c1"># the coord_ref_sys is the same for all coords</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coord_ref_sys</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">gdal_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:str: GDAL coordinate reference system.&quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># key = &#39;lat&#39; if &#39;lat&#39; in self.udims else &#39;lon&#39;</span>
+        <span class="c1"># if key == &#39;lon&#39; and &#39;lon&#39; not in self.udims:</span>
+        <span class="c1">#     return None</span>
 
-        <span class="k">return</span> <span class="n">GDAL_CRS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">coord_ref_sys</span><span class="p">]</span>
+        <span class="c1"># return GDAL_CRS.get(self[key].coord_ref_sys, self[key].coord_ref_sys)</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Methods</span>
@@ -1027,6 +1027,8 @@
 <span class="sd">        idx : list</span>
 <span class="sd">            List of indices for each dimension that produces the intersection, only if ``return_indices`` is True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">crs</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
 
         <span class="n">intersections</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="n">outer</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="n">return_indices</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
         <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
@@ -1128,6 +1130,36 @@
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Coordinates.transform"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform coordinates into a different coordinate reference system.</span>
+<span class="sd">        Uses PROJ4 syntax for coordinate reference systems</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        crs : str</span>
+<span class="sd">            PROJ4 compatible coordinate reference system string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># coordinates MUST have lat and lon, even if stacked</span>
+        <span class="k">if</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Coordinates must have both lat and lon dimensions to transform coordinate reference systems&#39;</span><span class="p">)</span>
+
+        <span class="n">transformer</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Transformer</span><span class="o">.</span><span class="n">from_crs</span><span class="p">(</span><span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">),</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">))</span>
+        <span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">)</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="n">t_coords</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">t_coords</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
+            <span class="n">t_coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">coord_ref_sys</span> <span class="o">=</span> <span class="n">crs</span>
+
+        <span class="c1"># update values</span>
+        <span class="n">t_coords</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span>
+        <span class="n">t_coords</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">t_coords</span></div>
+
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Operators/Magic Methods</span>
