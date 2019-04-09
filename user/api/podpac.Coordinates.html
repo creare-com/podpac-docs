@@ -287,8 +287,8 @@ dimensions, e.g. <code class="docutils literal notranslate"><span class="pre">'l
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Coordinates.keys" title="podpac.Coordinates.keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys</span></code></a>()</p></td>
 <td><p>dict-like keys: dims</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Coordinates.transform" title="podpac.Coordinates.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(crs)</p></td>
-<td><p>Transform coordinates into a different coordinate reference system.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Coordinates.transform" title="podpac.Coordinates.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>([crs, alt_units])</p></td>
+<td><p>Transform coordinate dimensions (<cite>lat</cite>, <cite>lon</cite>, <cite>alt</cite>) into a different coordinate reference system.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Coordinates.transpose" title="podpac.Coordinates.transpose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transpose</span></code></a>(*dims, **kwargs)</p></td>
 <td><p>Transpose (re-order) the dimensions of the Coordinates.</p></td>
@@ -823,12 +823,87 @@ argument is optional, and the dims will match the order of the provided keyword 
 
 <dl class="method">
 <dt id="podpac.Coordinates.transform">
-<code class="descname">transform</code><span class="sig-paren">(</span><em>crs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/coordinates.html#Coordinates.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Coordinates.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transform coordinates into a different coordinate reference system.
-Uses PROJ4 syntax for coordinate reference systems</p>
+<code class="descname">transform</code><span class="sig-paren">(</span><em>crs=None</em>, <em>alt_units=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/coordinates/coordinates.html#Coordinates.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Coordinates.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform coordinate dimensions (<cite>lat</cite>, <cite>lon</cite>, <cite>alt</cite>) into a different coordinate reference system.
+Uses PROJ4 syntax for coordinate reference systems and units.</p>
+<p>See <a class="reference external" href="https://proj4.org/usage/projections.html#cartographic-projection">PROJ4 Documentation</a> for
+more information about creating PROJ4 strings. See <a class="reference external" href="https://proj4.org/operations/conversions/unitconvert.html#distance-units">PROJ4 Distance Units</a> for unit string
+references.</p>
+<p class="rubric">Examples</p>
+<p>Transform gridded coordinates:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">21</span><span class="p">)],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+<span class="n">c</span><span class="o">.</span><span class="n">crs</span>
+
+<span class="o">&gt;&gt;</span> <span class="s1">&#39;EPSG:4326&#39;</span>
+
+<span class="n">c</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;EPSG:2193&#39;</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;</span> <span class="n">Coordinates</span>
+    <span class="n">lat</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lat</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="o">-</span><span class="mf">9881992.849134896</span><span class="p">,</span> <span class="mf">29995929.885877542</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">21</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;point&#39;</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lon</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="mf">1928928.7360588573</span><span class="p">,</span> <span class="mf">4187156.434405213</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">21</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Transform stacked coordinates:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">21</span><span class="p">))],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat_lon&#39;</span><span class="p">])</span>
+<span class="n">c</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;EPSG:2193&#39;</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;</span> <span class="n">Coordinates</span>
+    <span class="n">lat_lon</span><span class="p">[</span><span class="n">lat</span><span class="p">]:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lat</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="o">-</span><span class="mf">9881992.849134896</span><span class="p">,</span> <span class="mf">29995929.885877542</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">21</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;point&#39;</span><span class="p">]</span>
+    <span class="n">lat_lon</span><span class="p">[</span><span class="n">lon</span><span class="p">]:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lon</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="mf">1928928.7360588573</span><span class="p">,</span> <span class="mf">4187156.434405213</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">21</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Transform coordinates using a PROJ4 string:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">21</span><span class="p">)],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+<span class="n">c</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;+proj=merc +lat_ts=56.5 +ellps=GRS80&#39;</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;</span> <span class="n">Coordinates</span>
+    <span class="n">lat</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lat</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="o">-</span><span class="mf">1847545.541169525</span><span class="p">,</span> <span class="o">-</span><span class="mf">615848.513723175</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">21</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lon</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="o">-</span><span class="mf">614897.0725896168</span><span class="p">,</span> <span class="mf">614897.0725896184</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">21</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Transform coordinates with altitude:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># include alt units in proj4 string</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">])</span>
+<span class="n">c</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;+init=epsg:2193 +vunits=ft&#39;</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;</span> <span class="n">Coordinates</span>
+    <span class="n">lat</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lat</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="mf">594971.8894642257</span><span class="p">,</span> <span class="mf">819117.0608407748</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lon</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="mf">29772096.71234478</span><span class="p">,</span> <span class="mf">29995929.885877542</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+    <span class="n">alt</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">alt</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="mf">3.280839895013123</span><span class="p">,</span> <span class="mf">9.842519685039369</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+
+<span class="c1"># specify alt units seperately</span>
+<span class="n">c</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;EPSG:2193&#39;</span><span class="p">,</span> <span class="n">alt_units</span><span class="o">=</span><span class="s1">&#39;ft&#39;</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;</span> <span class="n">Coordinates</span>
+    <span class="n">lat</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lat</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="mf">594971.8894642257</span><span class="p">,</span> <span class="mf">819117.0608407748</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+    <span class="n">lon</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">lon</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="mf">29772096.71234478</span><span class="p">,</span> <span class="mf">29995929.885877542</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+    <span class="n">alt</span><span class="p">:</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">alt</span><span class="p">):</span> <span class="n">Bounds</span><span class="p">[</span><span class="mf">3.280839895013123</span><span class="p">,</span> <span class="mf">9.842519685039369</span><span class="p">],</span> <span class="n">N</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">ctype</span><span class="p">[</span><span class="s1">&#39;midpoint&#39;</span><span class="p">]</span>
+
+<span class="c1"># using alt_units will save the property `crs` as a proj4 string:</span>
+<span class="n">ct</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;EPSG:2193&#39;</span><span class="p">,</span> <span class="n">alt_units</span><span class="o">=</span><span class="s1">&#39;ft&#39;</span><span class="p">)</span>
+<span class="n">ct</span><span class="o">.</span><span class="n">crs</span>
+
+<span class="o">&gt;&gt;</span> <span class="s1">&#39;+proj=tmerc +lat_0=0 +lon_0=173 +k=0.9996 +x_0=1600000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs +type=crs +vunits=ft&#39;</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>crs</strong> (<em>str</em>) – PROJ4 compatible coordinate reference system string</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crs</strong> (<em>str</em><em>, </em><em>optional</em>) – PROJ4 compatible coordinate reference system string.
+Defaults to the current <cite>crs</cite></p></li>
+<li><p><strong>alt_units</strong> (<em>str</em><em>, </em><em>optional</em>) – Override the alt units defined in <cite>crs</cite> string.
+This is implemented to provide a shorthand for transforming alt units
+without specifying the whole proj4 string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Transformed Coordinates</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Coordinates must have both lat and lon dimensions if either is defined</p>
 </dd>
 </dl>
 </dd></dl>
