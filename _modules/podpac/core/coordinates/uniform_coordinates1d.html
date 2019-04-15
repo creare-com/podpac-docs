@@ -220,7 +220,7 @@
 <span class="sd">        Full array of coordinate values.</span>
 <span class="sd">    units : podpac.Units</span>
 <span class="sd">        Coordinate units.</span>
-<span class="sd">    coord_ref_sys : str</span>
+<span class="sd">    crs : str</span>
 <span class="sd">        Coordinate reference system.</span>
 <span class="sd">    ctype : str</span>
 <span class="sd">        Coordinates type, one of&#39;point&#39;, &#39;left&#39;, &#39;right&#39;, or &#39;midpoint&#39;.</span>
@@ -242,7 +242,7 @@
     <span class="n">step</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;:float, timedelta64: Signed, non-zero step between coordinates.&quot;</span>
 
 <div class="viewcode-block" id="UniformCoordinates1d.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                       <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">segment_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                       <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">segment_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create uniformly-spaced 1d coordinates from a `start`, `stop`, and `step` or `size`.</span>
 
@@ -256,6 +256,14 @@
 <span class="sd">            Signed, nonzero step between coordinates (either step or size required).</span>
 <span class="sd">        size : int</span>
 <span class="sd">            Number of coordinates (either step or size required).</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Dimension name, one of &#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, or &#39;alt&#39;.</span>
+<span class="sd">        units : Units, optional</span>
+<span class="sd">            Coordinate units.</span>
+<span class="sd">        crs : str, optional</span>
+<span class="sd">            Coordinate reference system.</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Coordinates type: &#39;point&#39;, &#39;left&#39;, &#39;right&#39;, or &#39;midpoint&#39;.</span>
 <span class="sd">        segment_lengths: array, float, timedelta, optional</span>
 <span class="sd">            When ctype is a segment type, the segment lengths for the coordinates. By defaul, the segment_lengths are</span>
 <span class="sd">            equal the step.</span>
@@ -298,7 +306,7 @@
 
         <span class="c1"># set common properties</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">segment_lengths</span><span class="o">=</span><span class="n">segment_lengths</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="n">coord_ref_sys</span><span class="p">)</span></div>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">segment_lengths</span><span class="o">=</span><span class="n">segment_lengths</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span></div>
         
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;ctype&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_default_ctype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -406,8 +414,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_segment_lengths</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span>
         <span class="k">return</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
@@ -458,7 +464,7 @@
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># coordinates</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
             <span class="c1"># properties and segment_lengths</span>
             <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
@@ -471,7 +477,7 @@
 
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ctype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span>
 
-            <span class="k">return</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Properties</span>
@@ -573,8 +579,6 @@
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;stop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_segment_lengths</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span>
         <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">d</span>
 
@@ -582,58 +586,7 @@
     <span class="c1"># Methods</span>
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="UniformCoordinates1d.select"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the coordinate values that are within the given bounds.</span>
-
-<span class="sd">        The default selection returns coordinates that are within the other coordinates bounds::</span>
-
-<span class="sd">            In [1]: c = UniformCoordinates1d(0, 3, step=1, name=&#39;lat&#39;)</span>
-
-<span class="sd">            In [2]: c.select([1.5, 2.5]).coordinates</span>
-<span class="sd">            Out[2]: array([2.])</span>
-
-<span class="sd">        The *outer* selection returns the minimal set of coordinates that contain the other coordinates::</span>
-<span class="sd">        </span>
-<span class="sd">            In [3]: c.intersect([1.5, 2.5], outer=True).coordinates</span>
-<span class="sd">            Out[3]: array([1., 2., 3.])</span>
-
-<span class="sd">        The *outer* selection also returns a boundary coordinate if the other coordinates are outside this</span>
-<span class="sd">        coordinates bounds but *inside* its area bounds::</span>
-<span class="sd">        </span>
-<span class="sd">            In [4]: c.intersect([3.25, 3.35], outer=True).coordinates</span>
-<span class="sd">            Out[4]: array([3.0], dtype=float64)</span>
-
-<span class="sd">            In [5]: c.intersect([10.0, 11.0], outer=True).coordinates</span>
-<span class="sd">            Out[5]: array([], dtype=float64)</span>
-<span class="sd">        </span>
-<span class="sd">        Arguments</span>
-<span class="sd">        ---------</span>
-<span class="sd">        bounds : low, high</span>
-<span class="sd">            selection bounds</span>
-<span class="sd">        outer : bool, optional</span>
-<span class="sd">            If True, do an *outer* selection. Default False.</span>
-<span class="sd">        return_indices : bool, optional</span>
-<span class="sd">            If True, return slice or indices for the selection in addition to coordinates. Default False.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        selection : :class:`UniformCoordinates`</span>
-<span class="sd">            UniformCoordinates1d object with coordinates within the other coordinates bounds.</span>
-<span class="sd">        I : slice or list</span>
-<span class="sd">            index or slice for the intersected coordinates (only if return_indices=True)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">bounds</span> <span class="o">=</span> <span class="n">make_coord_value</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">make_coord_value</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-
-        <span class="c1"># full</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_full</span><span class="p">(</span><span class="n">return_indices</span><span class="p">)</span>
-
-        <span class="c1"># none</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">area_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">area_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_empty</span><span class="p">(</span><span class="n">return_indices</span><span class="p">)</span>
-
+    <span class="k">def</span> <span class="nf">_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">,</span> <span class="n">outer</span><span class="p">):</span>
         <span class="c1"># TODO is there an easier way to do this with the new outer flag?</span>
 
         <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -664,7 +617,7 @@
         <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">I</span><span class="p">],</span> <span class="n">I</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">I</span><span class="p">]</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">I</span><span class="p">]</span></div>
 </pre></div>
 
            </div>

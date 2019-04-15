@@ -190,11 +190,13 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
+<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="k">import</span> <span class="n">Units</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">ArrayTrait</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">make_coord_delta</span><span class="p">,</span> <span class="n">make_coord_delta_array</span><span class="p">,</span> <span class="n">add_coord</span><span class="p">,</span> <span class="n">divide_delta</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">make_coord_value</span><span class="p">,</span> <span class="n">make_coord_delta</span><span class="p">,</span> <span class="n">make_coord_delta_array</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">add_coord</span><span class="p">,</span> <span class="n">divide_delta</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">Dimension</span><span class="p">,</span> <span class="n">CoordinateType</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.base_coordinates</span> <span class="k">import</span> <span class="n">BaseCoordinates</span>
-<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 
 <div class="viewcode-block" id="Coordinates1d"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d">[docs]</a><span class="k">class</span> <span class="nc">Coordinates1d</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -222,7 +224,7 @@
 <span class="sd">        Full array of coordinate values.</span>
 <span class="sd">    units : podpac.Units</span>
 <span class="sd">        Coordinate units.</span>
-<span class="sd">    coord_ref_sys : str</span>
+<span class="sd">    crs : str</span>
 <span class="sd">        Coordinate reference system. Supports any PROJ4 compliant string (https://proj4.org/index.html).</span>
 <span class="sd">        If not defined, set to settings entry: `DEFAULT_CRS`</span>
 <span class="sd">    ctype : str</span>
@@ -236,16 +238,15 @@
 <span class="sd">    :class:`ArrayCoordinates1d`, :class:`UniformCoordinates1d`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Units</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">coord_ref_sys</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">ctype</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s1">&#39;point&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;midpoint&#39;</span><span class="p">],</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ctype</span> <span class="o">=</span> <span class="n">CoordinateType</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">segment_lengths</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">_properties</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
-    <span class="n">_segment_lengths</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Coordinates1d.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">segment_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Coordinates1d.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">segment_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;*Do not use.*&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -257,8 +258,8 @@
         <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">coord_ref_sys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;coord_ref_sys&#39;</span><span class="p">,</span> <span class="n">coord_ref_sys</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;crs&#39;</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">segment_lengths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">segment_lengths</span><span class="p">)</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -271,13 +272,9 @@
 
         <span class="nb">super</span><span class="p">(</span><span class="n">Coordinates1d</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;coord_ref_sys&#39;</span><span class="p">,</span> <span class="s1">&#39;ctype&#39;</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;crs&#39;</span><span class="p">,</span> <span class="s1">&#39;ctype&#39;</span><span class="p">,</span> <span class="s1">&#39;segment_lengths&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_set_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
-
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_set_segment_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_segment_lengths</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_segment_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -291,7 +288,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;coordinates and segment_lengths size mismatch, </span><span class="si">%d</span><span class="s2"> != </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">val</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">deltatype</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deltatype</span><span class="p">)</span><span class="o">.</span><span class="n">type</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;coordinates and segment_lengths dtype mismatch, </span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">deltatype</span><span class="p">))</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -303,10 +300,39 @@
 
         <span class="k">return</span> <span class="n">val</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;coord_ref_sys&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_default_coord_ref_sys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;crs&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_default_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;DEFAULT_CRS&#39;</span><span class="p">]</span>
 
+    <span class="k">def</span> <span class="nf">_set_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># set name if it is not set already, otherwise check that it matches</span>
+        <span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Dimension mismatch, </span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># set name if it is not set already, otherwise check that it matches</span>
+        <span class="k">if</span> <span class="s1">&#39;crs&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;crs&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span> <span class="o">!=</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;crs mismatch, </span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_set_ctype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># only set ctype if it is not set already</span>
+        <span class="k">if</span> <span class="s1">&#39;ctype&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;ctype&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_distance_units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># only set units if it is not set already</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">,</span> <span class="s1">&#39;alt&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="s1">&#39;units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
+    <span class="c1"># standard methods</span>
+    <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
+    
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">): Bounds[</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">], N[</span><span class="si">%d</span><span class="s2">], ctype[&#39;</span><span class="si">%s</span><span class="s2">&#39;]&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctype</span><span class="p">)</span>
@@ -317,7 +343,11 @@
 
         <span class="c1"># defined coordinate properties should match</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_properties</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;segment_lengths&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">segment_lengths</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">False</span>
         
         <span class="c1"># shortcuts (not strictly necessary)</span>
@@ -325,15 +355,7 @@
             <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="c1"># only check if one of the coordinates has custom segment lengths</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_segment_lengths</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">_segment_lengths</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">segment_lengths</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">segment_lengths</span><span class="p">):</span>
-                <span class="k">return</span> <span class="kc">False</span>
-
         <span class="k">return</span> <span class="kc">True</span>
-
-<div class="viewcode-block" id="Coordinates1d.from_definition"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d.from_definition">[docs]</a>    <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Properties</span>
@@ -343,17 +365,25 @@
     <span class="k">def</span> <span class="nf">dims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot access dims property of unnamed Coordinates1d&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">udims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:array, read-only: Full array of coordinates values.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">idims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
 
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:dict-like: xarray coordinates (container of coordinate arrays)&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -376,12 +406,6 @@
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Number of coordinates. &quot;&quot;&quot;</span>
-
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_monotonic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -467,7 +491,7 @@
 <span class="sd">        ---------</span>
 <span class="sd">        name : str, optional</span>
 <span class="sd">            Dimension name. One of &#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;, and &#39;time&#39;.</span>
-<span class="sd">        coord_ref_sys : str, optional</span>
+<span class="sd">        crs : str, optional</span>
 <span class="sd">            Coordinates reference system</span>
 <span class="sd">        ctype : str, optional</span>
 <span class="sd">            Coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
@@ -561,64 +585,67 @@
 <span class="sd">        select : Get the coordinates within the given bounds.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
+        <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">,</span> <span class="n">DependentCoordinates</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot intersect with type &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">)):</span>
-            <span class="c1"># short-circuit</span>
+            
+        <span class="c1"># extract the Coordinates1d object (or short-circuit) if necessary</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">,</span> <span class="n">DependentCoordinates</span><span class="p">)):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_full</span><span class="p">(</span><span class="n">return_indices</span><span class="p">)</span>
-            
             <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
-
+        
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot intersect mismatched dimensions (&#39;</span><span class="si">%s</span><span class="s2">&#39; != &#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_full</span><span class="p">(</span><span class="n">return_indices</span><span class="p">)</span>
+            
+        <span class="c1"># check for compatibility</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot intersect mismatched dtypes (&#39;</span><span class="si">%s</span><span class="s2">&#39; != &#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Still need to implement handling different units&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Still need to implement handling different CRS&quot;</span><span class="p">)</span>
 
-        <span class="c1"># no valid other bounds, empty</span>
+        <span class="c1"># short-circuit</span>
         <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_empty</span><span class="p">(</span><span class="n">return_indices</span><span class="p">)</span>
 
+        <span class="c1"># select</span>
+        <span class="c1"># TODO should this be other.area_bounds</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="n">return_indices</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="n">outer</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates1d.select"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates1d.html#podpac.coordinates.Coordinates1d.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the coordinate values that are within the given bounds.</span>
 
-<span class="sd">        The default selection returns coordinates that are within the other coordinates bounds::</span>
+<span class="sd">        The default selection returns coordinates that are within the bounds::</span>
 
 <span class="sd">            In [1]: c = ArrayCoordinates1d([0, 1, 2, 3], name=&#39;lat&#39;)</span>
 
 <span class="sd">            In [2]: c.select([1.5, 2.5]).coordinates</span>
 <span class="sd">            Out[2]: array([2.])</span>
 
-<span class="sd">        The *outer* selection returns the minimal set of coordinates that contain the other coordinates::</span>
+<span class="sd">        The *outer* selection returns the minimal set of coordinates that contain the bounds::</span>
 <span class="sd">        </span>
-<span class="sd">            In [3]: c.intersect([1.5, 2.5], outer=True).coordinates</span>
+<span class="sd">            In [3]: c.select([1.5, 2.5], outer=True).coordinates</span>
 <span class="sd">            Out[3]: array([1., 2., 3.])</span>
 
-<span class="sd">        The *outer* selection also returns a boundary coordinate if the other coordinates are outside this</span>
-<span class="sd">        coordinates bounds but *inside* its area bounds::</span>
+<span class="sd">        The *outer* selection also returns a boundary coordinate if a bound is outside this coordinates bounds but</span>
+<span class="sd">        *inside* its area bounds::</span>
 <span class="sd">        </span>
-<span class="sd">            In [4]: c.intersect([3.25, 3.35], outer=True).coordinates</span>
+<span class="sd">            In [4]: c.select([3.25, 3.35], outer=True).coordinates</span>
 <span class="sd">            Out[4]: array([3.0], dtype=float64)</span>
 
-<span class="sd">            In [5]: c.intersect([10.0, 11.0], outer=True).coordinates</span>
+<span class="sd">            In [5]: c.select([10.0, 11.0], outer=True).coordinates</span>
 <span class="sd">            Out[5]: array([], dtype=float64)</span>
-
-<span class="sd">        *Note: Defined in child classes.*</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        bounds : low, high</span>
-<span class="sd">            selection bounds</span>
+<span class="sd">        bounds : (low, high) or dict</span>
+<span class="sd">            Selection bounds. If a dictionary of dim -&gt; (low, high) bounds is supplied, the bounds matching these</span>
+<span class="sd">            coordinates will be selected if available, otherwise the full coordinates will be returned.</span>
 <span class="sd">        outer : bool, optional</span>
 <span class="sd">            If True, do an *outer* selection. Default False.</span>
 <span class="sd">        return_indices : bool, optional</span>
@@ -627,12 +654,31 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        selection : :class:`Coordinates1d`</span>
-<span class="sd">            Coordinates1d object with coordinates within the other coordinates bounds.</span>
+<span class="sd">            Coordinates1d object with coordinates within the bounds.</span>
 <span class="sd">        I : slice or list</span>
-<span class="sd">            index or slice for the intersected coordinates (only if return_indices=True)</span>
+<span class="sd">            index or slice for the selected coordinates (only if return_indices=True)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_full</span><span class="p">(</span><span class="n">return_indices</span><span class="p">)</span>
+
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">make_coord_value</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">make_coord_value</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># full</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_full</span><span class="p">(</span><span class="n">return_indices</span><span class="p">)</span>
+
+        <span class="c1"># none</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">area_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">area_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_empty</span><span class="p">(</span><span class="n">return_indices</span><span class="p">)</span>
+
+        <span class="c1"># partial, implemented in child classes</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">,</span> <span class="n">outer</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">,</span> <span class="n">outer</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 </pre></div>
 
            </div>
