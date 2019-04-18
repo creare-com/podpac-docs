@@ -182,6 +182,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="k">import</span> <span class="n">md5</span> <span class="k">as</span> <span class="n">hash_alg</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">JSONEncoder</span>
@@ -377,7 +378,7 @@
 <span class="sd">        *Note: To be replaced with the __hash__ method.*</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hash_alg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Methods</span>
@@ -404,15 +405,13 @@
 <span class="sd">            List of lists of indices for each :class:`Coordinates` item, only if ``return_indices`` is True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">intersections</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="n">outer</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="n">return_indices</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
-            <span class="n">cs</span> <span class="o">=</span> <span class="n">GroupCoordinates</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">intersections</span><span class="p">])</span>
-            <span class="n">Is</span> <span class="o">=</span> <span class="p">[</span><span class="n">I</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">intersections</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">cs</span><span class="p">,</span> <span class="n">I</span>
-        <span class="k">return</span> <span class="n">GroupCoordinates</span><span class="p">(</span><span class="n">intersections</span><span class="p">)</span></div>
+        <span class="n">intersections</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="n">outer</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">]</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">intersections</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">GroupCoordinates</span><span class="p">([</span><span class="n">c</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items</span><span class="p">])</span></div>
+        <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">g</span><span class="p">,</span> <span class="p">[</span><span class="n">I</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">intersections</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">g</span></div></div>
 </pre></div>
 
            </div>

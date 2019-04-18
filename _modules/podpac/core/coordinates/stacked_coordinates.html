@@ -240,7 +240,7 @@
 
     <span class="n">_coords</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates1d</span><span class="p">),</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<div class="viewcode-block" id="StackedCoordinates.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="StackedCoordinates.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a multidimensional coords object.</span>
 
@@ -248,8 +248,6 @@
 <span class="sd">        ----------</span>
 <span class="sd">        coords : list, :class:`StackedCoordinates`</span>
 <span class="sd">            Coordinate values in a list, or a StackedCoordinates object to copy.</span>
-<span class="sd">        crs : str, optional</span>
-<span class="sd">            Default coordinates reference system.</span>
 <span class="sd">        ctype : str, optional</span>
 <span class="sd">            Default coordinates type.</span>
 <span class="sd">        distance_units : Units, optional</span>
@@ -279,8 +277,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_dims</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_set_crs</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_ctype</span><span class="p">(</span><span class="n">ctype</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">distance_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -305,11 +301,6 @@
             <span class="k">if</span> <span class="n">dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">[:</span><span class="n">i</span><span class="p">]:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Duplicate dimension &#39;</span><span class="si">%s</span><span class="s2">&#39; in stacked coords&quot;</span> <span class="o">%</span> <span class="n">dim</span><span class="p">)</span>
 
-        <span class="c1"># check crs</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">crs</span> <span class="o">!=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;crs mismatch in stacked_coords </span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">crs</span><span class="p">))</span>
-
         <span class="k">return</span> <span class="n">val</span>
 
     <span class="k">def</span> <span class="nf">_set_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
@@ -332,10 +323,6 @@
                 <span class="k">continue</span>
             <span class="n">c</span><span class="o">.</span><span class="n">_set_name</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_set_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">:</span>
-            <span class="n">c</span><span class="o">.</span><span class="n">_set_crs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">_set_ctype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">:</span>
             <span class="n">c</span><span class="o">.</span><span class="n">_set_ctype</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -349,7 +336,7 @@
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="StackedCoordinates.from_xarray"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.from_xarray">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_xarray</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">xcoords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_xarray</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">xcoords</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convert an xarray coord to StackedCoordinates</span>
 
@@ -357,8 +344,6 @@
 <span class="sd">        ----------</span>
 <span class="sd">        xcoords : DataArrayCoordinates</span>
 <span class="sd">            xarray coords attribute to convert</span>
-<span class="sd">        crs : str, optional</span>
-<span class="sd">            Default coordinates reference system.</span>
 <span class="sd">        ctype : str, optional</span>
 <span class="sd">            Default coordinates type.</span>
 <span class="sd">        distance_units : Units, optional</span>
@@ -372,7 +357,7 @@
 
         <span class="n">dims</span> <span class="o">=</span> <span class="n">xcoords</span><span class="o">.</span><span class="n">indexes</span><span class="p">[</span><span class="n">xcoords</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">names</span>
         <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">ArrayCoordinates1d</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">xcoords</span><span class="p">[</span><span class="n">dims</span><span class="p">])</span> <span class="k">for</span> <span class="n">dims</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="n">distance_units</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="n">distance_units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StackedCoordinates.from_definition"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.from_definition">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -543,13 +528,6 @@
         <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">}</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">crs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:str: coordinate reference system.&quot;&quot;&quot;</span>
-
-        <span class="c1"># the crs is the same for all coords</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">crs</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:list: Serializable stacked coordinates definition. &quot;&quot;&quot;</span>
 
@@ -576,38 +554,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="StackedCoordinates.intersect"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.intersect">[docs]</a>    <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the stacked coordinate values that are within the bounds of a given coordinates object in all dimensions.</span>
-
-<span class="sd">        *Note: you should not generally need to call this method directly.*</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        other : :class:`BaseCoordinates1d`, :class:`Coordinates`</span>
-<span class="sd">            Coordinates to intersect with.</span>
-<span class="sd">        outer : bool, optional</span>
-<span class="sd">            If True, do an *outer* intersection. Default False.</span>
-<span class="sd">        return_indices : bool, optional</span>
-<span class="sd">            If True, return slice or indices for the selection in addition to coordinates. Default False.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        intersection : :class:`StackedCoordinates`</span>
-<span class="sd">            StackedCoordinates object consisting of the intersection in all dimensions.</span>
-<span class="sd">        I : slice or list</span>
-<span class="sd">            Slice or index for the intersected coordinates, only if ``return_indices`` is True.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># logical AND of the intersection in each dimension</span>
-        <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="n">outer</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">]</span>
-        <span class="n">I</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_and_indices</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">I</span><span class="p">],</span> <span class="n">I</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">I</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="StackedCoordinates.select"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
