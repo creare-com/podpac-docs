@@ -108,6 +108,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#active-settings-file">Active Settings File</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#save-settings">Save Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#default-settings">Default Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#details-on-specific-settings">Details on Specific Settings</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
@@ -264,6 +265,102 @@ set the property <code class="docutils literal notranslate"><span class="pre">se
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
 
 <span class="k">print</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="details-on-specific-settings">
+<h2>Details on Specific Settings<a class="headerlink" href="#details-on-specific-settings" title="Permalink to this headline">¶</a></h2>
+<p>For information on specific settings for your version of podpac see the settings module doc.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+<span class="go">&quot;&quot;&quot;</span>
+<span class="go">    Persistently stored podpac settings</span>
+
+<span class="go">    Podpac settings are persistently stored in a ``settings.json`` file created at runtime.</span>
+<span class="go">    By default, podpac will create a settings json file in the users</span>
+<span class="go">    home directory (``~/.podpac/settings.json``) when first run.</span>
+
+<span class="go">    Default settings can be overridden or extended by:</span>
+<span class="go">      * editing the ``settings.json`` file in the home directory (i.e. ``~/.podpac/settings.json``)</span>
+<span class="go">      * creating a ``settings.json`` in the current working directory (i.e. ``./settings.json``)</span>
+
+<span class="go">    If ``settings.json`` files exist in multiple places, podpac will load settings in the following order,</span>
+<span class="go">    overwriting previously loaded settings in the process:</span>
+<span class="go">      * podpac settings defaults</span>
+<span class="go">      * home directory settings (``~/.podpac/settings.json``)</span>
+<span class="go">      * current working directory settings (``./settings.json``)</span>
+
+<span class="go">    :attr:`settings.settings_path` shows the path of the last loaded settings file (e.g. the active settings file).</span>
+<span class="go">    To persistenyl update the active settings file as changes are made at runtime,</span>
+<span class="go">    set the ``settings[&#39;AUTOSAVE_SETTINGS&#39;]`` field to ``True``. The active setting file can be persistently</span>
+<span class="go">    saved at any time using :meth:`settings.save`.</span>
+
+<span class="go">    The default settings are shown below:</span>
+
+<span class="go">    Attributes</span>
+<span class="go">    ----------</span>
+<span class="go">    DEFAULT_CRS : str</span>
+<span class="go">        Default coordinate reference system for spatial coordinates. Defaults to &#39;EPSG:4326&#39;.</span>
+<span class="go">    AWS_ACCESS_KEY_ID : str</span>
+<span class="go">        The access key for your AWS account.</span>
+<span class="go">        See the `boto3 documentation</span>
+<span class="go">        &lt;https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variable-configuration&gt;`_</span>
+<span class="go">        for more details.</span>
+<span class="go">    AWS_SECRET_ACCESS_KEY : str</span>
+<span class="go">        The secret key for your AWS account.</span>
+<span class="go">        See the `boto3 documentation</span>
+<span class="go">        &lt;https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variable-configuration&gt;`_</span>
+<span class="go">        for more details.</span>
+<span class="go">    AWS_REGION_NAME : str</span>
+<span class="go">        Name of the AWS region, e.g. us-west-1, us-west-2, etc.</span>
+<span class="go">    DEFAULT_CACHE : list</span>
+<span class="go">        Defines a default list of cache stores in priority order. Defaults to `[&#39;ram&#39;]`.</span>
+<span class="go">    CACHE_OUTPUT_DEFAULT : bool</span>
+<span class="go">        Default value for node ``cache_output`` trait.</span>
+<span class="go">    RAM_CACHE_MAX_BYTES : int</span>
+<span class="go">        Maximum RAM cache size in bytes.</span>
+<span class="go">        Note, for RAM cache only, the limit is applied to the total amount of RAM used by the python process;</span>
+<span class="go">        not just the contents of the RAM cache. The python process will not be restrited by this limit,</span>
+<span class="go">        but once the limit is reached, additions to the cache will be subject to it.</span>
+<span class="go">        Defaults to ``1e9`` (~1G).</span>
+<span class="go">        Set to `None` explicitly for no limit.</span>
+<span class="go">    DISK_CACHE_MAX_BYTES : int</span>
+<span class="go">        Maximum disk space for use by the disk cache in bytes.</span>
+<span class="go">        Defaults to ``10e9`` (~10G).</span>
+<span class="go">        Set to `None` explicitly for no limit.</span>
+<span class="go">    S3_CACHE_MAX_BYTES : int</span>
+<span class="go">        Maximum storage space for use by the s3 cache in bytes.</span>
+<span class="go">        Defaults to ``10e9`` (~10G).</span>
+<span class="go">        Set to `None` explicitly for no limit.</span>
+<span class="go">    DISK_CACHE_DIR : str</span>
+<span class="go">        Subdirectory to use for the disk cache. Defaults to ``&#39;cache&#39;`` in the podpac root directory.</span>
+<span class="go">    S3_CACHE_DIR : str</span>
+<span class="go">        Subdirectory to use for S3 cache (within the specified S3 bucket). Defaults to ``&#39;cache&#39;``.</span>
+<span class="go">    RAM_CACHE_ENABLED: bool</span>
+<span class="go">        Enable caching to RAM. Note that if disabled, some nodes may fail. Defaults to ``True``.</span>
+<span class="go">    DISK_CACHE_ENABLED: bool</span>
+<span class="go">        Enable caching to disk. Note that if disabled, some nodes may fail. Defaults to ``True``.</span>
+<span class="go">    S3_CACHE_ENABLED: bool</span>
+<span class="go">        Enable caching to RAM. Note that if disabled, some nodes may fail. Defaults to ``True``.</span>
+<span class="go">    ROOT_PATH : str</span>
+<span class="go">        Path to primary podpac working directory. Defaults to the ``.podpac`` directory in the users home directory.</span>
+<span class="go">    S3_BUCKET_NAME : str</span>
+<span class="go">        The AWS S3 Bucket to use for cloud based processing.</span>
+<span class="go">    S3_JSON_FOLDER : str</span>
+<span class="go">        Folder within :attr:`S3_BUCKET_NAME` to use for cloud based processing.</span>
+<span class="go">    S3_OUTPUT_FOLDER : str</span>
+<span class="go">        Folder within :attr:`S3_BUCKET_NAME` to use for outputs.</span>
+<span class="go">    AUTOSAVE_SETTINGS: bool</span>
+<span class="go">        Save settings automatically as they are changed during runtime. Defaults to ``False``.</span>
+<span class="go">    MULTITHREADING: bool</span>
+<span class="go">        Uses multithreaded evaluation, when applicable. Defaults to ``False``.</span>
+<span class="go">    N_THREADS: int</span>
+<span class="go">        Number of threads to use (only if MULTITHREADING is True). Defaults to ``10``.</span>
+<span class="go">    CHUNK_SIZE: int, &#39;auto&#39;, None</span>
+<span class="go">        Chunk size for iterative evaluation, when applicable (e.g. Reduce Nodes). Use None for no iterative evaluation,</span>
+<span class="go">        and &#39;auto&#39; to automatically calculate a chunk size based on the system. Defaults to ``None``.</span>
+<span class="go">&quot;&quot;&quot;</span>
+<span class="go">&gt;&gt;&gt;</span>
 </pre></div>
 </div>
 </div>
