@@ -204,6 +204,7 @@
 <span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">OrderedDictTrait</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">get_vunits</span><span class="p">,</span> <span class="n">set_vunits</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.base_coordinates</span> <span class="k">import</span> <span class="n">BaseCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="k">import</span> <span class="n">Coordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.array_coordinates1d</span> <span class="k">import</span> <span class="n">ArrayCoordinates1d</span>
@@ -242,11 +243,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">alt_units</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="n">_coords</span> <span class="o">=</span> <span class="n">OrderedDictTrait</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">),</span> <span class="n">default_value</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">())</span>
-    <span class="n">_properties</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Coordinates.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Coordinates.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alt_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create multidimensional coordinates.</span>
 
@@ -265,11 +266,12 @@
 <span class="sd">             * &#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;, or &#39;time&#39; for unstacked coordinates</span>
 <span class="sd">             * dimension names joined by an underscore for stacked coordinates</span>
 <span class="sd">        crs : str, optional</span>
-<span class="sd">            Default coordinates reference system. Supports any PROJ4 compliant string (https://proj4.org/index.html).</span>
+<span class="sd">            Coordinate reference system. Supports any PROJ4 compliant string (https://proj4.org/index.html).</span>
+<span class="sd">        alt_units : str, optional</span>
+<span class="sd">            Altitude units. Supports any `PROJ4 Distance Units</span>
+<span class="sd">            &lt;https://proj4.org/operations/conversions/unitconvert.html#distance-units&gt;`. Must not contradict the crs.</span>
 <span class="sd">        ctype : str, optional</span>
 <span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
-<span class="sd">        distance_units : Units</span>
-<span class="sd">            Default distance units.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">)):</span>
@@ -309,8 +311,6 @@
             <span class="n">c</span><span class="o">.</span><span class="n">_set_name</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">c</span><span class="o">.</span><span class="n">_set_ctype</span><span class="p">(</span><span class="n">ctype</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">distance_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">c</span><span class="o">.</span><span class="n">_set_distance_units</span><span class="p">(</span><span class="n">distance_units</span><span class="p">)</span>
             
             <span class="c1"># set coords</span>
             <span class="n">dcoords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
@@ -318,6 +318,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;_coords&#39;</span><span class="p">,</span> <span class="n">dcoords</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;crs&#39;</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">alt_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;alt_units&#39;</span><span class="p">,</span> <span class="n">alt_units</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;_coords&#39;</span><span class="p">)</span>
@@ -342,9 +344,41 @@
     <span class="k">def</span> <span class="nf">_default_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;DEFAULT_CRS&#39;</span><span class="p">]</span>
 
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;crs&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_validate_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="c1"># raises pyproj.CRSError if invalid</span>
+        <span class="k">return</span> <span class="n">val</span>
+
     <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s1">&#39;crs&#39;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_set_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">_observe_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="n">crs</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;alt_units&#39;</span><span class="p">,</span> <span class="n">get_vunits</span><span class="p">(</span><span class="n">crs</span><span class="p">))</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;alt_units&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_validate_alt_units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># check if the alt_units are valid by trying to set the vunits</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">set_vunits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">crs</span><span class="o">.</span><span class="n">CRSError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid alt_units &#39;</span><span class="si">%s</span><span class="s2">&#39;, alt_units must be PROJ4 compliant distance units.&quot;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+
+        <span class="c1"># check if the alt_units contradict the crs</span>
+        <span class="c1"># this will only matter if a full proj4 string has been supplied</span>
+        <span class="n">vunits</span> <span class="o">=</span> <span class="n">get_vunits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">vunits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">val</span> <span class="o">!=</span> <span class="n">vunits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;crs and alt_units mismatch, &#39;</span><span class="si">%s</span><span class="s2">&#39; conflicts with crs &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">))</span>
+
+        <span class="n">vunits</span> <span class="o">=</span> <span class="n">get_vunits</span><span class="p">(</span><span class="n">set_vunits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">vunits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;alt_units ignored (crs &#39;</span><span class="si">%s</span><span class="s2">&#39; does not support separate vunits)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">val</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Alternate constructors</span>
@@ -375,7 +409,7 @@
         <span class="k">return</span> <span class="n">coords</span>
 
 <div class="viewcode-block" id="Coordinates.grid"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.grid">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">grid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">grid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alt_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a grid of coordinates.</span>
 
@@ -405,11 +439,12 @@
 <span class="sd">            List of dimension names, must match the provided keyword arguments. In Python 3.6 and above, the ``dims``</span>
 <span class="sd">            argument is optional, and the dims will match the order of the provided keyword arguments.</span>
 <span class="sd">        crs : str, optional</span>
-<span class="sd">            Default coordinates reference system</span>
+<span class="sd">            Coordinate reference system. Supports any PROJ4 compliant string (https://proj4.org/index.html).</span>
+<span class="sd">        alt_units : str, optional</span>
+<span class="sd">            Altitude units. Supports any `PROJ4 Distance Units</span>
+<span class="sd">            &lt;https://proj4.org/operations/conversions/unitconvert.html#distance-units&gt;`. Must not contradict the crs.</span>
 <span class="sd">        ctype : str, optional</span>
 <span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
-<span class="sd">        distance_units : Units</span>
-<span class="sd">            Default distance units.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -422,10 +457,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">coords</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_coords_from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">dims</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="n">distance_units</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">alt_units</span><span class="o">=</span><span class="n">alt_units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.points"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.points">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alt_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a list of multidimensional coordinates.</span>
 
@@ -458,11 +493,12 @@
 <span class="sd">            List of dimension names, must match the provided keyword arguments. In Python 3.6 and above, the ``dims``</span>
 <span class="sd">            argument is optional, and the dims will match the order of the provided keyword arguments.</span>
 <span class="sd">        crs : str, optional</span>
-<span class="sd">            Default coordinates reference system</span>
+<span class="sd">            Coordinate reference system. Supports any PROJ4 compliant string (https://proj4.org/index.html).</span>
+<span class="sd">        alt_units : str, optional</span>
+<span class="sd">            Altitude units. Supports any `PROJ4 Distance Units</span>
+<span class="sd">            &lt;https://proj4.org/operations/conversions/unitconvert.html#distance-units&gt;`. Must not contradict the crs.</span>
 <span class="sd">        ctype : str, optional</span>
 <span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
-<span class="sd">        distance_units : Units</span>
-<span class="sd">            Default distance units.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -476,10 +512,10 @@
 
         <span class="n">coords</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_coords_from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">dims</span><span class="p">)</span>
         <span class="n">stacked</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">([</span><span class="n">stacked</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="n">distance_units</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">([</span><span class="n">stacked</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">alt_units</span><span class="o">=</span><span class="n">alt_units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.from_xarray"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_xarray">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_xarray</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_xarray</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alt_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create podpac Coordinates from xarray coords.</span>
 
@@ -488,11 +524,12 @@
 <span class="sd">        xcoord : xarray.core.coordinates.DataArrayCoordinates</span>
 <span class="sd">            xarray coords</span>
 <span class="sd">        crs : str, optional</span>
-<span class="sd">            Default coordinates reference system</span>
+<span class="sd">            Coordinate reference system. Supports any PROJ4 compliant string (https://proj4.org/index.html).</span>
+<span class="sd">        alt_units : str, optional</span>
+<span class="sd">            Altitude units. Supports any `PROJ4 Distance Units</span>
+<span class="sd">            &lt;https://proj4.org/operations/conversions/unitconvert.html#distance-units&gt;`. Must not contradict the crs.</span>
 <span class="sd">        ctype : str, optional</span>
 <span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
-<span class="sd">        distance_units : Units</span>
-<span class="sd">            Default distance units.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -511,7 +548,7 @@
                 <span class="n">c</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">xcoord</span><span class="p">[</span><span class="n">dim</span><span class="p">])</span>
             <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">,</span> <span class="n">distance_units</span><span class="o">=</span><span class="n">distance_units</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">alt_units</span><span class="o">=</span><span class="n">alt_units</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.from_json"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_json">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
@@ -728,9 +765,8 @@
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="c1"># properties</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_properties</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">CRS</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">CRS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
         <span class="c1"># full check of underlying coordinates</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_coords</span><span class="p">:</span>
@@ -850,14 +886,23 @@
         <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">coords</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">CRS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alt_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">alt_units</span> <span class="o">!=</span> <span class="n">get_vunits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">):</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="n">set_vunits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alt_units</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span>
+
+        <span class="k">return</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:dict: Dictionary of the coordinate properties. &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_properties</span><span class="p">}</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_full_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;crs&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">}</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;crs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alt_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">alt_units</span> <span class="o">!=</span> <span class="n">get_vunits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">):</span>
+            <span class="n">d</span><span class="p">[</span><span class="s1">&#39;alt_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alt_units</span>
+        <span class="k">return</span> <span class="n">d</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -874,7 +919,7 @@
 
         <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">full_definition</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_full_properties</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;crs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CRS</span><span class="o">.</span><span class="n">to_proj4</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">d</span>
 
     <span class="nd">@property</span>
@@ -1333,27 +1378,30 @@
 <span class="sd">            Coordinates must have both lat and lon dimensions if either is defined</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span> <span class="o">==</span> <span class="n">crs</span> <span class="ow">and</span> <span class="n">alt_units</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">alt_units</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;transform requires crs and/or alt_units argument&#39;</span><span class="p">)</span>
 
+        <span class="c1"># if only alt_units is provided, use self.crs</span>
         <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span>
-
-        <span class="n">from_crs</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
-        <span class="n">to_crs</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
-
-        <span class="c1"># convert alt units into proj4 syntax</span>
+        
+        <span class="c1"># if no vunits are provided, but are necessary, use self.alt_units</span>
+        <span class="c1"># if alt_units is None and get_vunits(crs) is None and self.alt_units is not None:</span>
+        <span class="c1">#     alt_units = self.alt_units</span>
+        
+        <span class="c1"># combine crs and alt_units</span>
         <span class="k">if</span> <span class="n">alt_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">proj4crs</span> <span class="o">=</span> <span class="n">to_crs</span><span class="o">.</span><span class="n">to_proj4</span><span class="p">()</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="n">set_vunits</span><span class="p">(</span><span class="n">crs</span><span class="p">,</span> <span class="n">alt_units</span><span class="p">)</span>
 
-            <span class="c1"># remove old vunits string if present</span>
-            <span class="k">if</span> <span class="s1">&#39;+vunits&#39;</span> <span class="ow">in</span> <span class="n">proj4crs</span><span class="p">:</span>
-                <span class="n">proj4crs</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\+vunits=[a-z\-]+\s&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">proj4crs</span><span class="p">)</span>
-
-            <span class="n">to_crs</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> +vunits=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">proj4crs</span><span class="p">,</span> <span class="n">alt_units</span><span class="p">))</span>
+        <span class="n">from_crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CRS</span>
+        <span class="n">to_crs</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
+        
+        <span class="c1"># no transform needed</span>
+        <span class="k">if</span> <span class="n">from_crs</span> <span class="o">==</span> <span class="n">to_crs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="c1"># create proj4 transformer</span>
-        <span class="n">transformer</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Transformer</span><span class="o">.</span><span class="n">from_crs</span><span class="p">(</span><span class="n">from_crs</span><span class="p">,</span> <span class="n">to_crs</span><span class="p">)</span>
+        <span class="n">transformer</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Transformer</span><span class="o">.</span><span class="n">from_proj</span><span class="p">(</span><span class="n">from_crs</span><span class="p">,</span> <span class="n">to_crs</span><span class="p">)</span>
 
         <span class="c1"># initialize transformed coordinates</span>
         <span class="n">t_coords</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
