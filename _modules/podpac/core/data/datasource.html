@@ -561,7 +561,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">requested_dims</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span>
             <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-            <span class="c1"># TODO: there is no real way to know the crs of an input output UnitsDataArray</span>
+
+            <span class="c1"># check crs compatibility</span>
+            <span class="k">if</span> <span class="n">output</span><span class="o">.</span><span class="n">crs</span> <span class="o">!=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Output coordinate reference system (</span><span class="si">{}</span><span class="s1">) does not match&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span> <span class="o">+</span>
+                                 <span class="s1">&#39;request Coordinates coordinate reference system (</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">))</span>
 
 
         <span class="c1"># interpolate data into output</span>
