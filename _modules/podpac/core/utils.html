@@ -194,6 +194,7 @@
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># Core dependency of xarray</span>
 
 <span class="c1"># create log for module</span>
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -460,11 +461,18 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_timedelta_string</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         
+        <span class="c1"># dataframe</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+            
         <span class="c1"># Interpolator</span>
-        <span class="k">elif</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">interpolation</span><span class="o">.</span><span class="n">INTERPOLATORS</span><span class="p">:</span>
-            <span class="n">interpolater_class</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-            <span class="n">interpolator</span> <span class="o">=</span> <span class="n">interpolater_class</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">definition</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">interpolation</span><span class="o">.</span><span class="n">INTERPOLATORS</span><span class="p">:</span>
+                <span class="n">interpolater_class</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+                <span class="n">interpolator</span> <span class="o">=</span> <span class="n">interpolater_class</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">definition</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">pass</span>
 
         <span class="c1"># default</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
