@@ -113,7 +113,17 @@
 </ul>
 <p class="caption"><span class="caption-text">Developer Guide</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Design</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#concepts">Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#node">Node</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coordinates">Coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unitsdataarray">UnitsDataArray</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pipelines">Pipelines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#repository-organization">Repository Organization</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="aws.html">AWS Lambda</a></li>
 <li class="toctree-l1"><a class="reference internal" href="docs.html">Documentation</a></li>
@@ -183,8 +193,43 @@
             
   <div class="section" id="design">
 <h1>Design<a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h1>
-<p>The essential class structure is captured in the following image:</p>
-<a class="reference internal image-reference" href="../_images/class-structure.png"><img alt="../_images/class-structure.png" src="../_images/class-structure.png" style="width: 60%;" /></a>
+<p>&gt; Text and figures highlighted in orange are still in development</p>
+<div class="section" id="concepts">
+<h2>Concepts<a class="headerlink" href="#concepts" title="Permalink to this headline">¶</a></h2>
+<p>The primary concepts in PODPAC are <a class="reference internal" href="#design-node"><span class="std std-ref">Node</span></a>, <a class="reference internal" href="#design-coordinates"><span class="std std-ref">Coordinates</span></a>, <a class="reference internal" href="#design-unitsdataarray"><span class="std std-ref">UnitsDataArray</span></a> and <a class="reference internal" href="#design-pipelines"><span class="std std-ref">Pipelines</span></a>.
+The following sections describe the class hierarchy associated with each concept.</p>
+<div class="section" id="node">
+<span id="design-node"></span><h3>Node<a class="headerlink" href="#node" title="Permalink to this headline">¶</a></h3>
+<p><strong>Nodes</strong> describe the components of your analysis.
+These include data sources, combined data sources (<strong>Compositors</strong>), algorithms, and the assembly of data sources.
+Nodes are assembled into <a class="reference internal" href="#design-pipelines"><span class="std std-ref">Pipelines</span></a>, which can be output to a text file or pushed to the cloud
+with minimal configuration.</p>
+<a class="reference internal image-reference" href="../_images/node.png"><img alt="../_images/node.png" src="../_images/node.png" style="width: 100%;" /></a>
+</div>
+<div class="section" id="coordinates">
+<span id="design-coordinates"></span><h3>Coordinates<a class="headerlink" href="#coordinates" title="Permalink to this headline">¶</a></h3>
+<p><strong>Coordinates</strong> describe the data structure and dimensions of data within a <strong>Node</strong>.
+PODPAC is limited to 4 coordinate dimensions: <code class="docutils literal notranslate"><span class="pre">lat</span></code>, <code class="docutils literal notranslate"><span class="pre">lon</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code>, and <code class="docutils literal notranslate"><span class="pre">alt</span></code>.</p>
+<a class="reference internal image-reference" href="../_images/coordinates.png"><img alt="../_images/coordinates.png" src="../_images/coordinates.png" style="width: 70%;" /></a>
+</div>
+<div class="section" id="unitsdataarray">
+<span id="design-unitsdataarray"></span><h3>UnitsDataArray<a class="headerlink" href="#unitsdataarray" title="Permalink to this headline">¶</a></h3>
+<p><strong>UnitsDataArray</strong> is the format of all <strong>Node</strong> outputs.
+This is a light wrapper around the <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html">xarray.DataArray</a>
+class to include attributes for units, coordinate reference systems, and other geospatial specific properties.</p>
+<a class="reference internal image-reference" href="../_images/units-data-array.png"><img alt="../_images/units-data-array.png" src="../_images/units-data-array.png" style="width: 25%;" /></a>
+</div>
+<div class="section" id="pipelines">
+<span id="design-pipelines"></span><h3>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">¶</a></h3>
+<p><strong>Pipelines</strong> are assemblies of <strong>Nodes</strong> that can be evaluated at any PODPAC <strong>Coordinates</strong>.
+Pipelines can be very simple, like a single data source evaluated at arbitrary coordinates:</p>
+<a class="reference internal image-reference" href="../_images/simple-pipeline.png"><img alt="../_images/simple-pipeline.png" src="../_images/simple-pipeline.png" style="width: 50%;" /></a>
+<p>Pipelines can also be complex, like two data sources being combined into an algorithm:</p>
+<a class="reference internal image-reference" href="../_images/complex-pipeline.png"><img alt="../_images/complex-pipeline.png" src="../_images/complex-pipeline.png" style="width: 85%;" /></a>
+</div>
+</div>
+<div class="section" id="repository-organization">
+<h2>Repository Organization<a class="headerlink" href="#repository-organization" title="Permalink to this headline">¶</a></h2>
 <p>The directory structure is as follows:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">dist</span></code>: Contains installation instructions and environments for various deployments, including cloud deployment on AWS</p></li>
@@ -207,6 +252,7 @@
 </dl>
 </li>
 </ul>
+</div>
 </div>
 
 
