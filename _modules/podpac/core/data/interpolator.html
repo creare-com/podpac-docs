@@ -189,148 +189,150 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
+
+<span class="c1"># Set up logging</span>
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
 
 <span class="n">COMMON_INTERPOLATOR_DOCS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;interpolator_attributes&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        method : str</span>
-<span class="sd">            Current interpolation method to use in Interpolator (i.e. &#39;nearest&#39;).</span>
-<span class="sd">            This attribute is set during node evaluation when a new :class:`Interpolation`</span>
-<span class="sd">            class is constructed. See the :class:`podpac.data.DataSource` `interpolation` attribute for</span>
-<span class="sd">            more information on specifying the interpolator method.</span>
-<span class="sd">        methods_supported : list</span>
-<span class="sd">            List of methods supported by the interpolator.</span>
-<span class="sd">            This attribute should be defined by the implementing :class:`Interpolator`.</span>
-<span class="sd">            See :ref:`INTERPOLATION_METHODS` for list of available method strings.</span>
-<span class="sd">        dims_supported : list</span>
-<span class="sd">            List of unstacked dimensions supported by the interpolator.</span>
-<span class="sd">            This attribute should be defined by the implementing :class:`Interpolator`.</span>
-<span class="sd">            Used by private convience method :meth:`_filter_udims_supported`.</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
-    <span class="s1">&#39;nearest_neighbor_attributes&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Attributes</span>
-<span class="sd">        ----------</span>
-<span class="sd">        method : str</span>
-<span class="sd">            Current interpolation method to use in Interpolator (i.e. &#39;nearest&#39;).</span>
-<span class="sd">            This attribute is set during node evaluation when a new :class:`Interpolation`</span>
-<span class="sd">            class is constructed. See the :class:`podpac.data.DataSource` `interpolation` attribute for</span>
-<span class="sd">            more information on specifying the interpolator method.</span>
-<span class="sd">        dims_supported : list</span>
-<span class="sd">            List of unstacked dimensions supported by the interpolator.</span>
-<span class="sd">            This attribute should be defined by the implementing :class:`Interpolator`.</span>
-<span class="sd">            Used by private convience method :meth:`_filter_udims_supported`.</span>
-<span class="sd">        spatial_tolerance : float</span>
-<span class="sd">            Maximum distance to the nearest coordinate in space.</span>
-<span class="sd">            Cooresponds to the unit of the space measurement.</span>
-<span class="sd">        time_tolerance : float</span>
-<span class="sd">            Maximum distance to the nearest coordinate in time coordinates.</span>
-<span class="sd">            Accepts p.timedelta64() (i.e. np.timedelta64(1, &#39;D&#39;) for a 1-Day tolerance)</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
-    <span class="s1">&#39;interpolator_can_select&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Evaluate if interpolator can downselect the source coordinates from the requested coordinates</span>
-<span class="sd">        for the unstacked dims supplied.</span>
-<span class="sd">        If not overwritten, this method returns an empty tuple (``tuple()``)</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        udims : tuple</span>
-<span class="sd">            dimensions to select</span>
-<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">            Description</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        tuple</span>
-<span class="sd">            Returns a tuple of dimensions that can be selected with this interpolator</span>
-<span class="sd">            If no dimensions can be selected, method should return an emtpy tuple</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
-    <span class="s1">&#39;interpolator_select&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Downselect coordinates with interpolator method</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        udims : tuple</span>
-<span class="sd">            dimensions to select coordinates</span>
-<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">            Description</span>
-<span class="sd">        source_coordinates_index : list</span>
-<span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">            Description</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        (:class:`podpac.Coordinates`, list)</span>
-<span class="sd">            returns the new down selected coordinates and the new associated index. These coordinates must exist</span>
-<span class="sd">            in the native coordinates of the source data</span>
+    <span class="s2">&quot;interpolator_attributes&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        method : str</span>
+<span class="s2">            Current interpolation method to use in Interpolator (i.e. &#39;nearest&#39;).</span>
+<span class="s2">            This attribute is set during node evaluation when a new :class:`Interpolation`</span>
+<span class="s2">            class is constructed. See the :class:`podpac.data.DataSource` `interpolation` attribute for</span>
+<span class="s2">            more information on specifying the interpolator method.</span>
+<span class="s2">        methods_supported : list</span>
+<span class="s2">            List of methods supported by the interpolator.</span>
+<span class="s2">            This attribute should be defined by the implementing :class:`Interpolator`.</span>
+<span class="s2">            See :ref:`INTERPOLATION_METHODS` for list of available method strings.</span>
+<span class="s2">        dims_supported : list</span>
+<span class="s2">            List of unstacked dimensions supported by the interpolator.</span>
+<span class="s2">            This attribute should be defined by the implementing :class:`Interpolator`.</span>
+<span class="s2">            Used by private convience method :meth:`_filter_udims_supported`.</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nearest_neighbor_attributes&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Attributes</span>
+<span class="s2">        ----------</span>
+<span class="s2">        method : str</span>
+<span class="s2">            Current interpolation method to use in Interpolator (i.e. &#39;nearest&#39;).</span>
+<span class="s2">            This attribute is set during node evaluation when a new :class:`Interpolation`</span>
+<span class="s2">            class is constructed. See the :class:`podpac.data.DataSource` `interpolation` attribute for</span>
+<span class="s2">            more information on specifying the interpolator method.</span>
+<span class="s2">        dims_supported : list</span>
+<span class="s2">            List of unstacked dimensions supported by the interpolator.</span>
+<span class="s2">            This attribute should be defined by the implementing :class:`Interpolator`.</span>
+<span class="s2">            Used by private convience method :meth:`_filter_udims_supported`.</span>
+<span class="s2">        spatial_tolerance : float</span>
+<span class="s2">            Maximum distance to the nearest coordinate in space.</span>
+<span class="s2">            Cooresponds to the unit of the space measurement.</span>
+<span class="s2">        time_tolerance : float</span>
+<span class="s2">            Maximum distance to the nearest coordinate in time coordinates.</span>
+<span class="s2">            Accepts p.timedelta64() (i.e. np.timedelta64(1, &#39;D&#39;) for a 1-Day tolerance)</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;interpolator_can_select&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Evaluate if interpolator can downselect the source coordinates from the requested coordinates</span>
+<span class="s2">        for the unstacked dims supplied.</span>
+<span class="s2">        If not overwritten, this method returns an empty tuple (``tuple()``)</span>
+<span class="s2">        </span>
+<span class="s2">        Parameters</span>
+<span class="s2">        ----------</span>
+<span class="s2">        udims : tuple</span>
+<span class="s2">            dimensions to select</span>
+<span class="s2">        source_coordinates : :class:`podpac.Coordinates`</span>
+<span class="s2">            Description</span>
+<span class="s2">        eval_coordinates : :class:`podpac.Coordinates`</span>
+<span class="s2">            Description</span>
+<span class="s2">        </span>
+<span class="s2">        Returns</span>
+<span class="s2">        -------</span>
+<span class="s2">        tuple</span>
+<span class="s2">            Returns a tuple of dimensions that can be selected with this interpolator</span>
+<span class="s2">            If no dimensions can be selected, method should return an emtpy tuple</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;interpolator_select&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Downselect coordinates with interpolator method</span>
+<span class="s2">        </span>
+<span class="s2">        Parameters</span>
+<span class="s2">        ----------</span>
+<span class="s2">        udims : tuple</span>
+<span class="s2">            dimensions to select coordinates</span>
+<span class="s2">        source_coordinates : :class:`podpac.Coordinates`</span>
+<span class="s2">            Description</span>
+<span class="s2">        source_coordinates_index : list</span>
+<span class="s2">            Description</span>
+<span class="s2">        eval_coordinates : :class:`podpac.Coordinates`</span>
+<span class="s2">            Description</span>
+<span class="s2">        </span>
+<span class="s2">        Returns</span>
+<span class="s2">        -------</span>
+<span class="s2">        (:class:`podpac.Coordinates`, list)</span>
+<span class="s2">            returns the new down selected coordinates and the new associated index. These coordinates must exist</span>
+<span class="s2">            in the native coordinates of the source data</span>
 
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        NotImplementedError</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
-    <span class="s1">&#39;interpolator_can_interpolate&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Evaluate if this interpolation method can handle the requested coordinates and source_coordinates.</span>
-<span class="sd">        If not overwritten, this method returns an empty tuple (`tuple()`)</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        udims : tuple</span>
-<span class="sd">            dimensions to interpolate</span>
-<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">            Description</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        tuple</span>
-<span class="sd">            Returns a tuple of dimensions that can be interpolated with this interpolator</span>
-<span class="sd">            If no dimensions can be interpolated, method should return an emtpy tuple</span>
-<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
-    <span class="s1">&#39;interpolator_interpolate&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Interpolate data from requested coordinates to source coordinates.</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        udims : tuple</span>
-<span class="sd">            dimensions to interpolate</span>
-<span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">            Description</span>
-<span class="sd">        source_data : podpac.core.units.UnitsDataArray</span>
-<span class="sd">            Description</span>
-<span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">            Description</span>
-<span class="sd">        output_data : podpac.core.units.UnitsDataArray</span>
-<span class="sd">            Description</span>
-<span class="sd">        </span>
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        NotImplementedError</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        podpac.core.units.UnitDataArray</span>
-<span class="sd">            returns the updated output of interpolated data</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="s2">        Raises</span>
+<span class="s2">        ------</span>
+<span class="s2">        NotImplementedError</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;interpolator_can_interpolate&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Evaluate if this interpolation method can handle the requested coordinates and source_coordinates.</span>
+<span class="s2">        If not overwritten, this method returns an empty tuple (`tuple()`)</span>
+<span class="s2">        </span>
+<span class="s2">        Parameters</span>
+<span class="s2">        ----------</span>
+<span class="s2">        udims : tuple</span>
+<span class="s2">            dimensions to interpolate</span>
+<span class="s2">        source_coordinates : :class:`podpac.Coordinates`</span>
+<span class="s2">            Description</span>
+<span class="s2">        eval_coordinates : :class:`podpac.Coordinates`</span>
+<span class="s2">            Description</span>
+<span class="s2">        </span>
+<span class="s2">        Returns</span>
+<span class="s2">        -------</span>
+<span class="s2">        tuple</span>
+<span class="s2">            Returns a tuple of dimensions that can be interpolated with this interpolator</span>
+<span class="s2">            If no dimensions can be interpolated, method should return an emtpy tuple</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;interpolator_interpolate&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Interpolate data from requested coordinates to source coordinates.</span>
+<span class="s2">        </span>
+<span class="s2">        Parameters</span>
+<span class="s2">        ----------</span>
+<span class="s2">        udims : tuple</span>
+<span class="s2">            dimensions to interpolate</span>
+<span class="s2">        source_coordinates : :class:`podpac.Coordinates`</span>
+<span class="s2">            Description</span>
+<span class="s2">        source_data : podpac.core.units.UnitsDataArray</span>
+<span class="s2">            Description</span>
+<span class="s2">        eval_coordinates : :class:`podpac.Coordinates`</span>
+<span class="s2">            Description</span>
+<span class="s2">        output_data : podpac.core.units.UnitsDataArray</span>
+<span class="s2">            Description</span>
+<span class="s2">        </span>
+<span class="s2">        Raises</span>
+<span class="s2">        ------</span>
+<span class="s2">        NotImplementedError</span>
+<span class="s2">        </span>
+<span class="s2">        Returns</span>
+<span class="s2">        -------</span>
+<span class="s2">        podpac.core.units.UnitDataArray</span>
+<span class="s2">            returns the updated output of interpolated data</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="sd">&quot;&quot;&quot;dict : Common interpolate docs &quot;&quot;&quot;</span>
+
 
 <span class="k">class</span> <span class="nc">InterpolatorException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom label for interpolator exceptions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">pass</span>
+
 
 <div class="viewcode-block" id="Interpolator"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.interpolators.Interpolator">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Interpolator</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
@@ -357,17 +359,17 @@
     <span class="c1"># cost_setup = tl.CFloat(-1)  # The rough cost FLOPS/DOF to set up the interpolator</span>
 
 <div class="viewcode-block" id="Interpolator.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.interpolators.Interpolator.html#podpac.interpolators.Interpolator.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        
+
         <span class="c1"># Call traitlets constructor</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="c1"># check method</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methods_supported</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">methods_supported</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">InterpolatorException</span><span class="p">(</span><span class="s1">&#39;Method </span><span class="si">{}</span><span class="s1"> is not supported by Interpolator </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">InterpolatorException</span><span class="p">(</span><span class="s2">&quot;Method </span><span class="si">{}</span><span class="s2"> is not supported by Interpolator </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> (</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span> <span class="nb">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -401,7 +403,7 @@
         <span class="k">pass</span></div>
 
     <span class="k">def</span> <span class="nf">_filter_udims_supported</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">):</span>
-        
+
         <span class="c1"># find the intersection between dims_supported and udims, return tuple of intersection</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims_supported</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">udims</span><span class="p">))</span>
 
@@ -424,22 +426,23 @@
 <span class="sd">            True if the dim is in all input coordinates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">unstacked</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;unstacked&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">unstacked</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;unstacked&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">dim</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span><span class="p">]</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;`dim` input must be a str, list of str, or tuple of str&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`dim` input must be a str, list of str, or tuple of str&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dim</span><span class="p">:</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">unstacked</span> <span class="ow">and</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coord</span><span class="o">.</span><span class="n">udims</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">unstacked</span> <span class="ow">and</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coord</span><span class="o">.</span><span class="n">dims</span><span class="p">):</span>
                     <span class="k">return</span> <span class="kc">False</span>
-        
+
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">_loop_helper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">keep_dims</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> 
-                     <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_loop_helper</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">keep_dims</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Loop helper</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
@@ -468,12 +471,35 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">loop_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">source_data</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep_dims</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">loop_dims</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">source_data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">loop_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]]:</span>
-                <span class="n">ind</span> <span class="o">=</span> <span class="p">{</span><span class="n">loop_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">i</span><span class="p">}</span>
-                <span class="n">output_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> \
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_loop_helper</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">keep_dims</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span>
-                                      <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span>
-                                      <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="n">loop_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">output_data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="n">i</span><span class="p">}</span>
+
+                <span class="c1"># TODO: handle this using presecribed interpolation method instead of &quot;nearest&quot;</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">source_data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;nearest&quot;</span><span class="p">:</span>
+                        <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Interpolation method </span><span class="si">{}</span><span class="s2"> is not supported yet in this context. Using &#39;nearest&#39; for </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="n">dim</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+
+                    <span class="c1"># find the closest value</span>
+                    <span class="n">src_i</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">source_data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="n">i</span><span class="o">.</span><span class="n">values</span><span class="p">))</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
+                    <span class="n">src_idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="n">source_data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">][</span><span class="n">src_i</span><span class="p">]}</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">src_idx</span> <span class="o">=</span> <span class="n">idx</span>
+
+                <span class="n">output_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loop_helper</span><span class="p">(</span>
+                    <span class="n">func</span><span class="p">,</span>
+                    <span class="n">keep_dims</span><span class="p">,</span>
+                    <span class="n">udims</span><span class="p">,</span>
+                    <span class="n">source_coordinates</span><span class="p">,</span>
+                    <span class="n">source_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">src_idx</span><span class="p">],</span>
+                    <span class="n">eval_coordinates</span><span class="p">,</span>
+                    <span class="n">output_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                    <span class="o">**</span><span class="n">kwargs</span>
+                <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 

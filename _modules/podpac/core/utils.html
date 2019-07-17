@@ -202,6 +202,7 @@
 <span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">settings</span>
 
+
 <span class="k">def</span> <span class="nf">common_doc</span><span class="p">(</span><span class="n">doc_dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Decorator: replaces commond fields in a function docstring</span>
 
@@ -210,65 +211,15 @@
 <span class="sd">    doc_dict : dict</span>
 <span class="sd">        Dictionary of parameters that will be used to format a doctring. e.g. func.__doc__.format(**doc_dict)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">func</span>
 
         <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">doc_dict</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func</span>
+
     <span class="k">return</span> <span class="n">_decorator</span>
-
-<span class="k">def</span> <span class="nf">cached_property</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Summary</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    func : TYPE</span>
-<span class="sd">        Description</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="nd">@property</span>
-    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Summary</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        TYPE</span>
-<span class="sd">            Description</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">cache_name</span> <span class="o">=</span> <span class="s1">&#39;_cached_&#39;</span> <span class="o">+</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_name</span><span class="p">):</span>
-            <span class="n">cache_val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_name</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">cache_val</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">cache_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cache_val</span>
-        <span class="n">cache_val</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_name</span><span class="p">,</span> <span class="n">cache_val</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cache_val</span>
-    <span class="k">return</span> <span class="n">f</span>
-
-
-<span class="k">def</span> <span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">change</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Summary</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    change : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    attrs : TYPE</span>
-<span class="sd">        Description</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">change</span><span class="p">[</span><span class="s1">&#39;old&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">change</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> \
-               <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">change</span><span class="p">[</span><span class="s1">&#39;old&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">change</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">])):</span>
-        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_cached_&#39;</span> <span class="o">+</span> <span class="n">attr</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">trait_is_defined</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">trait</span><span class="p">):</span>
@@ -291,10 +242,11 @@
     <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">has_trait</span><span class="p">(</span><span class="n">trait</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trait</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_trait_values</span>
 
 
-<span class="k">def</span> <span class="nf">create_logfile</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;LOG_FILE_PATH&#39;</span><span class="p">],</span>
-                   <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-                   <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">%(asctime)s</span><span class="s1">] </span><span class="si">%(name)s</span><span class="s1">.</span><span class="si">%(funcName)s</span><span class="s1">[</span><span class="si">%(lineno)d</span><span class="s1">] - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
-                   <span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_logfile</span><span class="p">(</span>
+    <span class="n">filename</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;LOG_FILE_PATH&quot;</span><span class="p">],</span>
+    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;[</span><span class="si">%(asctime)s</span><span class="s2">] </span><span class="si">%(name)s</span><span class="s2">.</span><span class="si">%(funcName)s</span><span class="s2">[</span><span class="si">%(lineno)d</span><span class="s2">] - </span><span class="si">%(levelname)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convience method to create a log file that only logs</span>
 <span class="sd">    podpac related messages</span>
 <span class="sd">    </span>
@@ -317,14 +269,14 @@
 <span class="sd">        Returns the constructed logger, handler, and formatter for the log file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># get logger for podpac module only</span>
-    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;podpac&#39;</span><span class="p">)</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;podpac&quot;</span><span class="p">)</span>
     <span class="n">log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
 
     <span class="c1"># Create directory if it doesn&#39;t exist</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># create a file handler</span>
-    <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span>
+    <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
 
     <span class="c1"># create a logging format</span>
     <span class="c1"># see https://docs.python.org/3/library/logging.html#logrecord-attributes</span>
@@ -335,30 +287,33 @@
     <span class="n">log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
 
     <span class="c1"># insert log from utils into logfile</span>
-    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Logging to file </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Logging to file </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">log</span><span class="p">,</span> <span class="n">handler</span><span class="p">,</span> <span class="n">formatter</span>
 
 
-<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span> <span class="o">&lt;</span> <span class="s1">&#39;3.6&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span> <span class="o">&lt;</span> <span class="s2">&quot;3.6&quot;</span><span class="p">:</span>
     <span class="c1"># for Python 2 and Python &lt; 3.6 compatibility</span>
     <span class="k">class</span> <span class="nc">OrderedDictTrait</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; OrderedDict trait &quot;&quot;&quot;</span>
 
         <span class="n">default_value</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        
+
         <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="p">{}:</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
             <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">tl</span><span class="o">.</span><span class="n">TraitError</span><span class="p">(</span>
-                    <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must be an OrderedDict, but a value of </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> was specified&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+                    <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must be an OrderedDict, but a value of </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> was specified&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                <span class="p">)</span>
             <span class="nb">super</span><span class="p">(</span><span class="n">OrderedDictTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">value</span>
 
+
 <span class="k">else</span><span class="p">:</span>
     <span class="n">OrderedDictTrait</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span>
+
 
 <span class="k">class</span> <span class="nc">ArrayTrait</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">TraitType</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; A coercing numpy array trait. &quot;&quot;&quot;</span>
@@ -382,20 +337,23 @@
                 <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">tl</span><span class="o">.</span><span class="n">TraitError</span><span class="p">(</span>
-                    <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must be an np.ndarray, but a value of </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> was specified&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+                    <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must be an np.ndarray, but a value of </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> was specified&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                <span class="p">)</span>
 
         <span class="c1"># ndim</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="n">value</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">tl</span><span class="o">.</span><span class="n">TraitError</span><span class="p">(</span>
-                <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must have ndim </span><span class="si">%d</span><span class="s2">, but a value with ndim </span><span class="si">%d</span><span class="s2"> was specified&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">ndim</span><span class="p">))</span>
+                <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must have ndim </span><span class="si">%d</span><span class="s2">, but a value with ndim </span><span class="si">%d</span><span class="s2"> was specified&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="c1"># shape</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">tl</span><span class="o">.</span><span class="n">TraitError</span><span class="p">(</span>
-                <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must have shape </span><span class="si">%s</span><span class="s2">, but a value </span><span class="si">%s</span><span class="s2"> with shape </span><span class="si">%s</span><span class="s2"> was specified&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+                <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must have shape </span><span class="si">%s</span><span class="s2">, but a value </span><span class="si">%s</span><span class="s2"> with shape </span><span class="si">%s</span><span class="s2"> was specified&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="c1"># dtype</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -403,10 +361,12 @@
                 <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">tl</span><span class="o">.</span><span class="n">TraitError</span><span class="p">(</span>
-                    <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must have dtype </span><span class="si">%s</span><span class="s2">, but a value with dtype </span><span class="si">%s</span><span class="s2"> was specified&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+                    <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must have dtype </span><span class="si">%s</span><span class="s2">, but a value with dtype </span><span class="si">%s</span><span class="s2"> was specified&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">value</span>
+
 
 <span class="k">class</span> <span class="nc">TupleTrait</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; An instance of a Python tuple that accepts the &#39;trait&#39; argument (like Set, List, and Dict). &quot;&quot;&quot;</span>
@@ -415,15 +375,17 @@
         <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TupleTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
+
 <span class="k">class</span> <span class="nc">NodeTrait</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">ForwardDeclaredInstance</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">NodeTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Node&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NodeTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;Node&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NodeTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">]:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span>
+
 
 <span class="k">class</span> <span class="nc">JSONEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
@@ -438,11 +400,11 @@
         <span class="c1"># podpac Style objects</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">Style</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span>
-       
+
         <span class="c1"># pint Units</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-    
+
         <span class="c1"># numpy arrays</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
@@ -452,7 +414,7 @@
                 <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
             <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-        
+
         <span class="c1"># datetime64</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
@@ -460,11 +422,11 @@
         <span class="c1"># timedelta64</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_timedelta_string</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-        
+
         <span class="c1"># dataframe</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
-            
+
         <span class="c1"># Interpolator</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">interpolation</span><span class="o">.</span><span class="n">INTERPOLATORS</span><span class="p">:</span>
@@ -476,6 +438,15 @@
 
         <span class="c1"># default</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">is_json_serializable</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="bp">cls</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
 
            </div>

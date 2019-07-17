@@ -192,7 +192,7 @@
 <span class="kn">from</span> <span class="nn">lazy_import</span> <span class="k">import</span> <span class="n">lazy_module</span>
 
 <span class="c1"># Optional dependencies</span>
-<span class="n">ne</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s1">&#39;numexpr&#39;</span><span class="p">)</span>
+<span class="n">ne</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;numexpr&quot;</span><span class="p">)</span>
 
 <span class="c1"># Internal dependencies</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">union</span>
@@ -205,6 +205,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">NodeTrait</span>
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
 
 <div class="viewcode-block" id="Algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Algorithm.html#podpac.algorithm.Algorithm">[docs]</a><span class="k">class</span> <span class="nc">Algorithm</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base class for algorithm and computation nodes.</span>
@@ -224,11 +225,11 @@
         <span class="c1">#     for ref in self.trait_names()</span>
         <span class="c1">#     if isinstance(getattr(self, ref, None), Node)</span>
         <span class="c1"># }</span>
-        
+
         <span class="k">return</span> <span class="p">{</span>
-            <span class="n">ref</span><span class="p">:</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
+            <span class="n">ref</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">trait</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">traits</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trait</span><span class="p">,</span> <span class="s1">&#39;klass&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Node</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="n">trait</span><span class="o">.</span><span class="n">klass</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trait</span><span class="p">,</span> <span class="s2">&quot;klass&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Node</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="n">trait</span><span class="o">.</span><span class="n">klass</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="p">}</span>
 
 <div class="viewcode-block" id="Algorithm.eval"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Algorithm.html#podpac.algorithm.Algorithm.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
@@ -253,7 +254,7 @@
         <span class="n">inputs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">inputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-        
+
         <span class="c1"># accumulate output coordinates</span>
         <span class="n">coords_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Coordinates</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
         <span class="n">output_coordinates</span> <span class="o">=</span> <span class="n">union</span><span class="p">([</span><span class="n">coordinates</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords_list</span><span class="p">)</span>
@@ -274,7 +275,7 @@
                 <span class="n">output</span> <span class="o">=</span> <span class="n">result</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
-        <span class="k">else</span><span class="p">:</span> 
+        <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">NodeException</span>
 
         <span class="k">return</span> <span class="n">output</span></div>
@@ -290,7 +291,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">find_coordinates</span><span class="p">()]</span></div>
-        
+
 <div class="viewcode-block" id="Algorithm.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Algorithm.html#podpac.algorithm.Algorithm.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments</span>
@@ -317,12 +318,13 @@
 
         <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">base_definition</span>
         <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">inputs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">inputs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
+
 <div class="viewcode-block" id="Arange"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arange.html#podpac.algorithm.Arange">[docs]</a><span class="k">class</span> <span class="nc">Arange</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;A simple test node that gives each value in the output a number.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;A simple test node that gives each value in the output a number.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Arange.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arange.html#podpac.algorithm.Arange.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Uses np.arange to give each value in output a unique number</span>
@@ -339,7 +341,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div></div>
-      
+
 
 <div class="viewcode-block" id="CoordData"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.CoordData.html#podpac.algorithm.CoordData">[docs]</a><span class="k">class</span> <span class="nc">CoordData</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extracts the coordinates from a request and makes it available as a data</span>
@@ -349,8 +351,8 @@
 <span class="sd">    coord_name : str</span>
 <span class="sd">        Name of coordinate to extract (one of lat, lon, time, alt)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="n">coord_name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">coord_name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CoordData.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.CoordData.html#podpac.algorithm.CoordData.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Extract coordinate from request and makes data available.</span>
@@ -365,10 +367,10 @@
 <span class="sd">        UnitsDataArray</span>
 <span class="sd">            The coordinates as data for the requested coordinate.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coord_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Coordinate name not in evaluated coordinates&#39;</span><span class="p">)</span>
-       
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Coordinate name not in evaluated coordinates&quot;</span><span class="p">)</span>
+
         <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">coord_name</span><span class="p">]</span>
         <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span><span class="p">])</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span></div></div>
@@ -377,7 +379,7 @@
 <div class="viewcode-block" id="SinCoords"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.SinCoords.html#podpac.algorithm.SinCoords">[docs]</a><span class="k">class</span> <span class="nc">SinCoords</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A simple test node that creates a data based on coordinates and trigonometric (sin) functions. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
 <div class="viewcode-block" id="SinCoords.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.SinCoords.html#podpac.algorithm.SinCoords.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Computes sinusoids of all the coordinates. </span>
 <span class="sd">        </span>
@@ -394,12 +396,12 @@
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
         <span class="n">crds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">i_time</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
-            <span class="n">crds</span><span class="p">[</span><span class="n">i_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">crds</span><span class="p">[</span><span class="n">i_time</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;datetime64[h]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">i_time</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+            <span class="n">crds</span><span class="p">[</span><span class="n">i_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">crds</span><span class="p">[</span><span class="n">i_time</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;datetime64[h]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
             <span class="k">pass</span>
-        
-        <span class="n">crds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">crds</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+
+        <span class="n">crds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">crds</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">crd</span> <span class="ow">in</span> <span class="n">crds</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">crd</span> <span class="o">/</span> <span class="mf">90.0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span></div></div>
@@ -434,7 +436,7 @@
 <span class="sd">    b = Arange()</span>
 <span class="sd">    arith = Arithmetic(A=a, B=b, eqn = &#39;A * B + {offset}&#39;, params={&#39;offset&#39;: 1})</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="n">A</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">()</span>
     <span class="n">B</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">C</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -446,9 +448,9 @@
     <span class="n">params</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Arithmetic.init"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arithmetic.html#podpac.algorithm.Arithmetic.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">eqn</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">eqn</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Arithmetic eqn cannot be empty&quot;</span><span class="p">)</span></div>
-    
+
 <div class="viewcode-block" id="Arithmetic.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arithmetic.html#podpac.algorithm.Arithmetic.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Compute the algorithms equation</span>
 
@@ -462,10 +464,10 @@
 <span class="sd">        UnitsDataArray</span>
 <span class="sd">            Description</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
-        <span class="n">eqn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eqn</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>        
-        
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="s1">&#39;ABCDEFG&#39;</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="n">eqn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eqn</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="s2">&quot;ABCDEFG&quot;</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">inputs</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">])</span>
         <span class="n">f_locals</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">res</span><span class="p">))</span>
 
@@ -476,7 +478,6 @@
         <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># Make an xarray object with correct dimensions</span>
         <span class="n">res</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
         <span class="k">return</span> <span class="n">res</span></div></div>
-
 </pre></div>
 
            </div>

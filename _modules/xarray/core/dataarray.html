@@ -182,6 +182,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">distutils.version</span> <span class="k">import</span> <span class="n">LooseVersion</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span>
                     <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">cast</span><span class="p">)</span>
 
@@ -190,7 +191,8 @@
 
 <span class="kn">from</span> <span class="nn">..plot.plot</span> <span class="k">import</span> <span class="n">_PlotMethods</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">computation</span><span class="p">,</span> <span class="n">dtypes</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">indexing</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">resample</span><span class="p">,</span> <span class="n">rolling</span><span class="p">,</span> <span class="n">utils</span><span class="p">)</span>
+    <span class="n">computation</span><span class="p">,</span> <span class="n">dtypes</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">indexing</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">pdcompat</span><span class="p">,</span> <span class="n">resample</span><span class="p">,</span> <span class="n">rolling</span><span class="p">,</span>
+    <span class="n">utils</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.accessor_dt</span> <span class="k">import</span> <span class="n">DatetimeAccessor</span>
 <span class="kn">from</span> <span class="nn">.accessor_str</span> <span class="k">import</span> <span class="n">StringAccessor</span>
 <span class="kn">from</span> <span class="nn">.alignment</span> <span class="k">import</span> <span class="n">align</span><span class="p">,</span> <span class="n">reindex_like_indexers</span>
@@ -444,7 +446,7 @@
                     <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
                 <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span> <span class="n">IndexVariable</span><span class="p">)):</span>
                     <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pdcompat</span><span class="o">.</span><span class="n">Panel</span><span class="p">):</span>
                     <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">major_axis</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">minor_axis</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;dims&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;dims&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
@@ -756,13 +758,13 @@
         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_attr_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">Hashable</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="nf">_attr_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;List of places to look-up items for attribute-style access</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_item_sources</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_item_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">Hashable</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="nf">_item_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;List of places to look-up items for key-completion</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="p">{</span><span class="n">d</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">},</span>
@@ -1720,6 +1722,72 @@
         <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">to_unstacked_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Unstack DataArray expanding to Dataset along a given level of a</span>
+<span class="sd">        stacked coordinate.</span>
+
+<span class="sd">        This is the inverse operation of Dataset.to_stacked_array.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dim : str</span>
+<span class="sd">            Name of existing dimension to unstack</span>
+<span class="sd">        level : int or str</span>
+<span class="sd">            The MultiIndex level to expand to a dataset along. Can either be</span>
+<span class="sd">            the integer index of the level or its name.</span>
+<span class="sd">        label : int, default 0</span>
+<span class="sd">            Label of the level to expand dataset along. Overrides the label</span>
+<span class="sd">            argument if given.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        unstacked: Dataset</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import xarray as xr</span>
+<span class="sd">        &gt;&gt;&gt; arr = DataArray(np.arange(6).reshape(2, 3),</span>
+<span class="sd">        ...                 coords=[(&#39;x&#39;, [&#39;a&#39;, &#39;b&#39;]), (&#39;y&#39;, [0, 1, 2])])</span>
+<span class="sd">        &gt;&gt;&gt; data = xr.Dataset({&#39;a&#39;: arr, &#39;b&#39;: arr.isel(y=0)})</span>
+<span class="sd">        &gt;&gt;&gt; data</span>
+<span class="sd">        &lt;xarray.Dataset&gt;</span>
+<span class="sd">        Dimensions:  (x: 2, y: 3)</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * x        (x) &lt;U1 &#39;a&#39; &#39;b&#39;</span>
+<span class="sd">          * y        (y) int64 0 1 2</span>
+<span class="sd">        Data variables:</span>
+<span class="sd">            a        (x, y) int64 0 1 2 3 4 5</span>
+<span class="sd">            b        (x) int64 0 3</span>
+<span class="sd">        &gt;&gt;&gt; stacked = data.to_stacked_array(&quot;z&quot;, [&#39;y&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; stacked.indexes[&#39;z&#39;]</span>
+<span class="sd">        MultiIndex(levels=[[&#39;a&#39;, &#39;b&#39;], [0, 1, 2]],</span>
+<span class="sd">                labels=[[0, 0, 0, 1], [0, 1, 2, -1]],</span>
+<span class="sd">                names=[&#39;variable&#39;, &#39;y&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; roundtripped = stacked.to_unstacked_dataset(dim=&#39;z&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; data.identical(roundtripped)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Dataset.to_stacked_array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indexes</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;</span><span class="si">{}</span><span class="s2">&#39; is not a stacked coordinate&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+
+        <span class="n">level_number</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">_get_level_number</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="n">level_number</span><span class="p">]</span>
+        <span class="n">variable_dim</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="n">level_number</span><span class="p">]</span>
+
+        <span class="c1"># pull variables out of datarray</span>
+        <span class="n">data_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
+            <span class="n">data_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sel</span><span class="p">({</span><span class="n">variable_dim</span><span class="p">:</span> <span class="n">k</span><span class="p">})</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># unstacked dataset</span>
+        <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">data_dict</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                   <span class="o">*</span><span class="n">dims</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span>
                   <span class="n">transpose_coords</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DataArray&#39;</span><span class="p">:</span>
@@ -2005,8 +2073,7 @@
                                    <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_maybe_drop_dims</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">to_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span>
-            <span class="s1">&#39;DataArray&#39;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Panel</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">to_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s1">&#39;DataArray&#39;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Convert this array into a pandas object with the same shape.</span>
 
 <span class="sd">        The type of the returned object depends on the number of DataArray</span>
@@ -2026,7 +2093,7 @@
         <span class="n">constructors</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
                         <span class="mi">1</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
                         <span class="mi">2</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-                        <span class="mi">3</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Panel</span><span class="p">}</span>
+                        <span class="mi">3</span><span class="p">:</span> <span class="n">pdcompat</span><span class="o">.</span><span class="n">Panel</span><span class="p">}</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">constructor</span> <span class="o">=</span> <span class="n">constructors</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>

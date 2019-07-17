@@ -178,8 +178,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for podpac.core.coordinates.stacked_coordinates</h1><div class="highlight"><pre>
-<span></span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
@@ -194,6 +193,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="k">import</span> <span class="n">Coordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.array_coordinates1d</span> <span class="k">import</span> <span class="n">ArrayCoordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.uniform_coordinates1d</span> <span class="k">import</span> <span class="n">UniformCoordinates1d</span>
+
 
 <div class="viewcode-block" id="StackedCoordinates"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates">[docs]</a><span class="k">class</span> <span class="nc">StackedCoordinates</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -261,13 +261,13 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unrecognized coords type &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Stacked coords must have at least 2 coords, got </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Stacked coords must have at least 2 coords, got </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
 
         <span class="c1"># coerce</span>
         <span class="n">coords</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">)</span> <span class="k">else</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">)</span>
-        
+
         <span class="c1"># set coords</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;_coords&#39;</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_coords&quot;</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
 
         <span class="c1"># propagate properties</span>
         <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -278,20 +278,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_ctype</span><span class="p">(</span><span class="n">ctype</span><span class="p">)</span>
-        
+
         <span class="c1"># finalize</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">StackedCoordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;_coords&#39;</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;_coords&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="n">val</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
 
         <span class="c1"># check sizes</span>
         <span class="n">size</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">size</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Size mismatch in stacked coords </span><span class="si">%d</span><span class="s2"> != </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">))</span>
-        
+
         <span class="c1"># check dims</span>
         <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">val</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dims</span><span class="p">):</span>
@@ -301,19 +301,19 @@
         <span class="k">return</span> <span class="n">val</span>
 
     <span class="k">def</span> <span class="nf">_set_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="n">dims</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        
+        <span class="n">dims</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
         <span class="c1"># check size</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid name &#39;</span><span class="si">%s</span><span class="s2">&#39; for StackedCoordinates with length </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)))</span>
-        
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_dims</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dims</span><span class="p">):</span>
         <span class="c1"># check size</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid dims &#39;</span><span class="si">%s</span><span class="s2">&#39; for StackedCoordinates with length </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)))</span>
-        
+
         <span class="c1"># set names, checking for duplicates</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="n">dims</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">dim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -372,9 +372,9 @@
 
         <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;start&#39;</span> <span class="ow">in</span> <span class="n">elem</span> <span class="ow">and</span> <span class="s1">&#39;stop&#39;</span> <span class="ow">in</span> <span class="n">elem</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;step&#39;</span> <span class="ow">in</span> <span class="n">elem</span> <span class="ow">or</span> <span class="s1">&#39;size&#39;</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;start&quot;</span> <span class="ow">in</span> <span class="n">elem</span> <span class="ow">and</span> <span class="s2">&quot;stop&quot;</span> <span class="ow">in</span> <span class="n">elem</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;step&quot;</span> <span class="ow">in</span> <span class="n">elem</span> <span class="ow">or</span> <span class="s2">&quot;size&quot;</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">):</span>
                 <span class="n">c</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="s1">&#39;values&#39;</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="s2">&quot;values&quot;</span> <span class="ow">in</span> <span class="n">elem</span><span class="p">:</span>
                 <span class="n">c</span> <span class="o">=</span> <span class="n">ArrayCoordinates1d</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not parse coordinates definition with keys </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">elem</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -390,7 +390,7 @@
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rep</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">:</span>
-            <span class="n">rep</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="si">%s</span><span class="s1">[</span><span class="si">%s</span><span class="s1">]: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+            <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="si">%s</span><span class="s2">[</span><span class="si">%s</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="s2">&quot;?&quot;</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">rep</span>
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -403,7 +403,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Dimension &#39;</span><span class="si">%s</span><span class="s2">&#39; not found in dims </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span>
-            
+
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">index</span><span class="p">)]</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -426,7 +426,7 @@
         <span class="n">coords</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
 
         <span class="c1"># set (and check) new coords list</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;_coords&#39;</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_coords&quot;</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">):</span>
@@ -473,7 +473,7 @@
         <span class="sd">&quot;&quot;&quot;:str: Stacked dimension name. Stacked dimension names are the individual `dims` joined by an underscore.&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">):</span>
-            <span class="k">return</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dim</span> <span class="ow">or</span> <span class="s1">&#39;?&#39;</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dim</span> <span class="ow">or</span> <span class="s2">&quot;?&quot;</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -527,13 +527,13 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">full_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:list: Serializable stacked coordinates definition, containing all properties. For internal use.&quot;&quot;&quot;</span>
-        
+
         <span class="k">return</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">full_definition</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">]</span>
 
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Methods</span>
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
-            
+
 <div class="viewcode-block" id="StackedCoordinates.copy"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make a copy of the stacked coordinates.</span>
@@ -600,62 +600,62 @@
     <span class="k">def</span> <span class="nf">_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transformer</span><span class="p">):</span>
         <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="s1">&#39;lat&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s1">&#39;lon&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s1">&#39;alt&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="n">ilat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-            <span class="n">ilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
-            <span class="n">ialt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;alt&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="n">ilat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span>
+            <span class="n">ilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span>
+            <span class="n">ialt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;alt&quot;</span><span class="p">)</span>
 
             <span class="c1"># coordinates</span>
             <span class="n">lat</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">ilat</span><span class="p">]</span>
             <span class="n">lon</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">ilon</span><span class="p">]</span>
             <span class="n">alt</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span>
-            <span class="n">tlat</span><span class="p">,</span> <span class="n">tlon</span><span class="p">,</span> <span class="n">talt</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">lon</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
-            <span class="n">coords</span><span class="p">[</span><span class="n">ilat</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;coordinates&#39;</span><span class="p">,</span> <span class="n">tlat</span><span class="p">)</span>
-            <span class="n">coords</span><span class="p">[</span><span class="n">ilon</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;coordinates&#39;</span><span class="p">,</span> <span class="n">tlon</span><span class="p">)</span>
-            <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;coordinates&#39;</span><span class="p">,</span> <span class="n">talt</span><span class="p">)</span>
-            
+            <span class="n">tlon</span><span class="p">,</span> <span class="n">tlat</span><span class="p">,</span> <span class="n">talt</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">lat</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">alt</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+            <span class="n">coords</span><span class="p">[</span><span class="n">ilat</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;coordinates&quot;</span><span class="p">,</span> <span class="n">tlat</span><span class="p">)</span>
+            <span class="n">coords</span><span class="p">[</span><span class="n">ilon</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;coordinates&quot;</span><span class="p">,</span> <span class="n">tlon</span><span class="p">)</span>
+            <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;coordinates&quot;</span><span class="p">,</span> <span class="n">talt</span><span class="p">)</span>
+
             <span class="c1"># segment lengths</span>
             <span class="c1"># TODO can we use the proj4 &#39;+units&#39; here, at least sometimes?</span>
-            <span class="k">if</span> <span class="n">lat</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;point&#39;</span> <span class="ow">and</span> <span class="s1">&#39;segment_lengths&#39;</span> <span class="ow">in</span> <span class="n">lat</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lat</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;point&quot;</span> <span class="ow">and</span> <span class="s2">&quot;segment_lengths&quot;</span> <span class="ow">in</span> <span class="n">lat</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;transformation of coordinate segment lengths not yet implemented&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">lon</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;point&#39;</span> <span class="ow">and</span> <span class="s1">&#39;segment_lengths&#39;</span> <span class="ow">in</span> <span class="n">lon</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lon</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;point&quot;</span> <span class="ow">and</span> <span class="s2">&quot;segment_lengths&quot;</span> <span class="ow">in</span> <span class="n">lon</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;transformation of coordinate segment lengths not yet implemented&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">alt</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;point&#39;</span> <span class="ow">and</span> <span class="s1">&#39;segment_lengths&#39;</span> <span class="ow">in</span> <span class="n">lon</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">alt</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;point&quot;</span> <span class="ow">and</span> <span class="s2">&quot;segment_lengths&quot;</span> <span class="ow">in</span> <span class="n">lon</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
                 <span class="n">sl</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">segment_lengths</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">tsl</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">sl</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">sl</span><span class="p">),</span> <span class="n">sl</span><span class="p">)</span>
-                <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">,</span> <span class="n">tsl</span><span class="p">)</span>
+                <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;segment_lengths&quot;</span><span class="p">,</span> <span class="n">tsl</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="s1">&#39;lat&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s1">&#39;lon&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="n">ilat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;lat&#39;</span><span class="p">)</span>
-            <span class="n">ilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;lon&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="n">ilat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span>
+            <span class="n">ilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span>
 
             <span class="c1"># coordinates</span>
             <span class="n">lat</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">ilat</span><span class="p">]</span>
             <span class="n">lon</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">ilon</span><span class="p">]</span>
-            <span class="n">tlat</span><span class="p">,</span> <span class="n">tlon</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">lon</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
-            <span class="n">coords</span><span class="p">[</span><span class="n">ilat</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;coordinates&#39;</span><span class="p">,</span> <span class="n">tlat</span><span class="p">)</span>
-            <span class="n">coords</span><span class="p">[</span><span class="n">ilon</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;coordinates&#39;</span><span class="p">,</span> <span class="n">tlon</span><span class="p">)</span>
-            
+            <span class="n">tlon</span><span class="p">,</span> <span class="n">tlat</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">lat</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+            <span class="n">coords</span><span class="p">[</span><span class="n">ilat</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;coordinates&quot;</span><span class="p">,</span> <span class="n">tlat</span><span class="p">)</span>
+            <span class="n">coords</span><span class="p">[</span><span class="n">ilon</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;coordinates&quot;</span><span class="p">,</span> <span class="n">tlon</span><span class="p">)</span>
+
             <span class="c1"># segment lengths</span>
             <span class="c1"># TODO can we use proj4 &#39;+units&#39; here, at least sometimes?</span>
-            <span class="k">if</span> <span class="n">lat</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;point&#39;</span> <span class="ow">and</span> <span class="s1">&#39;segment_lengths&#39;</span> <span class="ow">in</span> <span class="n">lat</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lat</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;point&quot;</span> <span class="ow">and</span> <span class="s2">&quot;segment_lengths&quot;</span> <span class="ow">in</span> <span class="n">lat</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;transformation of coordinate segment lengths not yet implemented&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">lon</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;point&#39;</span> <span class="ow">and</span> <span class="s1">&#39;segment_lengths&#39;</span> <span class="ow">in</span> <span class="n">lon</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lon</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;point&quot;</span> <span class="ow">and</span> <span class="s2">&quot;segment_lengths&quot;</span> <span class="ow">in</span> <span class="n">lon</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;transformation of coordinate segment lengths not yet implemented&quot;</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="s1">&#39;alt&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="n">ialt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;alt&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="n">ialt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;alt&quot;</span><span class="p">)</span>
 
             <span class="c1"># coordinates</span>
             <span class="n">alt</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">talt</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">alt</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
-            <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;coordinates&#39;</span><span class="p">,</span> <span class="n">talt</span><span class="p">)</span>
-            
+            <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;coordinates&quot;</span><span class="p">,</span> <span class="n">talt</span><span class="p">)</span>
+
             <span class="c1"># segment lengths</span>
-            <span class="k">if</span> <span class="n">alt</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;point&#39;</span> <span class="ow">and</span> <span class="s1">&#39;segment_lengths&#39;</span> <span class="ow">in</span> <span class="n">lon</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">alt</span><span class="o">.</span><span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;point&quot;</span> <span class="ow">and</span> <span class="s2">&quot;segment_lengths&quot;</span> <span class="ow">in</span> <span class="n">lon</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
                 <span class="n">sl</span> <span class="o">=</span> <span class="n">alt</span><span class="o">.</span><span class="n">segment_lengths</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">tsl</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">sl</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">sl</span><span class="p">),</span> <span class="n">sl</span><span class="p">)</span>
-                <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s1">&#39;segment_lengths&#39;</span><span class="p">,</span> <span class="n">tsl</span><span class="p">)</span>
+                <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;segment_lengths&quot;</span><span class="p">,</span> <span class="n">tsl</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span></div>
 </pre></div>

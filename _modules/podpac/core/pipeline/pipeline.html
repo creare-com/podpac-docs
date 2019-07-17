@@ -204,12 +204,14 @@
 
 <span class="kn">from</span> <span class="nn">podpac.core.pipeline.output</span> <span class="k">import</span> <span class="n">Output</span><span class="p">,</span> <span class="n">NoOutput</span><span class="p">,</span> <span class="n">FileOutput</span><span class="p">,</span> <span class="n">S3Output</span><span class="p">,</span> <span class="n">FTPOutput</span><span class="p">,</span> <span class="n">ImageOutput</span>
 
+
 <div class="viewcode-block" id="PipelineError"><a class="viewcode-back" href="../../../../user/api/podpac.pipeline.PipelineError.html#podpac.pipeline.PipelineError">[docs]</a><span class="k">class</span> <span class="nc">PipelineError</span><span class="p">(</span><span class="n">NodeException</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Raised when parsing a Pipeline definition fails.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">pass</span></div>
+
 
 <div class="viewcode-block" id="Pipeline"><a class="viewcode-back" href="../../../../user/api/podpac.pipeline.Pipeline.html#podpac.pipeline.Pipeline">[docs]</a><span class="k">class</span> <span class="nc">Pipeline</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -235,37 +237,37 @@
     <span class="n">do_write_output</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;definition&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;json&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;definition&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;json&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Pipeline requires exactly one &#39;path&#39;, &#39;json&#39;, or &#39;definition&#39; argument&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;definition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;definition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">kwargs</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;json&#39;</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;json&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_json_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proposal</span><span class="p">):</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">proposal</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">proposal</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
         <span class="n">definition</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
         <span class="n">parse_pipeline_definition</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span> <span class="c1"># standardize</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>  <span class="c1"># standardize</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s1">&#39;definition&#39;</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;definition&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proposal</span><span class="p">):</span>
-        <span class="n">definition</span> <span class="o">=</span> <span class="n">proposal</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">definition</span> <span class="o">=</span> <span class="n">proposal</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
         <span class="n">parse_pipeline_definition</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">definition</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;json&#39;</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;json&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_json_from_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;definition&#39;</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;definition&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_definition_from_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">)</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_parse_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">parse_pipeline_definition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">)</span>
 
@@ -311,32 +313,35 @@
     <span class="k">def</span> <span class="nf">style</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">style</span></div>
 
+
 <span class="c1"># ---------------------------------------------------------------------------------------------------------------------</span>
 <span class="c1"># Helper functions</span>
 <span class="c1"># ---------------------------------------------------------------------------------------------------------------------</span>
 
+
 <span class="k">def</span> <span class="nf">parse_pipeline_definition</span><span class="p">(</span><span class="n">definition</span><span class="p">):</span>
-    <span class="k">if</span> <span class="s1">&#39;nodes&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">definition</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s2">&quot;nodes&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">definition</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">PipelineError</span><span class="p">(</span><span class="s2">&quot;Pipeline definition requires &#39;nodes&#39; property&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">definition</span><span class="p">[</span><span class="s1">&#39;nodes&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">definition</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">PipelineError</span><span class="p">(</span><span class="s2">&quot;&#39;nodes&#39; property cannot be empty&quot;</span><span class="p">)</span>
 
     <span class="c1"># parse node definitions</span>
     <span class="n">nodes</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">definition</span><span class="p">[</span><span class="s1">&#39;nodes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">definition</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">nodes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_parse_node_definition</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
 
     <span class="c1"># parse output definition</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">_parse_output_definition</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">_parse_output_definition</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="p">{}))</span>
 
     <span class="k">return</span> <span class="n">output</span>
 
+
 <span class="k">def</span> <span class="nf">_parse_node_definition</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
     <span class="c1"># get node class</span>
-    <span class="n">module_root</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;plugin&#39;</span><span class="p">,</span> <span class="s1">&#39;podpac&#39;</span><span class="p">)</span>
-    <span class="n">node_string</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_root</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">])</span>
-    <span class="n">module_name</span><span class="p">,</span> <span class="n">node_name</span> <span class="o">=</span> <span class="n">node_string</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">module_root</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;plugin&quot;</span><span class="p">,</span> <span class="s2">&quot;podpac&quot;</span><span class="p">)</span>
+    <span class="n">node_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_root</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;node&quot;</span><span class="p">])</span>
+    <span class="n">module_name</span><span class="p">,</span> <span class="n">node_name</span> <span class="o">=</span> <span class="n">node_string</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -348,51 +353,51 @@
 
     <span class="c1"># parse and configure kwargs</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">whitelist</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="s1">&#39;attrs&#39;</span><span class="p">,</span> <span class="s1">&#39;lookup_attrs&#39;</span><span class="p">,</span> <span class="s1">&#39;plugin&#39;</span><span class="p">]</span>
+    <span class="n">whitelist</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="s2">&quot;lookup_attrs&quot;</span><span class="p">,</span> <span class="s2">&quot;plugin&quot;</span><span class="p">]</span>
 
     <span class="c1"># DataSource, Compositor, and Algorithm specific properties</span>
     <span class="n">parents</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="n">node_class</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">DataSource</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;attrs&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;source&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;attrs&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s2">&quot;attrs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;source&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
                 <span class="k">raise</span> <span class="n">PipelineError</span><span class="p">(</span><span class="s2">&quot;The &#39;source&#39; property cannot be in attrs&quot;</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="s1">&#39;lookup_source&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;attrs&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s2">&quot;lookup_source&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
                 <span class="k">raise</span> <span class="n">PipelineError</span><span class="p">(</span><span class="s2">&quot;The &#39;lookup_source&#39; property cannot be in attrs&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;source&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span>
-            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;source&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span>
+            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="s1">&#39;lookup_source&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;lookup_source&#39;</span><span class="p">])</span>
-            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;lookup_source&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;lookup_source&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_source&quot;</span><span class="p">])</span>
+            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;lookup_source&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">Compositor</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;sources&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;sources&#39;</span><span class="p">]]</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;sources&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
-            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;sources&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;sources&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]]</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;sources&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">DataSource</span> <span class="ow">in</span> <span class="n">parents</span> <span class="ow">or</span> <span class="n">Compositor</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;attrs&#39;</span> <span class="ow">in</span> <span class="n">d</span> <span class="ow">and</span> <span class="s1">&#39;interpolation&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;attrs&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s2">&quot;attrs&quot;</span> <span class="ow">in</span> <span class="n">d</span> <span class="ow">and</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="n">PipelineError</span><span class="p">(</span><span class="s2">&quot;The &#39;interpolation&#39; property cannot be in attrs&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;interpolation&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;interpolation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;interpolation&#39;</span><span class="p">]</span>
-            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;interpolation&#39;</span><span class="p">)</span>
-            
-    <span class="k">if</span> <span class="n">Algorithm</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s1">&#39;inputs&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;inputs&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span>
+            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;interpolation&quot;</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;attrs&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">Algorithm</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;inputs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;inputs&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
 
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lookup_attrs&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lookup_attrs&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
@@ -402,31 +407,32 @@
     <span class="c1"># return node info</span>
     <span class="k">return</span> <span class="n">node_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
+
 <span class="k">def</span> <span class="nf">_parse_output_definition</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
     <span class="c1"># node (uses last node by default)</span>
-    <span class="k">if</span> <span class="s1">&#39;node&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;node&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;node&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nodes</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-    <span class="n">node</span> <span class="o">=</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-    
+    <span class="n">node</span> <span class="o">=</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
     <span class="c1"># output parameters</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="s1">&#39;plugin&#39;</span><span class="p">,</span> <span class="s1">&#39;output&#39;</span><span class="p">]}</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;mode&quot;</span><span class="p">,</span> <span class="s2">&quot;plugin&quot;</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">]}</span>
 
     <span class="c1"># get output class from mode</span>
-    <span class="k">if</span> <span class="s1">&#39;plugin&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s2">&quot;plugin&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
         <span class="c1"># core output (from mode)</span>
-        <span class="n">mode</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
             <span class="n">output_class</span> <span class="o">=</span> <span class="n">NoOutput</span>
-        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;file&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
             <span class="n">output_class</span> <span class="o">=</span> <span class="n">FileOutput</span>
-        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;ftp&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;ftp&quot;</span><span class="p">:</span>
             <span class="n">output_class</span> <span class="o">=</span> <span class="n">FTPOutput</span>
-        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;s3&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;s3&quot;</span><span class="p">:</span>
             <span class="n">output_class</span> <span class="o">=</span> <span class="n">S3Output</span>
-        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;image&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;image&quot;</span><span class="p">:</span>
             <span class="n">output_class</span> <span class="o">=</span> <span class="n">ImageOutput</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PipelineError</span><span class="p">(</span><span class="s2">&quot;output has unexpected mode &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
@@ -435,8 +441,8 @@
 
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># custom output (from plugin)</span>
-        <span class="n">custom_output</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;plugin&#39;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">])</span>
-        <span class="n">module_name</span><span class="p">,</span> <span class="n">class_name</span> <span class="o">=</span> <span class="n">custom_output</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">custom_output</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;plugin&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">])</span>
+        <span class="n">module_name</span><span class="p">,</span> <span class="n">class_name</span> <span class="o">=</span> <span class="n">custom_output</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -456,17 +462,18 @@
 
     <span class="k">return</span> <span class="n">output</span>
 
+
 <span class="k">def</span> <span class="nf">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
-    <span class="n">refs</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
-    
+    <span class="n">refs</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="n">attr</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">refs</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="k">for</span> <span class="n">_name</span> <span class="ow">in</span> <span class="n">refs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">_name</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">PipelineError</span><span class="p">(</span><span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; references nonexistent node/attribute &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ref</span><span class="p">))</span>
-    
-    <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">]:</span>
+
+    <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">]:</span>
         <span class="n">attr</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">attr</span>
