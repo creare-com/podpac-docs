@@ -203,7 +203,7 @@
 
 <span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">OrderedDictTrait</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">OrderedDictTrait</span><span class="p">,</span> <span class="n">_get_query_params_from_url</span><span class="p">,</span> <span class="n">_get_param</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="k">import</span> <span class="n">get_vunits</span><span class="p">,</span> <span class="n">set_vunits</span><span class="p">,</span> <span class="n">rem_vunits</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.base_coordinates</span> <span class="k">import</span> <span class="n">BaseCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="k">import</span> <span class="n">Coordinates1d</span>
@@ -263,7 +263,7 @@
 <span class="sd">             * :class:`Coordinates1d` or :class:`StackedCoordinates` object</span>
 <span class="sd">        dims : list of str, optional</span>
 <span class="sd">            List of dimension names. Optional if all items in ``coords`` are named. Valid names are</span>
-<span class="sd">           </span>
+
 <span class="sd">             * &#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;, or &#39;time&#39; for unstacked coordinates</span>
 <span class="sd">             * dimension names joined by an underscore for stacked coordinates</span>
 <span class="sd">        crs : str, optional</span>
@@ -602,6 +602,58 @@
         <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Coordinates.from_url"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_url">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create podpac Coordinates from a WMS/WCS request.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        url : str, dict</span>
+<span class="sd">            The raw WMS/WCS request url, or a dictionary of query parameters</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`Coordinates`</span>
+<span class="sd">            podpac Coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">_get_query_params_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="c1"># The ordering here is lat/lon or y/x for WMS 1.3.0</span>
+        <span class="c1"># The ordering here is lon/lat or x/y for WMS 1.1</span>
+        <span class="c1"># See https://docs.geoserver.org/stable/en/user/services/wms/reference.html</span>
+        <span class="c1"># and https://docs.geoserver.org/stable/en/user/services/wms/basics.html</span>
+
+        <span class="n">bbox</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;BBOX&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">)</span>
+
+        <span class="c1"># I don&#39;t seem to need to reverse one of these... perhaps one of my test servers did not implement the spec?</span>
+        <span class="k">if</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;VERSION&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;1.1&quot;</span><span class="p">):</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;VERSION&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;1.3&quot;</span><span class="p">):</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># Extract bounding box information and translate to PODPAC coordinates</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[:</span><span class="mi">2</span><span class="p">][::</span><span class="n">r</span><span class="p">]</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">::][::</span><span class="n">r</span><span class="p">]</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;WIDTH&quot;</span><span class="p">),</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;HEIGHT&quot;</span><span class="p">)],</span> <span class="nb">int</span><span class="p">)[::</span><span class="n">r</span><span class="p">]</span>
+
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+        <span class="c1"># Note, version 1.1 used &quot;SRS&quot; and 1.3 uses &#39;CRS&#39;</span>
+        <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;crs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;SRS&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;crs&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;crs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;CRS&quot;</span><span class="p">)</span>
+
+        <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="n">start</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;stop&quot;</span><span class="p">:</span> <span class="n">stop</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
+            <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="n">start</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;stop&quot;</span><span class="p">:</span> <span class="n">stop</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]},</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;TIME&quot;</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;TIME&quot;</span><span class="p">)]})</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Coordinates.from_definition"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_definition">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -819,12 +871,12 @@
 <span class="sd">            In [2]: lon = [10, 20]</span>
 
 <span class="sd">            In [3]: time = &#39;2018-01-01&#39;</span>
-<span class="sd">           </span>
+
 <span class="sd">            In [4]: c = podpac.Coordinates([lat, lon, time], dims=[&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;])</span>
-<span class="sd">           </span>
+
 <span class="sd">            In [5]: c.dims</span>
 <span class="sd">            Out[5]: (&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;)</span>
-<span class="sd">           </span>
+
 <span class="sd">            In [6]: c.udims</span>
 <span class="sd">            Out[6]: (&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;)</span>
 
@@ -944,14 +996,15 @@
 <span class="sd">        from_json</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:str: Coordinates hash value.&quot;&quot;&quot;</span>
-
-        <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">full_definition</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">hash_alg</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="c1"># We can&#39;t use self.json for the hash because the CRS is not standardized.</span>
+        <span class="c1"># As such, we json.dumps the full definition.</span>
+        <span class="n">json_d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">full_definition</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hash_alg</span><span class="p">(</span><span class="n">json_d</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Methods</span>
@@ -1009,7 +1062,7 @@
 <span class="sd">                lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[0.0, 1.0], N[2], ctype[&#39;midpoint&#39;]</span>
 <span class="sd">                lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[10.0, 20.0], N[2], ctype[&#39;midpoint&#39;]</span>
 <span class="sd">                time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-01], N[1], ctype[&#39;midpoint&#39;]</span>
-<span class="sd">           </span>
+
 <span class="sd">            In [3]: c.udrop(&#39;lat&#39;)</span>
 <span class="sd">            Out[3]:</span>
 <span class="sd">            Coordinates</span>
@@ -1079,17 +1132,17 @@
 <span class="sd">              * lat      (lat) float64 2.0</span>
 
 <span class="sd">        The *outer* intersection selects the minimal set of coordinates that contain the other coordinates::</span>
-<span class="sd">        </span>
+
 <span class="sd">            In [4]: coords.intersect(other, outer=True).coords</span>
-<span class="sd">            Out[4]: </span>
+<span class="sd">            Out[4]:</span>
 <span class="sd">            Coordinates:</span>
 <span class="sd">              * lat      (lat) float64 1.0 2.0 3.0</span>
 
 <span class="sd">        The *outer* intersection also selects a boundary coordinate if the other coordinates are outside this</span>
 <span class="sd">        coordinates bounds but *inside* its area bounds::</span>
-<span class="sd">        </span>
+
 <span class="sd">            In [5]: other_near = Coordinates([[3.25]], dims=[&#39;lat&#39;])</span>
-<span class="sd">            </span>
+
 <span class="sd">            In [6]: other_far = Coordinates([[10.0]], dims=[&#39;lat&#39;])</span>
 
 <span class="sd">            In [7]: coords.intersect(other_near, outer=True).coords</span>
@@ -1099,7 +1152,7 @@
 <span class="sd">            In [8]: coords.intersect(other_far, outer=True).coords</span>
 <span class="sd">            Coordinates:</span>
 <span class="sd">              * lat      (lat) float64</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        other : :class:`Coordinates1d`, :class:`StackedCoordinates`, :class:`Coordinates`</span>
@@ -1146,19 +1199,19 @@
 <span class="sd">                    lon: ArrayCoordinates1d(lon): Bounds[10.0, 40.0], N[4], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">            In [3]: c.select({&#39;lat&#39;: [1.5, 3.5], &#39;lon&#39;: [25, 45]})</span>
-<span class="sd">            Out[3]: </span>
+<span class="sd">            Out[3]:</span>
 <span class="sd">            Coordinates</span>
 <span class="sd">                    lat: ArrayCoordinates1d(lat): Bounds[2.0, 3.0], N[2], ctype[&#39;midpoint&#39;]</span>
 <span class="sd">                    lon: ArrayCoordinates1d(lon): Bounds[30.0, 40.0], N[2], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">        The *outer* selection returns the minimal set of coordinates that contain the bounds::</span>
-<span class="sd">        </span>
+
 <span class="sd">            In [4]: c.select({&#39;lat&#39;:[1.5, 3.5]}, outer=True)</span>
 <span class="sd">            Out[4]:</span>
 <span class="sd">            Coordinates</span>
 <span class="sd">                    lat: ArrayCoordinates1d(lat): Bounds[1.0, 3.0], N[3], ctype[&#39;midpoint&#39;]</span>
 <span class="sd">                    lon: ArrayCoordinates1d(lon): Bounds[10.0, 40.0], N[4], ctype[&#39;midpoint&#39;]</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        bounds : dict</span>
@@ -1297,51 +1350,51 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transform coordinate dimensions (`lat`, `lon`, `alt`) into a different coordinate reference system.</span>
 <span class="sd">        Uses PROJ4 syntax for coordinate reference systems and units.</span>
-<span class="sd">        </span>
+
 <span class="sd">        See `PROJ4 Documentation &lt;https://proj4.org/usage/projections.html#cartographic-projection&gt;`_ for</span>
 <span class="sd">        more information about creating PROJ4 strings. See `PROJ4 Distance Units</span>
 <span class="sd">        &lt;https://proj4.org/operations/conversions/unitconvert.html#distance-units&gt;`_ for unit string</span>
 <span class="sd">        references.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        Transform gridded coordinates::</span>
-<span class="sd">        </span>
+
 <span class="sd">            c = Coordinates([np.linspace(-10, 10, 21), np.linspace(-30, -10, 21)], dims=[&#39;lat&#39;, &#39;lon&#39;])</span>
 <span class="sd">            c.crs</span>
 
 <span class="sd">            &gt;&gt; &#39;EPSG:4326&#39;</span>
 
 <span class="sd">            c.transform(&#39;EPSG:2193&#39;)</span>
-<span class="sd">        </span>
+
 <span class="sd">            &gt;&gt; Coordinates</span>
 <span class="sd">                lat: ArrayCoordinates1d(lat): Bounds[-9881992.849134896, 29995929.885877542], N[21], ctype[&#39;point&#39;]</span>
 <span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[1928928.7360588573, 4187156.434405213], N[21], ctype[&#39;midpoint&#39;]</span>
-<span class="sd">        </span>
+
 <span class="sd">        Transform stacked coordinates::</span>
-<span class="sd">        </span>
+
 <span class="sd">            c = Coordinates([(np.linspace(-10, 10, 21), np.linspace(-30, -10, 21))], dims=[&#39;lat_lon&#39;])</span>
 <span class="sd">            c.transform(&#39;EPSG:2193&#39;)</span>
-<span class="sd">        </span>
+
 <span class="sd">            &gt;&gt; Coordinates</span>
 <span class="sd">                lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[-9881992.849134896, 29995929.885877542], N[21], ctype[&#39;point&#39;]</span>
 <span class="sd">                lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[1928928.7360588573, 4187156.434405213], N[21], ctype[&#39;midpoint&#39;]</span>
-<span class="sd">        </span>
+
 <span class="sd">        Transform coordinates using a PROJ4 string::</span>
-<span class="sd">        </span>
+
 <span class="sd">            c = Coordinates([np.linspace(-10, 10, 21), np.linspace(-30, -10, 21)], dims=[&#39;lat&#39;, &#39;lon&#39;])</span>
 <span class="sd">            c.transform(&#39;+proj=merc +lat_ts=56.5 +ellps=GRS80&#39;)</span>
-<span class="sd">        </span>
+
 <span class="sd">            &gt;&gt; Coordinates</span>
 <span class="sd">                lat: ArrayCoordinates1d(lat): Bounds[-1847545.541169525, -615848.513723175], N[21], ctype[&#39;midpoint&#39;]</span>
 <span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[-614897.0725896168, 614897.0725896184], N[21], ctype[&#39;midpoint&#39;]</span>
-<span class="sd">        </span>
+
 <span class="sd">        Transform coordinates with altitude::</span>
-<span class="sd">        </span>
+
 <span class="sd">            # include alt units in proj4 string</span>
 <span class="sd">            c = Coordinates([[0, 1, 2], [0, 1, 2], [1, 2, 3]], dims=[&#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;])</span>
 <span class="sd">            c.transform(&#39;+init=epsg:2193 +vunits=ft&#39;)</span>
-<span class="sd">        </span>
+
 <span class="sd">            &gt;&gt; Coordinates</span>
 <span class="sd">                lat: ArrayCoordinates1d(lat): Bounds[594971.8894642257, 819117.0608407748], N[3], ctype[&#39;midpoint&#39;]</span>
 <span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[29772096.71234478, 29995929.885877542], N[3], ctype[&#39;midpoint&#39;]</span>
@@ -1350,7 +1403,7 @@
 
 <span class="sd">            # specify alt units seperately</span>
 <span class="sd">            c.transform(&#39;EPSG:2193&#39;, alt_units=&#39;ft&#39;)</span>
-<span class="sd">        </span>
+
 <span class="sd">            &gt;&gt; Coordinates</span>
 <span class="sd">                lat: ArrayCoordinates1d(lat): Bounds[594971.8894642257, 819117.0608407748], N[3], ctype[&#39;midpoint&#39;]</span>
 <span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[29772096.71234478, 29995929.885877542], N[3], ctype[&#39;midpoint&#39;]</span>
@@ -1361,7 +1414,7 @@
 <span class="sd">            ct.crs</span>
 
 <span class="sd">            &gt;&gt; &#39;+proj=tmerc +lat_0=0 +lon_0=173 +k=0.9996 +x_0=1600000 +y_0=10000000 +ellps=GRS80 +units=m +no_defs +type=crs +vunits=ft&#39;</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        crs : str, optional</span>
@@ -1371,12 +1424,12 @@
 <span class="sd">            Override the alt units defined in `crs` string.</span>
 <span class="sd">            This is implemented to provide a shorthand for transforming alt units</span>
 <span class="sd">            without specifying the whole proj4 string.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`podpac.Coordinates`</span>
 <span class="sd">            Transformed Coordinates</span>
-<span class="sd">        </span>
+
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>

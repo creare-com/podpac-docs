@@ -190,15 +190,24 @@
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">from</span> <span class="nn">hashlib</span> <span class="k">import</span> <span class="n">md5</span> <span class="k">as</span> <span class="n">hash_alg</span>
 <span class="kn">import</span> <span class="nn">json</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="k">import</span> <span class="n">ureg</span><span class="p">,</span> <span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">create_data_array</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">JSONEncoder</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">common_doc</span><span class="p">,</span>
+    <span class="n">JSONEncoder</span><span class="p">,</span>
+    <span class="n">is_json_serializable</span><span class="p">,</span>
+    <span class="n">_get_query_params_from_url</span><span class="p">,</span>
+    <span class="n">_get_from_url</span><span class="p">,</span>
+    <span class="n">_get_param</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.style</span> <span class="k">import</span> <span class="n">Style</span>
-<span class="kn">from</span> <span class="nn">podpac.core.cache</span> <span class="k">import</span> <span class="n">CacheCtrl</span><span class="p">,</span> <span class="n">get_default_cache_ctrl</span>
+<span class="kn">from</span> <span class="nn">podpac.core.cache</span> <span class="k">import</span> <span class="n">CacheCtrl</span><span class="p">,</span> <span class="n">get_default_cache_ctrl</span><span class="p">,</span> <span class="n">S3CacheStore</span>
+
 
 <span class="n">COMMON_NODE_DOC</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;requested_coordinates&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;The set of coordinates requested by a user. The Node will be evaluated using these coordinates.&quot;&quot;&quot;</span><span class="p">,</span>
@@ -257,7 +266,7 @@
 <span class="sd">    cache_output: bool</span>
 <span class="sd">        Should the node&#39;s output be cached? If not provided or None, uses default based on settings.</span>
 <span class="sd">    cache_update: bool</span>
-<span class="sd">        Default is False. Should the node&#39;s cached output be updated from the source data? </span>
+<span class="sd">        Default is False. Should the node&#39;s cached output be updated from the source data?</span>
 <span class="sd">    cache_ctrl: :class:`podpac.core.cache.cache.CacheCtrl`</span>
 <span class="sd">        Class that controls caching. If not provided, uses default based on settings.</span>
 <span class="sd">    dtype : type</span>
@@ -467,9 +476,7 @@
                 <span class="k">continue</span>
 
             <span class="c1"># check serializable</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_json_serializable</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cannot serialize attr &#39;</span><span class="si">%s</span><span class="s2">&#39; with type &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">attr</span><span class="p">)))</span>
 
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
@@ -570,7 +577,7 @@
 <span class="sd">        This definition can be used to create Pipeline Nodes. It also serves as a light-weight transport mechanism to</span>
 <span class="sd">        share algorithms and pipelines, or run code on cloud services.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">json_pretty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -664,17 +671,79 @@
 <span class="sd">        key : str</span>
 <span class="sd">            Delete cached objects with this key. If `&#39;*&#39;`, cached data is deleted for all keys.</span>
 <span class="sd">        coordinates : podpac.Coordinates, str, optional</span>
-<span class="sd">            Default is None. Delete cached objects for these coordinates. If `&#39;*&#39;`, cached data is deleted for all </span>
+<span class="sd">            Default is None. Delete cached objects for these coordinates. If `&#39;*&#39;`, cached data is deleted for all</span>
 <span class="sd">            coordinates, including coordinate-independent data. If None, will only affect coordinate-independent data.</span>
 <span class="sd">        mode: str, optional</span>
-<span class="sd">            Specify which cache stores are affected. </span>
+<span class="sd">            Specify which cache stores are affected.</span>
 
 
 <span class="sd">        See Also</span>
 <span class="sd">        ---------</span>
 <span class="sd">        `podpac.core.cache.cache.CacheCtrl.clear` to remove ALL cache for ALL nodes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">rem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">rem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
+
+    <span class="c1"># --------------------------------------------------------#</span>
+    <span class="c1">#  Class Methods</span>
+    <span class="c1"># --------------------------------------------------------#</span>
+
+<div class="viewcode-block" id="Node.from_url"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.from_url">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create podpac Node from a WMS/WCS request.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        url : str, dict</span>
+<span class="sd">            The raw WMS/WCS request url, or a dictionary of query parameters</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`Node`</span>
+<span class="sd">            A full Node with sub-nodes based on the definition of the node from the URL</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -------</span>
+<span class="sd">        The request can specify the PODPAC node by four different mechanism:</span>
+<span class="sd">        * Direct node name: PODPAC will look for an appropriate node in podpac.datalib</span>
+<span class="sd">        * JSON definition passed using the &#39;PARAMS&#39; query string: Need to specify the special LAYER/COVERAGE value of</span>
+<span class="sd">          &quot;%PARAMS%&quot;</span>
+<span class="sd">        * By pointing at the JSON definition retrievable with a http GET request:</span>
+<span class="sd">          e.g. by setting LAYER/COVERAGE value to https://my-site.org/pipeline_definition.json</span>
+<span class="sd">        * By pointing at the JSON definition retrievable from an S3 bucket that the user has access to:</span>
+<span class="sd">          e.g by setting LAYER/COVERAGE value to s3://my-bucket-name/pipeline_definition.json</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">podpac.core.pipeline</span> <span class="k">import</span> <span class="n">Pipeline</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="n">_get_query_params_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;SERVICE&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;WMS&quot;</span><span class="p">:</span>
+            <span class="n">layer</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;LAYERS&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;SERVICE&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;WCS&quot;</span><span class="p">:</span>
+            <span class="n">layer</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;COVERAGE&quot;</span><span class="p">)</span>
+
+        <span class="n">pipeline_dict</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;https://&quot;</span><span class="p">):</span>
+            <span class="n">pipeline_json</span> <span class="o">=</span> <span class="n">_get_from_url</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">layer</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span><span class="p">):</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">bucket</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">3</span><span class="p">:])</span>
+            <span class="n">s3</span> <span class="o">=</span> <span class="n">S3CacheStore</span><span class="p">(</span><span class="n">s3_bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">)</span>
+            <span class="n">pipeline_json</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">layer</span> <span class="o">==</span> <span class="s2">&quot;%PARAMS%&quot;</span><span class="p">:</span>
+            <span class="n">pipeline_json</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;PARAMS&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;PARAMS&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span>
+            <span class="n">pipeline_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="n">layer</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">):</span> <span class="p">{</span><span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="n">layer</span><span class="p">,</span> <span class="s2">&quot;attrs&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">p</span><span class="p">)}})}</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">pipeline_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pipeline_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">pipeline_json</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span><span class="n">definition</span><span class="o">=</span><span class="n">pipeline_dict</span><span class="p">)</span></div></div>
 
 
 <span class="c1"># --------------------------------------------------------#</span>
@@ -741,12 +810,12 @@
 <span class="sd">    depends: str, list, traitlets.All (optional)</span>
 <span class="sd">        Default is None. Any traits that the cached property depends on. The cached function may NOT</span>
 <span class="sd">        change the value of any of these dependencies (this will result in a RecursionError)</span>
-<span class="sd">    </span>
+
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    This decorator cannot handle function input parameters.</span>
-<span class="sd">    </span>
+
 <span class="sd">    If the function uses any tagged attributes, these will essentially operate like dependencies</span>
 <span class="sd">    because the cache key changes based on the node definition, which is affected by tagged attributes.</span>
 
