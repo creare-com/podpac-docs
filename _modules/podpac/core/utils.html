@@ -187,26 +187,14 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
-<span class="kn">import</span> <span class="nn">lazy_import</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">urllib.parse</span> <span class="k">as</span> <span class="nn">urllib</span>
-<span class="k">except</span><span class="p">:</span>  <span class="c1"># Python 2.7</span>
-    <span class="kn">import</span> <span class="nn">urlparse</span> <span class="k">as</span> <span class="nn">urllib</span>
-
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># Core dependency of xarray</span>
-
-<span class="c1"># Optional Imports</span>
-<span class="n">requests</span> <span class="o">=</span> <span class="n">lazy_import</span><span class="o">.</span><span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;requests&quot;</span><span class="p">)</span>
 
 <span class="c1"># create log for module</span>
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -261,7 +249,7 @@
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convience method to create a log file that only logs</span>
 <span class="sd">    podpac related messages</span>
-
+<span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    filename : str, optional</span>
@@ -272,9 +260,9 @@
 <span class="sd">    format : str, optional</span>
 <span class="sd">        String format for log messages.</span>
 <span class="sd">        See https://docs.python.org/3/library/logging.html#logrecord-attributes</span>
-<span class="sd">        for creating format. Default is:</span>
+<span class="sd">        for creating format. Default is: </span>
 <span class="sd">        format=&#39;[%(asctime)s] %(name)s.%(funcName)s[%(lineno)d] - %(levelname)s - %(message)s&#39;</span>
-
+<span class="sd">    </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    logging.Logger, logging.Handler, logging.Formatter</span>
@@ -435,10 +423,6 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_timedelta_string</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
-        <span class="c1"># datetime</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
-
         <span class="c1"># dataframe</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
@@ -463,51 +447,6 @@
         <span class="k">return</span> <span class="kc">False</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
-
-
-<span class="k">def</span> <span class="nf">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-
-
-<span class="k">def</span> <span class="nf">_get_query_params_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse_qs</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
-
-    <span class="c1"># Capitalize the keywords for consistency</span>
-    <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
-        <span class="n">params</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="o">=</span> <span class="n">url</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">params</span>
-
-
-<span class="k">def</span> <span class="nf">_get_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Helper function to get data from an url with error checking.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    -----------</span>
-<span class="sd">    auth_session: podpac.core.authentication.EarthDataSession</span>
-<span class="sd">        Authenticated EDS session</span>
-<span class="sd">    url: str</span>
-<span class="sd">        URL to website</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Could not connect to </span><span class="si">{}</span><span class="s2">, status code </span><span class="si">{}</span><span class="s2">. </span><span class="se">\n</span><span class="s2"> *** Return Text *** </span><span class="se">\n</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> *** End Return Text ***&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">url</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-
-    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cannot connect to </span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cannot authenticate to </span><span class="si">{}</span><span class="s2">. Check credentials. Error was as follows:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
 </pre></div>
 
            </div>
