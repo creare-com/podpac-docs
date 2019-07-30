@@ -230,6 +230,7 @@
 <span class="n">boto3</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;boto3&quot;</span><span class="p">)</span>
 <span class="n">requests</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;requests&quot;</span><span class="p">)</span>
 <span class="n">zarr</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;zarr&quot;</span><span class="p">)</span>
+<span class="n">zarrGroup</span> <span class="o">=</span> <span class="n">lazy_class</span><span class="p">(</span><span class="s2">&quot;zarr.Group&quot;</span><span class="p">)</span>
 <span class="n">s3fs</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;s3fs&quot;</span><span class="p">)</span>
 <span class="c1"># esri</span>
 <span class="n">RasterToNumPyArray</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;arcpy.RasterToNumPyArray&quot;</span><span class="p">)</span>
@@ -748,8 +749,89 @@
         <span class="k">return</span> <span class="n">matches</span></div></div>
 
 
+<span class="k">class</span> <span class="nc">DatasetCoordinatedMixin</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
+    <span class="n">latkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">lonkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">timekey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">altkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;alt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">Dimension</span><span class="p">(),</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cf_time</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cf_units</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cf_calendar</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">cs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;lat&quot;</span><span class="p">:</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_lat</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;lon&quot;</span><span class="p">:</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_lon</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_time</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;alt&quot;</span><span class="p">:</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_alt</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_lat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the native lat coordinates. Subclasses should customize as needed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        lat : array-like or Coordinates1d</span>
+<span class="sd">            native latitude coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">latkey</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_lon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the native lon coordinates. Subclasses should customize as needed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        lon : array-like or Coordinates1d</span>
+<span class="sd">            native latitude coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the native time coordinates. Subclasses should customize as needed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        time : array-like or Coordinates1d</span>
+<span class="sd">            native latitude coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">timekey</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cf_time</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">coding</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">decode_cf_datetime</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cf_units</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cf_calendar</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="k">def</span> <span class="nf">get_alt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the native alt coordinates. Subclasses should customize as needed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        alt : array-like or Coordinates1d</span>
+<span class="sd">            native latitude coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">altkey</span><span class="p">]</span>
+
+
 <div class="viewcode-block" id="H5PY"><a class="viewcode-back" href="../../../../user/api/podpac.data.H5PY.html#podpac.data.H5PY">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">H5PY</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">H5PY</span><span class="p">(</span><span class="n">DatasetCoordinatedMixin</span><span class="p">,</span> <span class="n">DataSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource node using h5py.</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
@@ -763,18 +845,9 @@
 <span class="sd">        {native_coordinates}</span>
 <span class="sd">    source : str</span>
 <span class="sd">        Path to the data source</span>
-<span class="sd">    latkey : str</span>
-<span class="sd">        The &#39;key&#39; for the data that described the latitude coordinate of the data</span>
-<span class="sd">    lonkey : str</span>
-<span class="sd">        The &#39;key&#39; for the data that described the longitude coordinate of the data</span>
-<span class="sd">    timekey : str</span>
-<span class="sd">        The &#39;key&#39; for the data that described the time coordinate of the data</span>
-<span class="sd">    altkey : str</span>
-<span class="sd">        The &#39;key&#39; for the data that described the altitude coordinate of the data</span>
-<span class="sd">    dim_order : list, optional</span>
-<span class="sd">        Default is [&#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, &#39;alt&#39;]. The order of the dimensions in the dataset. For example,</span>
+<span class="sd">For example,</span>
 <span class="sd">        if self.datasets[datakey] has shape (1, 2, 3) and the (time, lon, lat) dimensions have sizes (1, 2, 3)</span>
-<span class="sd">        then dim_order should be [&#39;time&#39;, &#39;lon&#39;, &#39;lat&#39;]</span>
+<span class="sd">        then dims should be [&#39;time&#39;, &#39;lon&#39;, &#39;lat&#39;]</span>
 <span class="sd">    file_mode : str, optional</span>
 <span class="sd">        Default is &#39;r&#39;. The mode used to open the HDF5 file. Options are r, r+, w, w- or x, a (see h5py.File).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -782,11 +855,6 @@
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">datakey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">latkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">lonkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">timekey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">altkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">dim_order</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;alt&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">file_mode</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span>
@@ -827,34 +895,6 @@
         <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;native_coordinates&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
 
-<div class="viewcode-block" id="H5PY.get_native_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.data.H5PY.html#podpac.data.H5PY.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
-<span class="sd">        </span>
-<span class="sd">        The default implementation tries to find the lat/lon coordinates based on dataset.affine or dataset.transform</span>
-<span class="sd">        (depending on the version of rasterio). It cannot determine the alt or time dimensions, so child classes may</span>
-<span class="sd">        have to overload this method.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">dims</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">latkey</span><span class="p">:</span>
-            <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">latkey</span><span class="p">][:])</span>
-            <span class="n">dims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span><span class="p">:</span>
-            <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span><span class="p">][:])</span>
-            <span class="n">dims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timekey</span><span class="p">:</span>
-            <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">timekey</span><span class="p">][:])</span>
-            <span class="n">dims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">altkey</span><span class="p">:</span>
-            <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">altkey</span><span class="p">][:])</span>
-            <span class="n">dims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;alt&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">coords</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="c1"># Some dimensions may not be present in the default dim_order, so remove these</span>
-        <span class="n">dim_order</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_order</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">dim_order</span><span class="p">)</span></div>
-
 <div class="viewcode-block" id="H5PY.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.data.H5PY.html#podpac.data.H5PY.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
@@ -888,19 +928,10 @@
         <span class="k">return</span> <span class="n">keys</span></div>
 
 
-<span class="k">class</span> <span class="nc">Zarr</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Zarr</span><span class="p">(</span><span class="n">DatasetCoordinatedMixin</span><span class="p">,</span> <span class="n">DataSource</span><span class="p">):</span>
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">group</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">datakey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">latkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">lonkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">timekey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">altkey</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;alt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">dims</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">Dimension</span><span class="p">(),</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">cf_time</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">cf_units</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">cf_calendar</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">access_key_id</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span>
     <span class="n">secret_access_key</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span>
@@ -919,41 +950,41 @@
         <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;AWS_REGION_NAME&quot;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># check that source or group is provided</span>
+        <span class="c1"># check that source or dataset is provided</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">group</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span>
 
         <span class="c1"># check dim keys</span>
         <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;lat&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">latkey</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Zarr node &#39;latkey&#39; is required for dims </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">latkey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">latkey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Zarr lat key &#39;</span><span class="si">%s</span><span class="s2">&#39; not found&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">latkey</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;lon&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Zarr node &#39;lonkey&#39; is required for dims </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Zarr lon key &#39;</span><span class="si">%s</span><span class="s2">&#39; not found&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timekey</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Zarr node &#39;timekey&#39; is required for dims </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timekey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timekey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Zarr time key &#39;</span><span class="si">%s</span><span class="s2">&#39; not found&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">timekey</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;alt&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">altkey</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Zarr node &#39;altkey&#39; is required for dims </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">altkey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">altkey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Zarr alt key &#39;</span><span class="si">%s</span><span class="s2">&#39; not found&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">altkey</span><span class="p">)</span>
 
         <span class="c1"># check data key</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">datakey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">datakey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Zarr data key &#39;</span><span class="si">%s</span><span class="s2">&#39; not found&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">datakey</span><span class="p">)</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_open_group</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Zarr node requires &#39;source&#39; or &#39;group&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Zarr node requires &#39;source&#39; or &#39;dataset&#39;&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span><span class="p">):</span>
             <span class="n">root</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span><span class="p">)</span>
@@ -970,82 +1001,13 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No Zarr store found at path &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
 
     <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">cs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;lat&quot;</span><span class="p">:</span>
-                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_lat</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;lon&quot;</span><span class="p">:</span>
-                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_lon</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span>
-                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_time</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;alt&quot;</span><span class="p">:</span>
-                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_alt</span><span class="p">())</span>
-
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
-
-    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">datakey</span><span class="p">][</span><span class="n">coordinates_index</span><span class="p">]</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">datakey</span><span class="p">][</span><span class="n">coordinates_index</span><span class="p">]</span>
         <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">data</span>
-
-    <span class="k">def</span> <span class="nf">get_lat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the native lat coordinates. Subclasses should customize as needed.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        lat : array-like or Coordinates1d</span>
-<span class="sd">            native latitude coordinates.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">latkey</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">get_lon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the native lon coordinates. Subclasses should customize as needed.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        lon : array-like or Coordinates1d</span>
-<span class="sd">            native latitude coordinates.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lonkey</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">get_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the native time coordinates. Subclasses should customize as needed.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        time : array-like or Coordinates1d</span>
-<span class="sd">            native latitude coordinates.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">timekey</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cf_time</span><span class="p">:</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">coding</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">decode_cf_datetime</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cf_units</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cf_calendar</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">values</span>
-
-    <span class="k">def</span> <span class="nf">get_alt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get the native alt coordinates. Subclasses should customize as needed.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        alt : array-like or Coordinates1d</span>
-<span class="sd">            native latitude coordinates.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">altkey</span><span class="p">]</span>
 
 
 <span class="n">WCS_DEFAULT_VERSION</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
@@ -1414,7 +1376,7 @@
         <span class="k">if</span> <span class="s2">&quot;reprojected_coordinates&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">])</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">],</span> <span class="n">string_types</span><span class="p">):</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">kwargs</span>
