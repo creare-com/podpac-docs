@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.data.interpolator &mdash; 1.0.0</title>
+  <title>podpac.core.data.interpolator &mdash; 1.1.0</title>
   
 
   
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                1.0.0
+                1.1.0
               </div>
             
           
@@ -485,8 +485,18 @@
                         <span class="p">)</span>
 
                     <span class="c1"># find the closest value</span>
-                    <span class="n">src_i</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">source_data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="n">i</span><span class="o">.</span><span class="n">values</span><span class="p">))</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
-                    <span class="n">src_idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="n">source_data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">][</span><span class="n">src_i</span><span class="p">]}</span>
+                    <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span>
+                        <span class="n">tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_tolerance</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_tolerance</span>
+
+                    <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">source_data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="n">i</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">tol</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">diff</span> <span class="o">&lt;=</span> <span class="n">tol</span><span class="p">:</span>
+                        <span class="n">src_i</span> <span class="o">=</span> <span class="p">(</span><span class="n">diff</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
+                        <span class="n">src_idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="n">source_data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">][</span><span class="n">src_i</span><span class="p">]}</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">src_idx</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># There is no closest neighbor within the tolerance</span>
+                        <span class="k">continue</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">src_idx</span> <span class="o">=</span> <span class="n">idx</span>
 
