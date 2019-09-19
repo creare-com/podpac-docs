@@ -285,6 +285,21 @@ future.</p>
 </ul>
 </dd>
 </dl>
+<p class="rubric">Alternative Constructors</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.from_definition" title="podpac.Node.from_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_definition</span></code></a>(definition)</p></td>
+<td><p>Create podpac Node from a dictionary definition.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.from_json" title="podpac.Node.from_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_json</span></code></a>(s)</p></td>
+<td><p>Create podpac Node from a JSON definition.</p></td>
+</tr>
+</tbody>
+</table>
 <p class="rubric">Methods</p>
 <table class="longtable docutils align-default">
 <colgroup>
@@ -319,11 +334,17 @@ future.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.init" title="podpac.Node.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code></a>()</p></td>
 <td><p>Overwrite this method if a node needs to do any additional initialization after the standard initialization.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.put_cache" title="podpac.Node.put_cache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">put_cache</span></code></a>(data, key[, coordinates, overwrite])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.load" title="podpac.Node.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(path)</p></td>
+<td><p>Create podpac Node from file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.put_cache" title="podpac.Node.put_cache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">put_cache</span></code></a>(data, key[, coordinates, overwrite])</p></td>
 <td><p>Cache data for this node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.rem_cache" title="podpac.Node.rem_cache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rem_cache</span></code></a>(key[, coordinates, mode])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.rem_cache" title="podpac.Node.rem_cache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rem_cache</span></code></a>(key[, coordinates, mode])</p></td>
 <td><p>Clear cached data for this node.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.save" title="podpac.Node.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(path)</p></td>
+<td><p>Write node to file.</p></td>
 </tr>
 </tbody>
 </table>
@@ -335,10 +356,10 @@ future.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.base_definition" title="podpac.Node.base_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_definition</span></code></a></p></td>
-<td><p>Pipeline node definition.</p></td>
+<td><p>Base node definition.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.base_ref" title="podpac.Node.base_ref"><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_ref</span></code></a></p></td>
-<td><p>Default pipeline node reference/name in pipeline node definitions</p></td>
+<td><p>Default reference/name in node definitions</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.cache_ctrl" title="podpac.Node.cache_ctrl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_ctrl</span></code></a></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
@@ -350,7 +371,7 @@ future.</p>
 <td><p>A boolean (True, False) trait.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.definition" title="podpac.Node.definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></a></p></td>
-<td><p>Full pipeline definition for this node.</p></td>
+<td><p>Full node definition.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.dtype" title="podpac.Node.dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></a></p></td>
 <td><p>A trait which allows any value.</p></td>
@@ -365,7 +386,7 @@ future.</p>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.pipeline" title="podpac.Node.pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></a></p></td>
-<td><p>Create a pipeline node from this node</p></td>
+<td><p>Deprecated.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.style" title="podpac.Node.style"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></a></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
@@ -388,7 +409,7 @@ future.</p>
 <dl class="method">
 <dt id="podpac.Node.base_definition">
 <em class="property">property </em><code class="sig-name descname">base_definition</code><a class="headerlink" href="#podpac.Node.base_definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pipeline node definition.</p>
+<dd><p>Base node definition.</p>
 <p>This property is implemented in the primary base nodes (DataSource, Algorithm, and Compositor). Node
 subclasses with additional attrs will need to extend this property.</p>
 <dl class="field-list simple">
@@ -404,10 +425,10 @@ subclasses with additional attrs will need to extend this property.</p>
 <dl class="method">
 <dt id="podpac.Node.base_ref">
 <em class="property">property </em><code class="sig-name descname">base_ref</code><a class="headerlink" href="#podpac.Node.base_ref" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default pipeline node reference/name in pipeline node definitions</p>
+<dd><p>Default reference/name in node definitions</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Name of the node in pipeline definitions</p>
+<dd class="field-odd"><p>Name of the node in node definitions</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>str</p>
@@ -468,10 +489,10 @@ data: uses the fillval as the input array</p>
 <dl class="method">
 <dt id="podpac.Node.definition">
 <em class="property">property </em><code class="sig-name descname">definition</code><a class="headerlink" href="#podpac.Node.definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Full pipeline definition for this node.</p>
+<dd><p>Full node definition.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Dictionary-formatted definition of a PODPAC pipeline.</p>
+<dd class="field-odd"><p>Dictionary-formatted node definition.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>OrderedDict</p>
@@ -537,6 +558,60 @@ coordinates, and coordinate reference system.</p></li>
 <dd class="field-even"><p>list</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="podpac.Node.from_definition">
+<em class="property">classmethod </em><code class="sig-name descname">from_definition</code><span class="sig-paren">(</span><em class="sig-param">definition</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.from_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.from_definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create podpac Node from a dictionary definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>d</strong> (<em>dict</em>) – node definition</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>podpac Node</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#podpac.Node" title="podpac.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#podpac.Node.definition" title="podpac.Node.definition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">definition()</span></code></a></dt><dd><p>node definition as a dictionary</p>
+</dd>
+<dt><a class="reference internal" href="#podpac.Node.from_json" title="podpac.Node.from_json"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_json()</span></code></a></dt><dd><p>create podpac node from a JSON definition</p>
+</dd>
+<dt><a class="reference internal" href="#podpac.Node.load" title="podpac.Node.load"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load()</span></code></a></dt><dd><p>create a node from file</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="podpac.Node.from_json">
+<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param">s</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.from_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create podpac Node from a JSON definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>s</strong> (<em>str</em>) – JSON-formatted node definition</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>podpac Node</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#podpac.Node" title="podpac.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a></p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#podpac.Node.json" title="podpac.Node.json"><code class="xref py py-meth docutils literal notranslate"><span class="pre">json()</span></code></a></dt><dd><p>node definition as a JSON string</p>
+</dd>
+<dt><a class="reference internal" href="#podpac.Node.load" title="podpac.Node.load"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load()</span></code></a></dt><dd><p>create a node from file</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -629,15 +704,12 @@ e.g by setting LAYER/COVERAGE value to s3://my-bucket-name/pipeline_definition.j
 <dd><p>definition for this node in json format</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>JSON-formatted definition of a PODPAC pipeline.</p>
+<dd class="field-odd"><p>JSON-formatted node definition.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>str</p>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<p>This definition can be used to create Pipeline Nodes. It also serves as a light-weight transport mechanism to
-share algorithms and pipelines, or run code on cloud services.</p>
 </dd></dl>
 
 <dl class="method">
@@ -646,17 +718,33 @@ share algorithms and pipelines, or run code on cloud services.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="podpac.Node.pipeline">
-<em class="property">property </em><code class="sig-name descname">pipeline</code><a class="headerlink" href="#podpac.Node.pipeline" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a pipeline node from this node</p>
+<dt id="podpac.Node.load">
+<em class="property">classmethod </em><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create podpac Node from file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A pipeline node that wraps this node</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – path to text file containing a JSON-formatted node definition</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>podpac.Pipeline</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>podpac Node</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#podpac.Node" title="podpac.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a></p>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#podpac.Node.save" title="podpac.Node.save"><code class="xref py py-meth docutils literal notranslate"><span class="pre">save()</span></code></a></dt><dd><p>save a node to file</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="podpac.Node.pipeline">
+<em class="property">property </em><code class="sig-name descname">pipeline</code><a class="headerlink" href="#podpac.Node.pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deprecated. See Node.definition and Node.from_definition.</p>
 </dd></dl>
 
 <dl class="method">
@@ -695,6 +783,24 @@ coordinates, including coordinate-independent data. If None, will only affect co
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><code class="xref py py-meth docutils literal notranslate"><span class="pre">None()</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="podpac.Node.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/podpac/core/node.html#Node.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write node to file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – path to write to</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#podpac.Node.load" title="podpac.Node.load"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load()</span></code></a></dt><dd><p>load podpac Node from file.</p>
+</dd>
+</dl>
 </div>
 </dd></dl>
 

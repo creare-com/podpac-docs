@@ -116,6 +116,23 @@
 <li class="toctree-l3"><a class="reference internal" href="#tagging-attributes">Tagging attributes</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#serialization">Serialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#node-definition">Node Definition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">DataSource</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sample">Sample</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">Compositor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#additional-properties">Additional Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Sample</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">Algorithm</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Additional Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">Sample</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#notes">Notes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pipelines.html">Pipelines</a></li>
@@ -196,7 +213,7 @@
             
   <div class="section" id="nodes">
 <h1>Nodes<a class="headerlink" href="#nodes" title="Permalink to this headline">¶</a></h1>
-<p>This document describes the detailed interfaces for Pipeline nodes so that a user may know what to expect. It also documents some of the available nodes implemented as part of the core library.</p>
+<p>This document describes the detailed interfaces for core node types so that a user may know what to expect. It also documents some of the available nodes implemented as part of the core library.</p>
 <p>… tbd … (for now see the <a class="reference external" href="https://github.com/creare-com/podpac/blob/develop/doc/source/developer/specs/nodes">DeveloperSpec</a>)</p>
 <div class="section" id="datasource">
 <h2>DataSource<a class="headerlink" href="#datasource" title="Permalink to this headline">¶</a></h2>
@@ -273,8 +290,128 @@
 <span class="n">output</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You will also be able to set these tagged attrs in <a class="reference internal" href="pipelines.html"><span class="doc">pipelines</span></a>.</p>
+<p>You will also be able to set these tagged attrs in node definitions.</p>
 </div>
+</div>
+<div class="section" id="serialization">
+<h2>Serialization<a class="headerlink" href="#serialization" title="Permalink to this headline">¶</a></h2>
+<p>Any podpac Node can be saved, shared, and loaded using a JSON definition. This definition describes all of the nodes required to create and evaluate the final Node.</p>
+<p><strong>Serialization Properties and Methods:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">save(path)</span></code>: writes the node to file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">json</span></code>: provides the node definition as a JSON string.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">definition</span></code>: provides the node definition as an ordered dictionary.</p></li>
+</ul>
+<p><strong>Deserialization Methods:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">load(path)</span></code>: load a Node from file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">from_json</span></code>: create a Node from a JSON definition</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">from_definition</span></code>: create a Node from a dictionary definition</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">from_url</span></code>: create a Node from a WMS/WCS request.</p></li>
+</ul>
+</div>
+<div class="section" id="node-definition">
+<h2>Node Definition<a class="headerlink" href="#node-definition" title="Permalink to this headline">¶</a></h2>
+<p>The full JSON definition for a Node contains an entry for <em>all</em> of the nodes required. Input nodes must be defined before they can be referenced by later Nodes, so the final output Node must be at the end.</p>
+<p>Individual node definition specify the node class along with its inputs and attributes. It also names the node so that it can be used as an input to other nodes later in the pipeline. The following properties are common to all podpac node definitions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">node</span></code>: a path to the node class. The path is relative to the podpac module, unless <code class="docutils literal notranslate"><span class="pre">plugin</span></code> is defined. See Notes. <em>(string, required)</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plugin</span></code>: a path to a plugin module to use (prepended node path). See Notes. <em>(string, optional)</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">attrs</span></code>: set attributes in the node for custom behavior. Each value can be a number, string, boolean, dictionary, or list. <em>(object, optional)</em></p></li>
+</ul>
+<p>Additional properties and examples for each of the core node types are provided below.</p>
+</div>
+<div class="section" id="id1">
+<h2>DataSource<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="sample">
+<h3>Sample<a class="headerlink" href="#sample" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;mynode&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="s2">&quot;algorithm.CoordData&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;attrs&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;coord_name&quot;</span><span class="p">:</span> <span class="s2">&quot;time&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>Compositor<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="additional-properties">
+<h3>Additional Properties<a class="headerlink" href="#additional-properties" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sources</span></code>: nodes to composite <em>(list, required)</em></p></li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3>Sample<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;SourceA&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+    <span class="s2">&quot;SourceB&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+    <span class="s2">&quot;SourceC&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+
+    <span class="n">MyCompositor</span><span class="s2">&quot;: {</span>
+        <span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="s2">&quot;OrderedCompositor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sources&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;SourceA&quot;</span><span class="p">,</span> <span class="s2">&quot;SourceB&quot;</span><span class="p">,</span> <span class="s2">&quot;SourceC&quot;</span><span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>Algorithm<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id5">
+<h3>Additional Properties<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: node inputs to the algorithm. <em>(object, required)</em></p></li>
+</ul>
+</div>
+<div class="section" id="id6">
+<h3>Sample<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;MyNode&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+    <span class="s2">&quot;MyOtherNode&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+    <span class="s2">&quot;MyThirdNode&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="o">...</span> <span class="p">},</span>
+
+    <span class="s2">&quot;MyResult&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="s2">&quot;Arithmetic&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="s2">&quot;MyNode&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="s2">&quot;MyOtherNode&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="s2">&quot;MyThirdNode&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;attrs&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;eqn&quot;</span><span class="p">:</span> <span class="s2">&quot;A + </span><span class="si">{tsmtr}</span><span class="s2"> / </span><span class="si">{kappa}</span><span class="s2"> * (B - C)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;kappa&quot;</span><span class="p">:</span> <span class="s2">&quot;13&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;tsmtr&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">node</span></code> path should include the submodule path and the node class. The submodule path is omitted for top-level classes. For example:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;datalib.smap.SMAP&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">podpac.datalib.smap</span> <span class="pre">import</span> <span class="pre">SMAP</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;compositor.OrderedCompositor&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">podpac.compositor</span> <span class="pre">import</span> <span class="pre">OrderedCompositor</span></code>.</p></li>
+</ul>
+</li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">plugin</span></code> path replaces ‘podpac’ in the full node path. For example</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;plugin&quot;:</span> <span class="pre">&quot;path.to.myplugin&quot;,</span> <span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;mymodule.MyCustomNode&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">path.to.myplugin.mymodule</span> <span class="pre">import</span> <span class="pre">MyCustomNode</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;plugin&quot;:</span> <span class="pre">&quot;myplugin&quot;,</span> <span class="pre">&quot;node&quot;:</span> <span class="pre">&quot;MyCustomNode&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">myplugin</span> <span class="pre">import</span> <span class="pre">MyCustomNode</span></code></p></li>
+</ul>
+</li>
+</ul>
 </div>
 </div>
 

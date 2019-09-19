@@ -186,24 +186,22 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">from</span> <span class="nn">hashlib</span> <span class="k">import</span> <span class="n">md5</span> <span class="k">as</span> <span class="n">hash_alg</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="k">import</span> <span class="n">md5</span> <span class="k">as</span> <span class="n">hash_alg</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="k">import</span> <span class="n">ureg</span><span class="p">,</span> <span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">create_data_array</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">common_doc</span><span class="p">,</span>
-    <span class="n">JSONEncoder</span><span class="p">,</span>
-    <span class="n">is_json_serializable</span><span class="p">,</span>
-    <span class="n">_get_query_params_from_url</span><span class="p">,</span>
-    <span class="n">_get_from_url</span><span class="p">,</span>
-    <span class="n">_get_param</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">JSONEncoder</span><span class="p">,</span> <span class="n">is_json_serializable</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">_get_query_params_from_url</span><span class="p">,</span> <span class="n">_get_from_url</span><span class="p">,</span> <span class="n">_get_param</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.style</span> <span class="k">import</span> <span class="n">Style</span>
 <span class="kn">from</span> <span class="nn">podpac.core.cache</span> <span class="k">import</span> <span class="n">CacheCtrl</span><span class="p">,</span> <span class="n">get_default_cache_ctrl</span><span class="p">,</span> <span class="n">S3CacheStore</span>
@@ -423,25 +421,25 @@
         <span class="k">return</span> <span class="n">create_data_array</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
-    <span class="c1"># Serialization properties</span>
+    <span class="c1"># Serialization</span>
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">base_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Default pipeline node reference/name in pipeline node definitions</span>
+<span class="sd">        Default reference/name in node definitions</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            Name of the node in pipeline definitions</span>
+<span class="sd">            Name of the node in node definitions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">base_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Pipeline node definition.</span>
+<span class="sd">        Base node definition.</span>
 
 <span class="sd">        This property is implemented in the primary base nodes (DataSource, Algorithm, and Compositor). Node</span>
 <span class="sd">        subclasses with additional attrs will need to extend this property.</span>
@@ -495,12 +493,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Full pipeline definition for this node.</span>
+<span class="sd">        Full node definition.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        OrderedDict</span>
-<span class="sd">            Dictionary-formatted definition of a PODPAC pipeline.</span>
+<span class="sd">            Dictionary-formatted node definition.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
@@ -517,7 +515,7 @@
                 <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_node</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_source&quot;</span><span class="p">])</span>
             <span class="k">if</span> <span class="s2">&quot;lookup_attrs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr_node</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_attrs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_attrs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_node</span><span class="p">(</span><span class="n">input_node</span><span class="p">)</span>
+                    <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_attrs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_node</span><span class="p">(</span><span class="n">attr_node</span><span class="p">)</span>
             <span class="k">if</span> <span class="s2">&quot;inputs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">input_node</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">input_node</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -546,22 +544,14 @@
 
         <span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-        <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">refs</span><span class="p">,</span> <span class="n">definitions</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">d</span>
+        <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">refs</span><span class="p">,</span> <span class="n">definitions</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a pipeline node from this node</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        podpac.Pipeline</span>
-<span class="sd">            A pipeline node that wraps this node</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Deprecated. See Node.definition and Node.from_definition.&quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">podpac.core.pipeline</span> <span class="k">import</span> <span class="n">Pipeline</span>
 
-        <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span><span class="n">definition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span><span class="n">definition</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">}))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -570,12 +560,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            JSON-formatted definition of a PODPAC pipeline.</span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        ------</span>
-<span class="sd">        This definition can be used to create Pipeline Nodes. It also serves as a light-weight transport mechanism to</span>
-<span class="sd">        share algorithms and pipelines, or run code on cloud services.</span>
+<span class="sd">            JSON-formatted node definition.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
 
@@ -586,6 +571,23 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">hash_alg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Node.save"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write node to file.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            path to write to</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        load : load podpac Node from file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span></div>
 
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Caching Interface</span>
@@ -684,8 +686,190 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">rem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
 
     <span class="c1"># --------------------------------------------------------#</span>
-    <span class="c1">#  Class Methods</span>
+    <span class="c1">#  Class Methods (Deserialization)</span>
     <span class="c1"># --------------------------------------------------------#</span>
+
+<div class="viewcode-block" id="Node.from_definition"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.from_definition">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create podpac Node from a dictionary definition.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        d : dict</span>
+<span class="sd">            node definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`Node`</span>
+<span class="sd">            podpac Node</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        definition : node definition as a dictionary</span>
+<span class="sd">        from_json : create podpac node from a JSON definition</span>
+<span class="sd">        load : create a node from file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="k">import</span> <span class="n">DataSource</span>
+        <span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="k">import</span> <span class="n">Algorithm</span>
+        <span class="kn">from</span> <span class="nn">podpac.core.compositor</span> <span class="k">import</span> <span class="n">Compositor</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid definition: definition cannot be empty.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># parse node definitions in order</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">definition</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;node&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: &#39;node&#39; property required&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+
+            <span class="c1"># get node class</span>
+            <span class="n">module_root</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;plugin&quot;</span><span class="p">,</span> <span class="s2">&quot;podpac&quot;</span><span class="p">)</span>
+            <span class="n">node_string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module_root</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;node&quot;</span><span class="p">])</span>
+            <span class="n">module_name</span><span class="p">,</span> <span class="n">node_name</span> <span class="o">=</span> <span class="n">node_string</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: no module found &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">module_name</span><span class="p">))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">node_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">node_name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: class &#39;</span><span class="si">%s</span><span class="s2">&#39; not found in module &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">module_name</span><span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="c1"># parse and configure kwargs</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">whitelist</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="s2">&quot;lookup_attrs&quot;</span><span class="p">,</span> <span class="s2">&quot;plugin&quot;</span><span class="p">]</span>
+
+            <span class="c1"># DataSource, Compositor, and Algorithm specific properties</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="n">node_class</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">DataSource</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;attrs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;source&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: DataSource &#39;attrs&#39; cannot have a &#39;source&#39; property.&quot;</span>
+                            <span class="o">%</span> <span class="n">name</span>
+                        <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="s2">&quot;lookup_source&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: DataSource &#39;attrs&#39; cannot have a &#39;lookup_source&#39; property&quot;</span>
+                            <span class="o">%</span> <span class="n">name</span>
+                        <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: DataSource &#39;attrs&#39; cannot have an &#39;interpolation&#39; property&quot;</span>
+                            <span class="o">%</span> <span class="n">name</span>
+                        <span class="p">)</span>
+
+                <span class="k">if</span> <span class="s2">&quot;source&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span>
+                    <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="s2">&quot;lookup_source&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_source&quot;</span><span class="p">])</span>
+                    <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;lookup_source&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span>
+                    <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;interpolation&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">Compositor</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;attrs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: Compositor &#39;attrs&#39; cannot have an &#39;interpolation&#39; property&quot;</span>
+                            <span class="o">%</span> <span class="n">name</span>
+                        <span class="p">)</span>
+
+                <span class="k">if</span> <span class="s2">&quot;sources&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]]</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+                    <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;sources&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span>
+                    <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;interpolation&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">Algorithm</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;attrs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;inputs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: Algorithm &#39;attrs&#39; cannot have an &#39;inputs&#39; property&quot;</span>
+                            <span class="o">%</span> <span class="n">name</span>
+                        <span class="p">)</span>
+
+                <span class="k">if</span> <span class="s2">&quot;inputs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                    <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+                    <span class="n">whitelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;inputs&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lookup_attrs&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">whitelist</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: unexpected property &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+
+            <span class="n">nodes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">nodes</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Node.from_json"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.from_json">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create podpac Node from a JSON definition.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        s : str</span>
+<span class="sd">            JSON-formatted node definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`Node`</span>
+<span class="sd">            podpac Node</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        json : node definition as a JSON string</span>
+<span class="sd">        load : create a node from file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Node.load"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.load">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create podpac Node from file.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            path to text file containing a JSON-formatted node definition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`Node`</span>
+<span class="sd">            podpac Node</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        save : save a node to file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.from_url"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.from_url">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
@@ -713,8 +897,6 @@
 <span class="sd">        * By pointing at the JSON definition retrievable from an S3 bucket that the user has access to:</span>
 <span class="sd">          e.g by setting LAYER/COVERAGE value to s3://my-bucket-name/pipeline_definition.json</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">podpac.core.pipeline</span> <span class="k">import</span> <span class="n">Pipeline</span>
-
         <span class="n">params</span> <span class="o">=</span> <span class="n">_get_query_params_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;SERVICE&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;WMS&quot;</span><span class="p">:</span>
@@ -722,28 +904,40 @@
         <span class="k">elif</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;SERVICE&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;WCS&quot;</span><span class="p">:</span>
             <span class="n">layer</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;COVERAGE&quot;</span><span class="p">)</span>
 
-        <span class="n">pipeline_dict</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;https://&quot;</span><span class="p">):</span>
-            <span class="n">pipeline_json</span> <span class="o">=</span> <span class="n">_get_from_url</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">_get_from_url</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">layer</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span><span class="p">):</span>
             <span class="n">parts</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
             <span class="n">bucket</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
             <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">3</span><span class="p">:])</span>
             <span class="n">s3</span> <span class="o">=</span> <span class="n">S3CacheStore</span><span class="p">(</span><span class="n">s3_bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">)</span>
-            <span class="n">pipeline_json</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">layer</span> <span class="o">==</span> <span class="s2">&quot;%PARAMS%&quot;</span><span class="p">:</span>
-            <span class="n">pipeline_json</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;PARAMS&quot;</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;PARAMS&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">p</span> <span class="o">=</span> <span class="n">_get_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;PARAMS&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">p</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span>
-            <span class="n">pipeline_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="n">layer</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">):</span> <span class="p">{</span><span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="n">layer</span><span class="p">,</span> <span class="s2">&quot;attrs&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">p</span><span class="p">)}})}</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="n">pipeline_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">pipeline_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">pipeline_json</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="n">layer</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">):</span> <span class="p">{</span><span class="s2">&quot;node&quot;</span><span class="p">:</span> <span class="n">layer</span><span class="p">,</span> <span class="s2">&quot;attrs&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">p</span><span class="p">)}})</span>
 
-        <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span><span class="n">definition</span><span class="o">=</span><span class="n">pipeline_dict</span><span class="p">)</span></div></div>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+    <span class="n">refs</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">refs</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">_name</span> <span class="ow">in</span> <span class="n">refs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: reference to nonexistent node/attribute &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">ref</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">]:</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">attr</span>
 
 
 <span class="c1"># --------------------------------------------------------#</span>
