@@ -192,6 +192,7 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">hashlib</span> <span class="k">import</span> <span class="n">md5</span> <span class="k">as</span> <span class="n">hash_alg</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -498,6 +499,9 @@
         <span class="k">if</span> <span class="n">lookup_attrs</span><span class="p">:</span>
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_attrs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">lookup_attrs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lookup_attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">definition</span>
+
         <span class="k">return</span> <span class="n">d</span>
 
     <span class="nd">@property</span>
@@ -752,7 +756,7 @@
 
             <span class="c1"># parse and configure kwargs</span>
             <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">whitelist</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="s2">&quot;lookup_attrs&quot;</span><span class="p">,</span> <span class="s2">&quot;plugin&quot;</span><span class="p">]</span>
+            <span class="n">whitelist</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="s2">&quot;lookup_attrs&quot;</span><span class="p">,</span> <span class="s2">&quot;plugin&quot;</span><span class="p">,</span> <span class="s2">&quot;style&quot;</span><span class="p">]</span>
 
             <span class="c1"># DataSource, Compositor, and Algorithm specific properties</span>
             <span class="n">parents</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="n">node_class</span><span class="p">)</span>
@@ -824,6 +828,9 @@
 
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lookup_attrs&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_subattr</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s2">&quot;style&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">])</span>
 
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">whitelist</span><span class="p">:</span>
