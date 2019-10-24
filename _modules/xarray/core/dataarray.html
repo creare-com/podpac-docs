@@ -179,9 +179,7 @@
             
   <h1>Source code for xarray.core.dataarray</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">numbers</span> <span class="k">import</span> <span class="n">Number</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">TYPE_CHECKING</span><span class="p">,</span>
@@ -195,6 +193,7 @@
     <span class="n">Optional</span><span class="p">,</span>
     <span class="n">Sequence</span><span class="p">,</span>
     <span class="n">Tuple</span><span class="p">,</span>
+    <span class="n">TypeVar</span><span class="p">,</span>
     <span class="n">Union</span><span class="p">,</span>
     <span class="n">cast</span><span class="p">,</span>
     <span class="n">overload</span><span class="p">,</span>
@@ -244,6 +243,8 @@
 <span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="n">T_DSorDA</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T_DSorDA&quot;</span><span class="p">,</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">)</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">dask.delayed</span> <span class="k">import</span> <span class="n">Delayed</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -260,7 +261,7 @@
 
 <span class="k">def</span> <span class="nf">_infer_coords_and_dims</span><span class="p">(</span>
     <span class="n">shape</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Tuple[OrderedDict[Any, Variable], Tuple[Hashable, ...]]&quot;</span><span class="p">:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Tuple[Dict[Any, Variable], Tuple[Hashable, ...]]&quot;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;All the logic for creating a new DataArray&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="p">(</span>
@@ -303,7 +304,7 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;dimension </span><span class="si">%s</span><span class="s2"> is not a string&quot;</span> <span class="o">%</span> <span class="n">d</span><span class="p">)</span>
 
-    <span class="n">new_coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># type: OrderedDict[Any, Variable]</span>
+    <span class="n">new_coords</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Variable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">if</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_dict_like</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -424,11 +425,25 @@
 <span class="sd">        Dictionary of DataArray objects that label values along each dimension.</span>
 <span class="sd">    name : str or None</span>
 <span class="sd">        Name of this array.</span>
-<span class="sd">    attrs : OrderedDict</span>
+<span class="sd">    attrs : dict</span>
 <span class="sd">        Dictionary for holding arbitrary metadata.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_accessors&quot;</span><span class="p">,</span> <span class="s2">&quot;_coords&quot;</span><span class="p">,</span> <span class="s2">&quot;_file_obj&quot;</span><span class="p">,</span> <span class="s2">&quot;_name&quot;</span><span class="p">,</span> <span class="s2">&quot;_indexes&quot;</span><span class="p">,</span> <span class="s2">&quot;_variable&quot;</span><span class="p">)</span>
+    <span class="n">_accessors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="n">_coords</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Variable</span><span class="p">]</span>
+    <span class="n">_indexes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">]]</span>
+    <span class="n">_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Hashable</span><span class="p">]</span>
+    <span class="n">_variable</span><span class="p">:</span> <span class="n">Variable</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;_accessors&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_coords&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_file_obj&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_indexes&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_variable&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__weakref__&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">_groupby_cls</span> <span class="o">=</span> <span class="n">groupby</span><span class="o">.</span><span class="n">DataArrayGroupBy</span>
     <span class="n">_rolling_cls</span> <span class="o">=</span> <span class="n">rolling</span><span class="o">.</span><span class="n">DataArrayRolling</span>
@@ -449,7 +464,7 @@
         <span class="c1"># deprecated parameters</span>
         <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="c1"># internal parameters</span>
-        <span class="n">indexes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">indexes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">fastpath</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -495,7 +510,7 @@
         <span class="k">if</span> <span class="n">encoding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                 <span class="s2">&quot;The `encoding` argument to `DataArray` is deprecated, and . &quot;</span>
-                <span class="s2">&quot;will be removed in 0.14. &quot;</span>
+                <span class="s2">&quot;will be removed in 0.15. &quot;</span>
                 <span class="s2">&quot;Instead, specify the encoding when writing to disk or &quot;</span>
                 <span class="s2">&quot;set the `encoding` attribute directly.&quot;</span><span class="p">,</span>
                 <span class="ne">FutureWarning</span><span class="p">,</span>
@@ -536,11 +551,11 @@
             <span class="n">variable</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">fastpath</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># These fully describe a DataArray</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_variable</span> <span class="o">=</span> <span class="n">variable</span>  <span class="c1"># type: Variable</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">coords</span>  <span class="c1"># type: OrderedDict[Any, Variable]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>  <span class="c1"># type: Optional[Hashable]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_accessors</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Optional[Dict[str, Any]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variable</span> <span class="o">=</span> <span class="n">variable</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">coords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_accessors</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># TODO(shoyer): document this argument, once it becomes part of the</span>
         <span class="c1"># public interface.</span>
@@ -570,16 +585,16 @@
         <span class="k">elif</span> <span class="n">variable</span><span class="o">.</span><span class="n">dims</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
             <span class="c1"># Shape has changed (e.g. from reduce(..., keepdims=True)</span>
             <span class="n">new_sizes</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">v</span>
                 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_sizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">allowed_dims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">allowed_dims</span>
-            <span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">allowed_dims</span>
+            <span class="p">}</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_overwrite_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indexes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
@@ -591,7 +606,7 @@
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">)</span>
 
         <span class="c1"># switch from dimension to level names, if necessary</span>
-        <span class="n">dim_names</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[Any, str]</span>
+        <span class="n">dim_names</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">indexes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">)</span> <span class="ow">and</span> <span class="n">idx</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">dim</span><span class="p">:</span>
                 <span class="n">dim_names</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">name</span>
@@ -617,9 +632,8 @@
             <span class="n">array</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">return</span> <span class="n">array</span>
 
-        <span class="n">variables</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-            <span class="p">[(</span><span class="n">label</span><span class="p">,</span> <span class="n">subset</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">dim</span><span class="p">)]</span>
-        <span class="p">)</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="p">{</span><span class="n">label</span><span class="p">:</span> <span class="n">subset</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">dim</span><span class="p">)}</span>
+
         <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">to_dataset</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">:</span>
             <span class="k">del</span> <span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
@@ -772,11 +786,11 @@
             <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_level_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OrderedDict[Any, Hashable]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_level_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return a mapping of all MultiIndex levels and their corresponding</span>
 <span class="sd">        coordinate name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">level_coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># type: OrderedDict[Any, Hashable]</span>
+        <span class="n">level_coords</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">for</span> <span class="n">cname</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">IndexVariable</span><span class="p">):</span>
@@ -852,7 +866,7 @@
         <span class="k">return</span> <span class="n">_LocIndexer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OrderedDict[Any, Any]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Dictionary storing arbitrary metadata with this array.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">attrs</span>
 
@@ -862,7 +876,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="n">value</span>  <span class="c1"># type: ignore</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">encoding</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OrderedDict[Any, Any]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">encoding</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Dictionary of format-specific settings for how this array should be</span>
 <span class="sd">        serialized.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">encoding</span>
@@ -1088,7 +1102,7 @@
 <span class="sd">        pandas.DataFrame.copy</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="n">deep</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="n">deep</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="n">deep</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
@@ -1356,12 +1370,11 @@
 <span class="sd">            * None (default): don&#39;t fill gaps</span>
 <span class="sd">            * pad / ffill: propagate last valid index value forward</span>
 <span class="sd">            * backfill / bfill: propagate next valid index value backward</span>
-<span class="sd">            * nearest: use nearest valid index value (requires pandas&gt;=0.16)</span>
+<span class="sd">            * nearest: use nearest valid index value</span>
 <span class="sd">        tolerance : optional</span>
 <span class="sd">            Maximum distance between original and new labels for inexact</span>
 <span class="sd">            matches. The values of the index at the matching locations must</span>
 <span class="sd">            satisfy the equation ``abs(index[indexer] - target) &lt;= tolerance``.</span>
-<span class="sd">            Requires pandas&gt;=0.17.</span>
 <span class="sd">        copy : bool, optional</span>
 <span class="sd">            If ``copy=True``, data in the return value is always copied. If</span>
 <span class="sd">            ``copy=False`` and reindexing is unnecessary, or can be performed</span>
@@ -1422,7 +1435,7 @@
 <span class="sd">            * None (default): don&#39;t fill gaps</span>
 <span class="sd">            * pad / ffill: propagate last valid index value forward</span>
 <span class="sd">            * backfill / bfill: propagate next valid index value backward</span>
-<span class="sd">            * nearest: use nearest valid index value (requires pandas&gt;=0.16)</span>
+<span class="sd">            * nearest: use nearest valid index value</span>
 <span class="sd">        tolerance : optional</span>
 <span class="sd">            Maximum distance between original and new labels for inexact</span>
 <span class="sd">            matches. The values of the index at the matching locations must</span>
@@ -1625,8 +1638,25 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        renamed : Dataset</span>
+<span class="sd">        swapped : DataArray</span>
 <span class="sd">            DataArray with swapped dimensions.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray(data=[0, 1], dims=&quot;x&quot;,</span>
+<span class="sd">                               coords={&quot;x&quot;: [&quot;a&quot;, &quot;b&quot;], &quot;y&quot;: (&quot;x&quot;, [0, 1])})</span>
+<span class="sd">        &gt;&gt;&gt; arr</span>
+<span class="sd">        &lt;xarray.DataArray (x: 2)&gt;</span>
+<span class="sd">        array([0, 1])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * x        (x) &lt;U1 &#39;a&#39; &#39;b&#39;</span>
+<span class="sd">            y        (x) int64 0 1</span>
+<span class="sd">        &gt;&gt;&gt; arr.swap_dims({&quot;x&quot;: &quot;y&quot;})</span>
+<span class="sd">        &lt;xarray.DataArray (y: 2)&gt;</span>
+<span class="sd">        array([0, 1])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">            x        (y) &lt;U1 &#39;a&#39; &#39;b&#39;</span>
+<span class="sd">          * y        (y) int64 0 1</span>
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
@@ -1659,9 +1689,7 @@
 <span class="sd">            with length 1. If provided as a dict, then the keys are the new</span>
 <span class="sd">            dimensions and the values are either integers (giving the length of</span>
 <span class="sd">            the new dimensions) or sequence/ndarray (giving the coordinates of</span>
-<span class="sd">            the new dimensions). **WARNING** for python 3.5, if ``dim`` is</span>
-<span class="sd">            dict-like, then it must be an ``OrderedDict``. This is to ensure</span>
-<span class="sd">            that the order in which the dims are given is maintained.</span>
+<span class="sd">            the new dimensions).</span>
 <span class="sd">        axis : integer, list (or tuple) of integers, or None</span>
 <span class="sd">            Axis position(s) where new axis is to be inserted (position(s) on</span>
 <span class="sd">            the result array). If a list (or tuple) of integers is passed,</span>
@@ -1672,8 +1700,7 @@
 <span class="sd">            The keywords are arbitrary dimensions being inserted and the values</span>
 <span class="sd">            are either the lengths of the new dims (if int is given), or their</span>
 <span class="sd">            coordinates. Note, this is an alternative to passing a dict to the</span>
-<span class="sd">            dim kwarg and will only be used if dim is None. **WARNING** for</span>
-<span class="sd">            python 3.5 ``dim_kwargs`` is not available.</span>
+<span class="sd">            dim kwarg and will only be used if dim is None.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1685,19 +1712,9 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dim</span><span class="p">)):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dims should not contain duplicate values.&quot;</span><span class="p">)</span>
-            <span class="n">dim</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">d</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dim</span><span class="p">)</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
-            <span class="n">dim</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(((</span><span class="n">cast</span><span class="p">(</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span> <span class="mi">1</span><span class="p">),))</span>
-
-        <span class="c1"># TODO: get rid of the below code block when python 3.5 is no longer</span>
-        <span class="c1">#   supported.</span>
-        <span class="n">python36_plus</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">5</span>
-        <span class="n">not_ordereddict</span> <span class="o">=</span> <span class="n">dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">python36_plus</span> <span class="ow">and</span> <span class="n">not_ordereddict</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;dim must be an OrderedDict for python &lt;3.6&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">python36_plus</span> <span class="ow">and</span> <span class="n">dim_kwargs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dim_kwargs isn&#39;t available for python &lt;3.6&quot;</span><span class="p">)</span>
-        <span class="n">dim_kwargs</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">dim_kwargs</span><span class="p">)</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="p">{</span><span class="n">cast</span><span class="p">(</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span> <span class="mi">1</span><span class="p">}</span>
 
         <span class="n">dim</span> <span class="o">=</span> <span class="n">either_dict_or_kwargs</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim_kwargs</span><span class="p">,</span> <span class="s2">&quot;expand_dims&quot;</span><span class="p">)</span>
         <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
@@ -1991,7 +2008,7 @@
         <span class="n">variable_dim</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="n">level_number</span><span class="p">]</span>
 
         <span class="c1"># pull variables out of datarray</span>
-        <span class="n">data_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
             <span class="n">data_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sel</span><span class="p">({</span><span class="n">variable_dim</span><span class="p">:</span> <span class="n">k</span><span class="p">})</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -2034,7 +2051,7 @@
 
         <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">dims</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">transpose_coords</span><span class="p">:</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># type: OrderedDict[Any, Variable]</span>
+            <span class="n">coords</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Variable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">coord</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">coord_dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span> <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coord</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
                 <span class="n">coords</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">coord_dims</span><span class="p">)</span>
@@ -2360,7 +2377,7 @@
                 <span class="s2">&quot;DataFrame: use the ``name`` parameter&quot;</span>
             <span class="p">)</span>
 
-        <span class="n">dims</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="c1"># By using a unique name, we can convert a DataArray into a DataFrame</span>
         <span class="c1"># even if it shares a name with one of its coordinates.</span>
         <span class="c1"># I would normally use unique_name = object() but that results in a</span>
@@ -2399,7 +2416,7 @@
         <span class="n">isnull</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">values</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">isnull</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">to_netcdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Delayed&quot;</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">to_netcdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="s2">&quot;Delayed&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Write DataArray contents to a netCDF file.</span>
 
 <span class="sd">        All parameters are passed directly to `xarray.Dataset.to_netcdf`.</span>
@@ -2488,12 +2505,10 @@
         <span class="n">coords</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="s2">&quot;coords&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                    <span class="p">[</span>
-                        <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;dims&quot;</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">],</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">)))</span>
-                        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                    <span class="p">]</span>
-                <span class="p">)</span>
+                <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;dims&quot;</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">],</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">}</span>
             <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">&quot;cannot convert dict when coords are missing the key &quot;</span>
@@ -2674,7 +2689,7 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">reflexive</span>
                 <span class="k">else</span> <span class="n">f</span><span class="p">(</span><span class="n">other_variable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="p">)</span>
             <span class="p">)</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">_merge_raw</span><span class="p">(</span><span class="n">other_coords</span><span class="p">)</span>
+            <span class="n">coords</span><span class="p">,</span> <span class="n">indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">_merge_raw</span><span class="p">(</span><span class="n">other_coords</span><span class="p">)</span>
             <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result_name</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
@@ -2708,15 +2723,17 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_PlotMethods</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Access plotting functions</span>
+<span class="sd">        Access plotting functions for DataArray&#39;s</span>
 
 <span class="sd">        &gt;&gt;&gt; d = DataArray([[1, 2], [3, 4]])</span>
 
 <span class="sd">        For convenience just call this directly</span>
+
 <span class="sd">        &gt;&gt;&gt; d.plot()</span>
 
 <span class="sd">        Or use it as a namespace to use xarray.plot functions as</span>
 <span class="sd">        DataArray methods</span>
+
 <span class="sd">        &gt;&gt;&gt; d.plot.imshow()  # equivalent to xarray.plot.imshow(d)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3206,8 +3223,81 @@
         <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">datetime_unit</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">unify_chunks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Unify chunk size along all chunked dimensions of this DataArray.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        DataArray with consistent chunk sizes for all dask-array variables</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        dask.array.core.unify_chunks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">unify_chunks</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">map_blocks</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">func</span><span class="p">:</span> <span class="s2">&quot;Callable[..., T_DSorDA]&quot;</span><span class="p">,</span>
+        <span class="n">args</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
+        <span class="n">kwargs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;T_DSorDA&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply a function to each chunk of this DataArray. This method is experimental</span>
+<span class="sd">        and its signature may change.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        func: callable</span>
+<span class="sd">            User-provided function that accepts a DataArray as its first parameter. The</span>
+<span class="sd">            function will receive a subset of this DataArray, corresponding to one chunk</span>
+<span class="sd">            along each chunked dimension. ``func`` will be executed as</span>
+<span class="sd">            ``func(obj_subset, *args, **kwargs)``.</span>
+
+<span class="sd">            The function will be first run on mocked-up data, that looks like this array</span>
+<span class="sd">            but has sizes 0, to determine properties of the returned object such as</span>
+<span class="sd">            dtype, variable names, new dimensions and new indexes (if any).</span>
+
+<span class="sd">            This function must return either a single DataArray or a single Dataset.</span>
+
+<span class="sd">            This function cannot change size of existing dimensions, or add new chunked</span>
+<span class="sd">            dimensions.</span>
+<span class="sd">        args: Sequence</span>
+<span class="sd">            Passed verbatim to func after unpacking, after the sliced DataArray. xarray</span>
+<span class="sd">            objects, if any, will not be split by chunks. Passing dask collections is</span>
+<span class="sd">            not allowed.</span>
+<span class="sd">        kwargs: Mapping</span>
+<span class="sd">            Passed verbatim to func after unpacking. xarray objects, if any, will not be</span>
+<span class="sd">            split by chunks. Passing dask collections is not allowed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A single DataArray or Dataset with dask backend, reassembled from the outputs of</span>
+<span class="sd">        the function.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This method is designed for when one needs to manipulate a whole xarray object</span>
+<span class="sd">        within each chunk. In the more common case where one can work on numpy arrays,</span>
+<span class="sd">        it is recommended to use apply_ufunc.</span>
+
+<span class="sd">        If none of the variables in this DataArray is backed by dask, calling this</span>
+<span class="sd">        method is equivalent to calling ``func(self, *args, **kwargs)``.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        dask.array.map_blocks, xarray.apply_ufunc, xarray.map_blocks,</span>
+<span class="sd">        xarray.Dataset.map_blocks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.parallel</span> <span class="k">import</span> <span class="n">map_blocks</span>
+
+        <span class="k">return</span> <span class="n">map_blocks</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
     <span class="c1"># this needs to be at the end, or mypy will confuse with `str`</span>
-    <span class="c1"># https://mypy.readthedocs.io/en/latest/common_issues.html#dealing-with-conflicting-names  # noqa</span>
+    <span class="c1"># https://mypy.readthedocs.io/en/latest/common_issues.html#dealing-with-conflicting-names</span>
     <span class="nb">str</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">StringAccessor</span><span class="p">)</span>
 
 
