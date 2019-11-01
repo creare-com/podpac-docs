@@ -455,7 +455,7 @@
             <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span>
                 <span class="s2">&quot;Insecure evaluation of Python code using Arithmetic node has not been allowed. If &quot;</span>
                 <span class="s2">&quot;this is an error, use: `podpac.settings.set_allow_python_eval_exec(True)`. &quot;</span>
-                <span class="s2">&quot;Alternatively create the file ALLOW_PYTHON_EVAL_EXEC in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="s2">&quot;Alternatively create the file ALLOW_PYTHON_EVAL_EXEC in &#39;</span><span class="si">{}</span><span class="s2">&#39; &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">settings</span><span class="o">.</span><span class="n">_allow_python_eval_exec_paths</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="p">)</span>
                 <span class="o">+</span> <span class="s2">&quot;NOTE: making this setting True allows arbitrary execution of Python code through PODPAC &quot;</span>
@@ -526,7 +526,7 @@
             <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span>
                 <span class="s2">&quot;Insecure evaluation of Python code using Generic node has not been allowed. If this &quot;</span>
                 <span class="s2">&quot;this is an error, use: `podpac.settings.set_allow_python_eval_exec(True)`. &quot;</span>
-                <span class="s2">&quot;Alternatively create the file ALLOW_PYTHON_EVAL_EXEC in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="s2">&quot;Alternatively create the file ALLOW_PYTHON_EVAL_EXEC in &#39;</span><span class="si">{}</span><span class="s2">&#39; &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">settings</span><span class="o">.</span><span class="n">_allow_python_eval_exec_paths</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="p">)</span>
                 <span class="o">+</span> <span class="s2">&quot;NOTE: making this setting True allows arbitrary execution of Python code through PODPAC &quot;</span>
@@ -541,6 +541,75 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span>
+
+
+<span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Masks the `source` based on a boolean expression involving the `mask`.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    source : podpac.Node</span>
+<span class="sd">        The source that will be masked</span>
+<span class="sd">    mask : podpac.Node</span>
+<span class="sd">        The data that will be used to compute the mask</span>
+<span class="sd">    masked_val : float, optional</span>
+<span class="sd">        Default value is np.nan. The value that will replace the maked items.</span>
+<span class="sd">    bool_val : float, optional</span>
+<span class="sd">        Default value is 1. The value used to compare the mask when creating the boolean expression</span>
+<span class="sd">    bool_op : enum, optional</span>
+<span class="sd">        Default value is &#39;==&#39;. One of [&#39;==&#39;, &#39;&lt;&#39;, &#39;&lt;=&#39;, &#39;&gt;&#39;, &#39;&gt;=&#39;]</span>
+<span class="sd">    in_place : bool, optional</span>
+<span class="sd">        Default is False. If True, the source array will be changed in placem which could affect the value of the source </span>
+<span class="sd">        in other parts of the pipeline. </span>
+<span class="sd">        </span>
+<span class="sd">    Examples</span>
+<span class="sd">    ----------</span>
+<span class="sd">    # Create a node that make the following substitution &quot;a[b &gt; 0] = np.nan&quot;</span>
+<span class="sd">    a = Arange()</span>
+<span class="sd">    b = SinCoords()</span>
+<span class="sd">    masked = Mask(source=a, mask=b,</span>
+<span class="sd">                  masked_val=np.nan, </span>
+<span class="sd">                  bool_val=0, bool_op=&#39;&gt;&#39;</span>
+<span class="sd">                  in_place=True)</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">()</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">()</span>
+    <span class="n">masked_val</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">bool_val</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">bool_op</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;==&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">in_place</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the values in inputs[&#39;source&#39;] to self.masked_val using (inputs[&#39;mask&#39;] &lt;self.bool_op&gt; &lt;self.bool_val&gt;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># shorter names</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">]</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bool_op</span>
+        <span class="n">bv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bool_val</span>
+
+        <span class="c1"># Make a copy if we don&#39;t want to change the source in-place</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_place</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Make the mask boolean</span>
+        <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;==&quot;</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">==</span> <span class="n">bv</span>
+        <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">&lt;</span> <span class="n">bv</span>
+        <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">&lt;=</span> <span class="n">bv</span>
+        <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">&gt;</span> <span class="n">bv</span>
+        <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">&gt;=</span> <span class="n">bv</span>
+
+        <span class="c1"># Mask the values and return</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">masked_val</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">source</span>
 </pre></div>
 
            </div>
