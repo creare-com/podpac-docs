@@ -203,6 +203,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">node_eval</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">NodeTrait</span>
+<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -449,6 +450,19 @@
     <span class="n">eqn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ALLOW_PYTHON_EVAL_EXEC&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span>
+                <span class="s2">&quot;Insecure evaluation of Python code using Arithmetic node has not been allowed. If &quot;</span>
+                <span class="s2">&quot;this is an error, use: `podpac.settings.set_allow_python_eval_exec(True)`. &quot;</span>
+                <span class="s2">&quot;Alternatively create the file ALLOW_PYTHON_EVAL_EXEC in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">settings</span><span class="o">.</span><span class="n">_allow_python_eval_exec_paths</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="s2">&quot;NOTE: making this setting True allows arbitrary execution of Python code through PODPAC &quot;</span>
+                <span class="s2">&quot;Node definitions.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">kwargs</span>
+
 <div class="viewcode-block" id="Arithmetic.init"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arithmetic.html#podpac.algorithm.Arithmetic.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">eqn</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Arithmetic eqn cannot be empty&quot;</span><span class="p">)</span></div>
@@ -480,6 +494,53 @@
         <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># Make an xarray object with correct dimensions</span>
         <span class="n">res</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
         <span class="k">return</span> <span class="n">res</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">Generic</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generic Algorithm Node that allows arbitrary Python code to be executed.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    code : str</span>
+<span class="sd">        The multi-line code that will be evaluated. This code should assign &quot;output&quot; to the desired result, and &quot;output&quot;</span>
+<span class="sd">        needs to be a &quot;numpy array&quot; or &quot;xarray DataArray&quot;</span>
+<span class="sd">    inputs : dict(str: podpac.Node)</span>
+<span class="sd">        A dictionary of PODPAC nodes that will serve as the input data for the Python script</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a = SinCoords()</span>
+<span class="sd">    b = Arange()</span>
+<span class="sd">    code = &#39;&#39;&#39;import numpy as np</span>
+<span class="sd">    output = np.minimum(a, b)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    generic = Generic(code=code, inputs={&#39;a&#39;: a, &#39;b&#39;: b&#39;})</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">code</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ALLOW_PYTHON_EVAL_EXEC&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span>
+                <span class="s2">&quot;Insecure evaluation of Python code using Generic node has not been allowed. If this &quot;</span>
+                <span class="s2">&quot;this is an error, use: `podpac.settings.set_allow_python_eval_exec(True)`. &quot;</span>
+                <span class="s2">&quot;Alternatively create the file ALLOW_PYTHON_EVAL_EXEC in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">settings</span><span class="o">.</span><span class="n">_allow_python_eval_exec_paths</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="s2">&quot;NOTE: making this setting True allows arbitrary execution of Python code through PODPAC &quot;</span>
+                <span class="s2">&quot;Node definitions.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">kwargs</span>
+
+    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="n">exec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span>
 </pre></div>
 
            </div>
