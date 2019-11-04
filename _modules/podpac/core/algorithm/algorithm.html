@@ -179,20 +179,16 @@
             
   <h1>Source code for podpac.core.algorithm.algorithm</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Algorithm Summary</span>
+<span class="sd">Base class for Algorithm Nodes</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
-<span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
-<span class="kn">from</span> <span class="nn">lazy_import</span> <span class="k">import</span> <span class="n">lazy_module</span>
-
-<span class="c1"># Optional dependencies</span>
-<span class="n">ne</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;numexpr&quot;</span><span class="p">)</span>
 
 <span class="c1"># Internal dependencies</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">union</span>
@@ -202,8 +198,6 @@
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">COMMON_NODE_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="k">import</span> <span class="n">node_eval</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">common_doc</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">NodeTrait</span>
-<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="k">import</span> <span class="n">settings</span>
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -323,224 +317,6 @@
         <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">inputs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
         <span class="k">return</span> <span class="n">d</span></div>
-
-
-<div class="viewcode-block" id="Arange"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arange.html#podpac.algorithm.Arange">[docs]</a><span class="k">class</span> <span class="nc">Arange</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A simple test node that gives each value in the output a number.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="Arange.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arange.html#podpac.algorithm.Arange.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Uses np.arange to give each value in output a unique number</span>
-<span class="sd">        </span>
-<span class="sd">        Arguments</span>
-<span class="sd">        ---------</span>
-<span class="sd">        inputs : dict</span>
-<span class="sd">            Unused, should be empty for this algorithm.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        UnitsDataArray</span>
-<span class="sd">            A row-majored numbered array of the requested size. </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div></div>
-
-
-<div class="viewcode-block" id="CoordData"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.CoordData.html#podpac.algorithm.CoordData">[docs]</a><span class="k">class</span> <span class="nc">CoordData</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Extracts the coordinates from a request and makes it available as a data</span>
-<span class="sd">    </span>
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    coord_name : str</span>
-<span class="sd">        Name of coordinate to extract (one of lat, lon, time, alt)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">coord_name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<div class="viewcode-block" id="CoordData.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.CoordData.html#podpac.algorithm.CoordData.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Extract coordinate from request and makes data available.</span>
-<span class="sd">        </span>
-<span class="sd">        Arguments</span>
-<span class="sd">        ----------</span>
-<span class="sd">        inputs : dict</span>
-<span class="sd">            Unused, should be empty for this algorithm.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        UnitsDataArray</span>
-<span class="sd">            The coordinates as data for the requested coordinate.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coord_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Coordinate name not in evaluated coordinates&quot;</span><span class="p">)</span>
-
-        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">coord_name</span><span class="p">]</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span><span class="p">])</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span></div></div>
-
-
-<div class="viewcode-block" id="SinCoords"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.SinCoords.html#podpac.algorithm.SinCoords">[docs]</a><span class="k">class</span> <span class="nc">SinCoords</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A simple test node that creates a data based on coordinates and trigonometric (sin) functions. </span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="SinCoords.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.SinCoords.html#podpac.algorithm.SinCoords.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Computes sinusoids of all the coordinates. </span>
-<span class="sd">        </span>
-<span class="sd">        Arguments</span>
-<span class="sd">        ----------</span>
-<span class="sd">        inputs : dict</span>
-<span class="sd">            Unused, should be empty for this algorithm.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        UnitsDataArray</span>
-<span class="sd">            Sinusoids of a certain period for all of the requested coordinates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-        <span class="n">crds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">i_time</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
-            <span class="n">crds</span><span class="p">[</span><span class="n">i_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">crds</span><span class="p">[</span><span class="n">i_time</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;datetime64[h]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">pass</span>
-
-        <span class="n">crds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">crds</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">crd</span> <span class="ow">in</span> <span class="n">crds</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">crd</span> <span class="o">/</span> <span class="mf">90.0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">out</span></div></div>
-
-
-<div class="viewcode-block" id="Arithmetic"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arithmetic.html#podpac.algorithm.Arithmetic">[docs]</a><span class="k">class</span> <span class="nc">Arithmetic</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a simple point-by-point computation of up to 7 different input nodes.</span>
-<span class="sd">    </span>
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    A : podpac.Node</span>
-<span class="sd">        An input node that can be used in a computation. </span>
-<span class="sd">    B : podpac.Node</span>
-<span class="sd">        An input node that can be used in a computation. </span>
-<span class="sd">    C : podpac.Node</span>
-<span class="sd">        An input node that can be used in a computation. </span>
-<span class="sd">    D : podpac.Node</span>
-<span class="sd">        An input node that can be used in a computation. </span>
-<span class="sd">    E : podpac.Node</span>
-<span class="sd">        An input node that can be used in a computation. </span>
-<span class="sd">    F : podpac.Node</span>
-<span class="sd">        An input node that can be used in a computation. </span>
-<span class="sd">    G : podpac.Node</span>
-<span class="sd">        An input node that can be used in a computation. </span>
-<span class="sd">    eqn : str</span>
-<span class="sd">        An equation stating how the datasources can be combined. </span>
-<span class="sd">        Parameters may be specified in {}&#39;s</span>
-<span class="sd">        </span>
-<span class="sd">    Examples</span>
-<span class="sd">    ----------</span>
-<span class="sd">    a = SinCoords()</span>
-<span class="sd">    b = Arange()</span>
-<span class="sd">    arith = Arithmetic(A=a, B=b, eqn = &#39;A * B + {offset}&#39;, params={&#39;offset&#39;: 1})</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">A</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">()</span>
-    <span class="n">B</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">C</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">D</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">E</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">F</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">G</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">eqn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">params</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ALLOW_PYTHON_EVAL_EXEC&quot;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span>
-                <span class="s2">&quot;Insecure evaluation of Python code using Arithmetic node has not been allowed. If &quot;</span>
-                <span class="s2">&quot;this is an error, use: `podpac.settings.set_allow_python_eval_exec(True)`. &quot;</span>
-                <span class="s2">&quot;Alternatively create the file ALLOW_PYTHON_EVAL_EXEC in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">settings</span><span class="o">.</span><span class="n">_allow_python_eval_exec_paths</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="p">)</span>
-                <span class="o">+</span> <span class="s2">&quot;NOTE: making this setting True allows arbitrary execution of Python code through PODPAC &quot;</span>
-                <span class="s2">&quot;Node definitions.&quot;</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="n">kwargs</span>
-
-<div class="viewcode-block" id="Arithmetic.init"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arithmetic.html#podpac.algorithm.Arithmetic.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">eqn</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Arithmetic eqn cannot be empty&quot;</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="Arithmetic.algorithm"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Arithmetic.html#podpac.algorithm.Arithmetic.algorithm">[docs]</a>    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Compute the algorithms equation</span>
-
-<span class="sd">        Attributes</span>
-<span class="sd">        ----------</span>
-<span class="sd">        inputs : dict</span>
-<span class="sd">            Evaluated outputs of the input nodes. The keys are the attribute names.</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        UnitsDataArray</span>
-<span class="sd">            Description</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">eqn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eqn</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
-
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="s2">&quot;ABCDEFG&quot;</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">inputs</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">])</span>
-        <span class="n">f_locals</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">res</span><span class="p">))</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">ne</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">eqn</span><span class="p">,</span> <span class="n">f_locals</span><span class="p">)</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">eqn</span><span class="p">,</span> <span class="n">f_locals</span><span class="p">)</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># Make an xarray object with correct dimensions</span>
-        <span class="n">res</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
-        <span class="k">return</span> <span class="n">res</span></div></div>
-
-
-<span class="k">class</span> <span class="nc">Generic</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generic Algorithm Node that allows arbitrary Python code to be executed.</span>
-<span class="sd">    </span>
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    code : str</span>
-<span class="sd">        The multi-line code that will be evaluated. This code should assign &quot;output&quot; to the desired result, and &quot;output&quot;</span>
-<span class="sd">        needs to be a &quot;numpy array&quot; or &quot;xarray DataArray&quot;</span>
-<span class="sd">    inputs : dict(str: podpac.Node)</span>
-<span class="sd">        A dictionary of PODPAC nodes that will serve as the input data for the Python script</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    ----------</span>
-<span class="sd">    a = SinCoords()</span>
-<span class="sd">    b = Arange()</span>
-<span class="sd">    code = &#39;&#39;&#39;import numpy as np</span>
-<span class="sd">    output = np.minimum(a, b)</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-<span class="sd">    generic = Generic(code=code, inputs={&#39;a&#39;: a, &#39;b&#39;: b&#39;})</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">code</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">inputs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ALLOW_PYTHON_EVAL_EXEC&quot;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span>
-                <span class="s2">&quot;Insecure evaluation of Python code using Generic node has not been allowed. If this &quot;</span>
-                <span class="s2">&quot;this is an error, use: `podpac.settings.set_allow_python_eval_exec(True)`. &quot;</span>
-                <span class="s2">&quot;Alternatively create the file ALLOW_PYTHON_EVAL_EXEC in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">settings</span><span class="o">.</span><span class="n">_allow_python_eval_exec_paths</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="p">)</span>
-                <span class="o">+</span> <span class="s2">&quot;NOTE: making this setting True allows arbitrary execution of Python code through PODPAC &quot;</span>
-                <span class="s2">&quot;Node definitions.&quot;</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="n">kwargs</span>
-
-    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-        <span class="n">exec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span>
 </pre></div>
 
            </div>
