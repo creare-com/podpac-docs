@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.compositor &mdash; 1.1.0</title>
+  <title>podpac.core.compositor &mdash; 1.2.0</title>
   
 
   
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                1.1.0
+                1.2.0
               </div>
             
           
@@ -200,6 +200,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="k">import</span> <span class="n">COMMON_DATA_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.interpolation</span> <span class="k">import</span> <span class="n">interpolation_trait</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="k">import</span> <span class="n">trait_is_defined</span>
+<span class="kn">from</span> <span class="nn">podpac.core.managers.multi_threading</span> <span class="k">import</span> <span class="n">thread_manager</span>
 
 <span class="n">COMMON_COMPOSITOR_DOC</span> <span class="o">=</span> <span class="n">COMMON_DATA_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># superset of COMMON_NODE_DOC</span>
 
@@ -399,20 +400,35 @@
                 <span class="n">nc</span> <span class="o">=</span> <span class="n">merge_dims</span><span class="p">([</span><span class="n">Coordinates</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">coords_dim</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span><span class="p">])</span>
 
                 <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">&quot;native_coordinates&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
-                    <span class="n">s</span><span class="o">.</span><span class="n">native_coordinates</span> <span class="o">=</span> <span class="n">nc</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;native_coordinates&quot;</span><span class="p">,</span> <span class="n">nc</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;MULTITHREADING&quot;</span><span class="p">]:</span>
+            <span class="n">n_threads</span> <span class="o">=</span> <span class="n">thread_manager</span><span class="o">.</span><span class="n">request_n_threads</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">src_subset</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_threads</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;MULTITHREADING&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">n_threads</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># TODO pool of pre-allocated scratch space</span>
             <span class="c1"># TODO: docstring?</span>
             <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">src</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
 
-            <span class="n">pool</span> <span class="o">=</span> <span class="n">ThreadPool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;N_THREADS&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+            <span class="c1"># Create pool of size n_threads, note, this may be created from a sub-thread (i.e. not the main thread)</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">ThreadPool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">n_threads</span><span class="p">)</span>
+
+            <span class="c1"># Evaluate nodes in parallel/asynchronously</span>
             <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="n">src</span><span class="p">])</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">src_subset</span><span class="p">]</span>
 
+            <span class="c1"># Yield results as they are being requested, blocking when the thread is not finished</span>
             <span class="k">for</span> <span class="n">src</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_subset</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
                 <span class="c1"># src._output = None # free up memory</span>
+
+            <span class="c1"># This prevents any more tasks from being submitted to the pool, and will close the workers one done</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="c1"># Release these number of threads back to the thread pool</span>
+            <span class="n">thread_manager</span><span class="o">.</span><span class="n">release_n_threads</span><span class="p">(</span><span class="n">n_threads</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># scratch space</span>
