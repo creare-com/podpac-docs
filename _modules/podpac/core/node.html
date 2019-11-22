@@ -205,6 +205,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="k">import</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.style</span> <span class="k">import</span> <span class="n">Style</span>
 <span class="kn">from</span> <span class="nn">podpac.core.cache</span> <span class="k">import</span> <span class="n">CacheCtrl</span><span class="p">,</span> <span class="n">get_default_cache_ctrl</span><span class="p">,</span> <span class="n">S3CacheStore</span><span class="p">,</span> <span class="n">make_cache_ctrl</span>
+<span class="kn">from</span> <span class="nn">podpac.core.managers.multi_threading</span> <span class="k">import</span> <span class="n">thread_manager</span>
 
 
 <span class="n">COMMON_NODE_DOC</span> <span class="o">=</span> <span class="p">{</span>
@@ -316,6 +317,8 @@
     <span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">_output</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">_from_cache</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="c1"># Flag that is True if the Node was run multi-threaded, or None if the question doesn&#39;t apply</span>
+    <span class="n">_multi_threaded</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Node.__init__"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Do not overwrite me &quot;&quot;&quot;</span>
@@ -658,11 +661,11 @@
 <span class="sd">        NodeException</span>
 <span class="sd">            Cached data already exists (and overwrite is False)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cached data already exists for key &#39;</span><span class="si">%s</span><span class="s2">&#39; and coordinates </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">))</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
+        <span class="k">with</span> <span class="n">thread_manager</span><span class="o">.</span><span class="n">cache_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.has_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.has_cache">[docs]</a>    <span class="k">def</span> <span class="nf">has_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -680,7 +683,8 @@
 <span class="sd">        bool</span>
 <span class="sd">            True if there is cached data for this node, key, and coordinates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">)</span></div>
+        <span class="k">with</span> <span class="n">thread_manager</span><span class="o">.</span><span class="n">cache_lock</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.rem_cache"><a class="viewcode-back" href="../../../user/api/podpac.Node.html#podpac.Node.rem_cache">[docs]</a>    <span class="k">def</span> <span class="nf">rem_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -987,6 +991,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
         <span class="n">key</span> <span class="o">=</span> <span class="n">cache_key</span>
         <span class="n">cache_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span>  <span class="c1"># order agnostic caching</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_update</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
