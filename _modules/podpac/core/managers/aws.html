@@ -236,6 +236,8 @@
 <span class="sd">        Name of the AWS role created for lambda function. Defaults to :str:`podpac.settings[&quot;FUNCTION_ROLE_NAME&quot;]` or &quot;podpac-lambda-autogen&quot;.</span>
 <span class="sd">    function_s3_bucket : str, optional</span>
 <span class="sd">        S3 bucket name to use with lambda function. Defaults to :str:`podpac.settings[&quot;S3_BUCKET_NAME&quot;]` or &quot;podpac-autogen-&lt;timestamp&gt;&quot; with the timestamp to ensure uniqueness.</span>
+<span class="sd">    eval_settings : dict, optional</span>
+<span class="sd">        Default is podpac.settings. PODPAC settings that will be used to evaluate the Lambda function.</span>
 
 <span class="sd">    Other Attributes</span>
 <span class="sd">    ----------------</span>
@@ -522,6 +524,7 @@
     <span class="n">attrs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span>
     <span class="n">download_result</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">force_compute</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">eval_settings</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;source_output_name&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_source_output_name_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -534,6 +537,10 @@
 
         <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;FUNCTION_FORCE_COMPUTE&quot;</span><span class="p">]</span>
 
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;eval_settings&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_eval_settings_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -545,6 +552,7 @@
             <span class="n">out_node</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;pipeline&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;pipeline&quot;</span><span class="p">][</span><span class="n">out_node</span><span class="p">][</span><span class="s2">&quot;attrs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_output_format</span><span class="p">}</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_settings</span>
         <span class="k">return</span> <span class="n">d</span>
 
 <div class="viewcode-block" id="Lambda.eval"><a class="viewcode-back" href="../../../../user/api/podpac.managers.Lambda.html#podpac.managers.Lambda.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
@@ -1378,7 +1386,7 @@
         <span class="n">pipeline</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">json</span><span class="p">)</span>
 
         <span class="c1"># TODO: should we move this to `self.pipeline`?</span>
-        <span class="n">pipeline</span><span class="p">[</span><span class="s2">&quot;settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># TODO: we should not wholesale copy settings here !!</span>
+        <span class="n">pipeline</span><span class="p">[</span><span class="s2">&quot;settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_settings</span>
         <span class="n">pipeline</span><span class="p">[</span><span class="s2">&quot;settings&quot;</span><span class="p">][</span>
             <span class="s2">&quot;FUNCTION_DEPENDENCIES_KEY&quot;</span>
         <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_s3_dependencies_key</span>  <span class="c1"># overwrite in case this is specified explicitly by class</span>
