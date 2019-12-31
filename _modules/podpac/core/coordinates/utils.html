@@ -709,6 +709,44 @@
     <span class="k">if</span> <span class="s2">&quot;+vunits&quot;</span> <span class="ow">in</span> <span class="n">crs</span><span class="p">:</span>
         <span class="n">crs</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\+vunits=[a-z\-]+&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">crs</span>
+
+
+<span class="k">def</span> <span class="nf">lower_precision_time_bounds</span><span class="p">(</span><span class="n">my_bounds</span><span class="p">,</span> <span class="n">other_bounds</span><span class="p">,</span> <span class="n">outer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    When given two bounds of np.datetime64, this function will convert both bounds to the lower-precision (in terms of </span>
+<span class="sd">    time unit) numpy datetime4 object if outer==True, otherwise only my_bounds will be converted.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    my_bounds : List(np.datetime64)</span>
+<span class="sd">        The bounds of the native coordinates of the dataset</span>
+<span class="sd">    other_bounds : List(np.datetime64)</span>
+<span class="sd">        The bounds used for the selection</span>
+<span class="sd">    outer : bool</span>
+<span class="sd">        When the other_bounds are higher precision than the input_bounds, only convert these IF outer=True</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    my_bounds : List(np.datetime64)</span>
+<span class="sd">        The bounds of the native coordinates of the dataset at the new precision</span>
+<span class="sd">    other_bounds : List(np.datetime64)</span>
+<span class="sd">        The bounds used for the selection at the new precision, if outer == True, otherwise return original coordinates    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Input bounds should be of type np.datetime64 when selecting data from:&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">my_bounds</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">my_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">my_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Native bounds should be of type np.datetime64 when selecting data using:&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">other_bounds</span><span class="p">))</span>
+
+    <span class="n">mine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">my_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;datetime64&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">your</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">other_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;datetime64&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">mine</span> <span class="o">&gt;</span> <span class="n">your</span> <span class="ow">and</span> <span class="n">outer</span><span class="p">:</span>
+        <span class="n">other_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">my_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">other_bounds</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">my_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">other_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">my_bounds</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">my_bounds</span><span class="p">,</span> <span class="n">other_bounds</span>
 </pre></div>
 
            </div>
