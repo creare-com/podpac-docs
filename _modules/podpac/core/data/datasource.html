@@ -441,6 +441,11 @@
                 <span class="o">+</span> <span class="s2">&quot;Must be one of numpy.ndarray, xarray.DataArray, or podpac.UnitsDataArray&quot;</span>
             <span class="p">)</span>
 
+        <span class="c1"># extract single output, if necessary</span>
+        <span class="c1"># subclasses should extract single outputs themselves if possible, but this provides a backup</span>
+        <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">udata_array</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">udata_array</span> <span class="o">=</span> <span class="n">udata_array</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+
         <span class="c1"># fill nan_vals in data array</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">nan_val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">:</span>
@@ -536,6 +541,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evaluated_coordinates</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
             <span class="k">return</span> <span class="n">output</span>
@@ -561,10 +568,14 @@
             <span class="n">requested_dims</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">output_dims</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">requested_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluated_coordinates</span><span class="o">.</span><span class="n">dims</span>
             <span class="n">output_dims</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span>
             <span class="n">o</span> <span class="o">=</span> <span class="n">output</span>
+            <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+                <span class="n">requested_dims</span> <span class="o">=</span> <span class="n">requested_dims</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,)</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">requested_dims</span><span class="p">)</span>
 
             <span class="c1"># check crs compatibility</span>
@@ -639,7 +650,7 @@
     <span class="nd">@property</span>
     <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">base_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Base node defintion for DataSource nodes.</span>
+        <span class="sd">&quot;&quot;&quot;Base node definition for DataSource nodes.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -648,13 +659,16 @@
 
         <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">DataSource</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">base_definition</span>
 
-        <span class="k">if</span> <span class="s2">&quot;attrs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;source&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;The &#39;source&#39; property cannot be tagged as an &#39;attr&#39;&quot;</span><span class="p">)</span>
+        <span class="c1"># check attrs and remove unnecesary attrs</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="s2">&quot;source&quot;</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;The &#39;source&#39; property cannot be tagged as an &#39;attr&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;The &#39;interpolation&#39; property cannot be tagged as an &#39;attr&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span> <span class="ow">and</span> <span class="s2">&quot;nan_vals&quot;</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;nan_vals&quot;</span><span class="p">]</span>
 
-            <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;The &#39;interpolation&#39; property cannot be tagged as an &#39;attr&#39;&quot;</span><span class="p">)</span>
-
+        <span class="c1"># set source or lookup_source</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>

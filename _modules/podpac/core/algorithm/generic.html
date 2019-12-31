@@ -407,6 +407,22 @@
         <span class="n">source</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">masked_val</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">source</span>
+
+
+<span class="k">class</span> <span class="nc">Combine</span><span class="p">(</span><span class="n">GenericInputs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Combine multiple nodes into a single node with multiple outputs.</span>
+
+<span class="sd">    If not output names are specified, the keyword argument names will be used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;outputs&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_default_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">inputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">])</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
 </pre></div>
 
            </div>

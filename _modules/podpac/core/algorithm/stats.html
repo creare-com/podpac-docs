@@ -197,18 +197,14 @@
 <span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span>
-<span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="kn">import</span> <span class="n">Algorithm</span>
+<span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="kn">import</span> <span class="n">UnaryAlgorithm</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">NodeTrait</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span><span class="p">,</span> <span class="n">node_eval</span>
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-<span class="c1"># =============================================================================</span>
-<span class="c1"># Reduce Nodes</span>
-<span class="c1"># =============================================================================</span>
 
-
-<span class="k">class</span> <span class="nc">Reduce</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Reduce</span><span class="p">(</span><span class="n">UnaryAlgorithm</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base node for statistical algorithms</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
@@ -219,7 +215,6 @@
 <span class="sd">        The source node that will be reduced. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">()</span>
     <span class="n">dims</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">_reduced_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -381,7 +376,7 @@
             <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">source_output</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span> <span class="ow">is</span> <span class="p">():</span>
+        <span class="k">if</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">():</span>
             <span class="n">output</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">result</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
@@ -425,6 +420,89 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+
+<span class="k">class</span> <span class="nc">ReduceOrthogonal</span><span class="p">(</span><span class="n">Reduce</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extended Reduce class that enables chunks that are smaller than the reduced</span>
+<span class="sd">    output array.</span>
+<span class="sd">    </span>
+<span class="sd">    The base Reduce node ensures that each chunk is at least as big as the</span>
+<span class="sd">    reduced output, which works for statistics that can be calculated in O(1)</span>
+<span class="sd">    space. For statistics that require O(n) space, the node must iterate</span>
+<span class="sd">    through the Coordinates orthogonally to the reduce dimension, using chunks</span>
+<span class="sd">    that only cover a portion of the output array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_get_chunk_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shape of chunks for parallel processing or large arrays that do not fit in memory.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of integers giving the shape of each chunk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">chunk_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span>
+
+        <span class="c1"># here, the minimum size is the reduce-dimensions size</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">coords</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">}</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">chunk_size</span> <span class="o">//</span> <span class="n">s</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+            <span class="n">s</span> <span class="o">*=</span> <span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">iteroutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generator for the chunks of the output</span>
+<span class="sd">        </span>
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        UnitsDataArray</span>
+<span class="sd">            Output for this chunk</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">chunk_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_chunk_shape</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">slices</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">iterchunks</span><span class="p">(</span><span class="n">chunk_shape</span><span class="p">,</span> <span class="n">return_slices</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span> <span class="n">slices</span>
+
+    <span class="k">def</span> <span class="nf">reduce_chunked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reduce a list of xs with a memory-effecient iterative algorithm.</span>
+<span class="sd">        </span>
+<span class="sd">        Optionally defined in each child.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xs : list, generator</span>
+<span class="sd">            List of UnitsDataArray&#39;s that need to be reduced together.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        UnitsDataArray</span>
+<span class="sd">            Reduced output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># special case for full reduce</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reduced_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">xslices</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">xslices</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">:</span>
+            <span class="n">yslc</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">xslices</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">dim</span><span class="p">)]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reduced_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">yslc</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span>
 
 
 <div class="viewcode-block" id="Min"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Min.html#podpac.algorithm.Min">[docs]</a><span class="k">class</span> <span class="nc">Min</span><span class="p">(</span><span class="n">Reduce</span><span class="p">):</span>
@@ -890,97 +968,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">)</span></div></div>
 
 
-<span class="c1"># =============================================================================</span>
-<span class="c1"># Orthogonally chunked reduce</span>
-<span class="c1"># =============================================================================</span>
-
-
-<span class="k">class</span> <span class="nc">Reduce2</span><span class="p">(</span><span class="n">Reduce</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extended Reduce class that enables chunks that are smaller than the reduced</span>
-<span class="sd">    output array.</span>
-<span class="sd">    </span>
-<span class="sd">    The base Reduce node ensures that each chunk is at least as big as the</span>
-<span class="sd">    reduced output, which works for statistics that can be calculated in O(1)</span>
-<span class="sd">    space. For statistics that require O(n) space, the node must iterate</span>
-<span class="sd">    through the Coordinates orthogonally to the reduce dimension, using chunks</span>
-<span class="sd">    that only cover a portion of the output array.</span>
-<span class="sd">    </span>
-<span class="sd">    Note that the above nodes *could* be implemented to allow small chunks.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">_get_chunk_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Shape of chunks for parallel processing or large arrays that do not fit in memory.</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">            List of integers giving the shape of each chunk.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
-        <span class="n">chunk_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span>
-
-        <span class="c1"># here, the minimum size is the reduce-dimensions size</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">coords</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">}</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">n</span> <span class="o">=</span> <span class="n">chunk_size</span> <span class="o">//</span> <span class="n">s</span>
-            <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
-                <span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
-            <span class="n">s</span> <span class="o">*=</span> <span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">iteroutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generator for the chunks of the output</span>
-<span class="sd">        </span>
-<span class="sd">        Yields</span>
-<span class="sd">        ------</span>
-<span class="sd">        UnitsDataArray</span>
-<span class="sd">            Output for this chunk</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">chunk_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_chunk_shape</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">slices</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">iterchunks</span><span class="p">(</span><span class="n">chunk_shape</span><span class="p">,</span> <span class="n">return_slices</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span> <span class="n">slices</span>
-
-    <span class="k">def</span> <span class="nf">reduce_chunked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Reduce a list of xs with a memory-effecient iterative algorithm.</span>
-<span class="sd">        </span>
-<span class="sd">        Optionally defined in each child.</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        xs : list, generator</span>
-<span class="sd">            List of UnitsDataArray&#39;s that need to be reduced together.</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        UnitsDataArray</span>
-<span class="sd">            Reduced output.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># special case for full reduce</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reduced_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="n">x</span><span class="p">,</span> <span class="n">xslices</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-
-        <span class="n">y</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">xslices</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">:</span>
-            <span class="n">yslc</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">xslices</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">dim</span><span class="p">)]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reduced_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-            <span class="n">y</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">yslc</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">y</span>
-
-
-<div class="viewcode-block" id="Median"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Median.html#podpac.algorithm.Median">[docs]</a><span class="k">class</span> <span class="nc">Median</span><span class="p">(</span><span class="n">Reduce2</span><span class="p">):</span>
+<div class="viewcode-block" id="Median"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Median.html#podpac.algorithm.Median">[docs]</a><span class="k">class</span> <span class="nc">Median</span><span class="p">(</span><span class="n">ReduceOrthogonal</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Computes the median across dimension(s)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1000,7 +988,7 @@
         <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dims</span><span class="p">)</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">Percentile</span><span class="p">(</span><span class="n">Reduce2</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Percentile</span><span class="p">(</span><span class="n">ReduceOrthogonal</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Computes the percentile across dimension(s)</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
@@ -1033,7 +1021,7 @@
 <span class="c1"># =============================================================================</span>
 
 
-<div class="viewcode-block" id="GroupReduce"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.GroupReduce.html#podpac.algorithm.GroupReduce">[docs]</a><span class="k">class</span> <span class="nc">GroupReduce</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
+<div class="viewcode-block" id="GroupReduce"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.GroupReduce.html#podpac.algorithm.GroupReduce">[docs]</a><span class="k">class</span> <span class="nc">GroupReduce</span><span class="p">(</span><span class="n">UnaryAlgorithm</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Group a time-dependent source node and then compute a statistic for each result.</span>
 <span class="sd">    </span>
@@ -1049,7 +1037,6 @@
 <span class="sd">        Source node</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">()</span>
     <span class="n">coordinates_source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># see https://github.com/pydata/xarray/blob/eeb109d9181c84dfb93356c5f14045d839ee64cb/xarray/core/accessors.py#L61</span>
@@ -1126,7 +1113,7 @@
         <span class="n">grouped</span> <span class="o">=</span> <span class="n">source_output</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;time.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">)</span>
 
         <span class="c1"># reduce</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_fn</span> <span class="ow">is</span> <span class="s2">&quot;custom&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_fn</span> <span class="o">==</span> <span class="s2">&quot;custom&quot;</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">custom_reduce_fn</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># standard, e.g. grouped.median(&#39;time&#39;)</span>

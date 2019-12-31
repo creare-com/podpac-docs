@@ -185,20 +185,19 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 
+<span class="kn">import</span> <span class="nn">copy</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
 <span class="c1"># Internal imports</span>
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">merge_dims</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">ArrayTrait</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">node_eval</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">ArrayTrait</span><span class="p">,</span> <span class="n">trait_is_defined</span>
+<span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">UnitsDataArray</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span><span class="p">,</span> <span class="n">node_eval</span><span class="p">,</span> <span class="n">Node</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">COMMON_DATA_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.interpolation</span> <span class="kn">import</span> <span class="n">interpolation_trait</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">trait_is_defined</span>
 <span class="kn">from</span> <span class="nn">podpac.core.managers.multi_threading</span> <span class="kn">import</span> <span class="n">thread_manager</span>
 
 <span class="n">COMMON_COMPOSITOR_DOC</span> <span class="o">=</span> <span class="n">COMMON_DATA_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># superset of COMMON_NODE_DOC</span>
@@ -233,7 +232,10 @@
 <span class="sd">    source_coordinates : :class:`podpac.Coordinates`, optional</span>
 <span class="sd">        Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the</span>
 <span class="sd">        user-requested coordinates. It is an optimization.</span>
-<span class="sd">    </span>
+<span class="sd">    strict_source_outputs : bool</span>
+<span class="sd">        Default is False. When compositing multi-output sources, combine the outputs from all sources. If True, do not</span>
+<span class="sd">        allow sources with different outputs (an exception will be raised if the sources contain different outputs).</span>
+
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    Developers of new Compositor nodes need to implement the `composite` method.</span>
@@ -261,19 +263,50 @@
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">sources</span> <span class="o">=</span> <span class="n">ArrayTrait</span><span class="p">(</span><span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">cache_native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-
     <span class="n">interpolation</span> <span class="o">=</span> <span class="n">interpolation_trait</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">strict_source_outputs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
+    <span class="n">tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_source_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">source</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>
-            <span class="n">source</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-        <span class="k">return</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;source_coordinates&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_source_coordinates_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_source_coordinates</span><span class="p">()</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;sources&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_validate_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span>  <span class="c1"># check for consistent outputs</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]]</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;outputs&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_default_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">outputs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">elif</span> <span class="nb">all</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">outputs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">source</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict_source_outputs</span><span class="p">:</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">outputs</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">outputs</span> <span class="o">!=</span> <span class="n">outputs</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;Source outputs mismatch, and strict_source_outputs is True. &quot;</span>
+                        <span class="s2">&quot;The sources must all contain the same outputs if strict_source_outputs is True. &quot;</span>
+                    <span class="p">)</span>
+                <span class="k">return</span> <span class="n">outputs</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">outputs</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">output</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
+                            <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">outputs</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot composite standard sources with multi-output sources. &quot;</span>
+                <span class="s2">&quot;The sources must all be stardard single-output nodes or all multi-output nodes.&quot;</span>
+            <span class="p">)</span>
 
     <span class="c1"># default representation</span>
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -345,7 +378,7 @@
 
         <span class="k">return</span> <span class="n">src_subset</span></div>
 
-<div class="viewcode-block" id="Compositor.composite"><a class="viewcode-back" href="../../../user/api/podpac.compositor.Compositor.html#podpac.compositor.Compositor.composite">[docs]</a>    <span class="k">def</span> <span class="nf">composite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Compositor.composite"><a class="viewcode-back" href="../../../user/api/podpac.compositor.Compositor.html#podpac.compositor.Compositor.composite">[docs]</a>    <span class="k">def</span> <span class="nf">composite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Implements the rules for compositing multiple sources together.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
@@ -409,35 +442,20 @@
             <span class="n">n_threads</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;MULTITHREADING&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">n_threads</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># TODO pool of pre-allocated scratch space</span>
-            <span class="c1"># TODO: docstring?</span>
-            <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">src</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-
-            <span class="c1"># Create pool of size n_threads, note, this may be created from a sub-thread (i.e. not the main thread)</span>
-            <span class="n">pool</span> <span class="o">=</span> <span class="n">thread_manager</span><span class="o">.</span><span class="n">get_thread_pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">n_threads</span><span class="p">)</span>
-
-            <span class="c1"># Evaluate nodes in parallel/asynchronously</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="n">src</span><span class="p">])</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">src_subset</span><span class="p">]</span>
-
-            <span class="c1"># Yield results as they are being requested, blocking when the thread is not finished</span>
-            <span class="k">for</span> <span class="n">src</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_subset</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
-                <span class="k">yield</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-                <span class="c1"># src._output = None # free up memory</span>
-
-            <span class="c1"># This prevents any more tasks from being submitted to the pool, and will close the workers one done</span>
-            <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-            <span class="c1"># Release these number of threads back to the thread pool</span>
-            <span class="n">thread_manager</span><span class="o">.</span><span class="n">release_n_threads</span><span class="p">(</span><span class="n">n_threads</span><span class="p">)</span>
+            <span class="c1"># evaluate nodes in parallel using thread pool</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_multi_threaded</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># scratch space</span>
-            <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">src_subset</span><span class="p">:</span>
-                <span class="n">output</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">thread_manager</span><span class="o">.</span><span class="n">get_thread_pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">n_threads</span><span class="p">)</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">src</span><span class="p">:</span> <span class="n">src</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">),</span> <span class="n">src_subset</span><span class="p">)</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">thread_manager</span><span class="o">.</span><span class="n">release_n_threads</span><span class="p">(</span><span class="n">n_threads</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">output</span>
-                <span class="c1"># output[:] = np.nan</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_multi_threaded</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># evaluate nodes serially</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_multi_threaded</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">src_subset</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">src</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Compositor.eval"><a class="viewcode-back" href="../../../user/api/podpac.compositor.Compositor.html#podpac.compositor.Compositor.eval">[docs]</a>    <span class="nd">@node_eval</span>
     <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_COMPOSITOR_DOC</span><span class="p">)</span>
@@ -459,7 +477,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
 
         <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteroutputs</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">composite</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">composite</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span></div>
 
 <div class="viewcode-block" id="Compositor.find_coordinates"><a class="viewcode-back" href="../../../user/api/podpac.compositor.Compositor.html#podpac.compositor.Compositor.find_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">find_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -495,43 +513,49 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="OrderedCompositor.composite"><a class="viewcode-back" href="../../../user/api/podpac.compositor.OrderedCompositor.html#podpac.compositor.OrderedCompositor.composite">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_COMPOSITOR_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">composite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Composites outputs in order that they appear.</span>
+    <span class="k">def</span> <span class="nf">composite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">data_arrays</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Composites data_arrays in order that they appear.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        outputs : generator</span>
+<span class="sd">        coordinates : :class:`podpac.Coordinates`</span>
+<span class="sd">            {requested_coordinates}</span>
+<span class="sd">        data_arrays : generator</span>
 <span class="sd">            Generator that gives UnitDataArray&#39;s with the source values.</span>
-<span class="sd">        result : None, optional</span>
-<span class="sd">            Description</span>
+<span class="sd">        result : podpac.UnitsDataArray, optional</span>
+<span class="sd">            {eval_output}</span>
 <span class="sd">        </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        {eval_return} This composites the sources together until there are no nans or no more sources.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># consume the first source output</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
-        <span class="c1"># initialize the mask</span>
-        <span class="c1"># if result is None, probably this is all false</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">result</span>
-
-        <span class="c1"># loop through remaining outputs</span>
-        <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-            <span class="n">source_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-            <span class="n">b</span> <span class="o">=</span> <span class="o">~</span><span class="n">mask</span> <span class="o">&amp;</span> <span class="n">source_mask</span>
-            <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
-            <span class="n">mask</span> <span class="o">|=</span> <span class="n">source_mask</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">UnitsDataArray</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">data_arrays</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_composite</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_composite</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">name</span><span class="p">),</span> <span class="n">data</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">name</span><span class="p">),</span> <span class="n">mask</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">name</span><span class="p">))</span>
 
             <span class="c1"># stop if the results are full</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
                 <span class="k">break</span>
 
-        <span class="k">return</span> <span class="n">result</span></div></div>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_composite</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+        <span class="n">source_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="o">~</span><span class="n">mask</span> <span class="o">&amp;</span> <span class="n">source_mask</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">data</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">data</span><span class="p">]</span>
+        <span class="n">mask</span> <span class="o">|=</span> <span class="n">source_mask</span></div>
 </pre></div>
 
            </div>

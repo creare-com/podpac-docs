@@ -200,9 +200,10 @@
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">add_coord</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span>
-<span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="kn">import</span> <span class="n">Algorithm</span>
+<span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="kn">import</span> <span class="n">UnaryAlgorithm</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">ArrayTrait</span><span class="p">,</span> <span class="n">NodeTrait</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span><span class="p">,</span> <span class="n">node_eval</span>
+
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 <span class="n">COMMON_DOC</span><span class="p">[</span>
@@ -233,7 +234,7 @@
 <span class="s2">            If the kernel is not valid (i.e. incorrect dimensionality). &quot;&quot;&quot;</span>
 
 
-<div class="viewcode-block" id="Convolution"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution">[docs]</a><span class="k">class</span> <span class="nc">Convolution</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
+<div class="viewcode-block" id="Convolution"><a class="viewcode-back" href="../../../../user/api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution">[docs]</a><span class="k">class</span> <span class="nc">Convolution</span><span class="p">(</span><span class="n">UnaryAlgorithm</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compute a general convolution over a source node.</span>
 
 <span class="sd">    This node automatically resizes the requested coordinates to avoid edge effects.</span>
@@ -254,7 +255,6 @@
 <span class="sd">        Note: These kernels are automatically normalized such that kernel.sum() == 1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">source</span> <span class="o">=</span> <span class="n">NodeTrait</span>
     <span class="n">kernel</span> <span class="o">=</span> <span class="n">ArrayTrait</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_ndim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -336,11 +336,15 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span>
 
-        <span class="n">result</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">full_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">full_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># source with multiple outputs</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">full_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">source</span><span class="p">])</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">exp_slice</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">result</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
 
