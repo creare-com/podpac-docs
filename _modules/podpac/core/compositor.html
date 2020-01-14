@@ -225,7 +225,7 @@
 <span class="sd">    source : str</span>
 <span class="sd">        The source is used for a unique name to cache composited products.</span>
 <span class="sd">    source_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">        Description</span>
+<span class="sd">        Coordinates that make each source unique. Much be single-dimensional the same size as ``sources``. Optional.</span>
 <span class="sd">    sources : :class:`np.ndarray`</span>
 <span class="sd">        An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to</span>
 <span class="sd">        subselect the nodes that will be evaluated.</span>
@@ -302,6 +302,20 @@
                 <span class="s2">&quot;The sources must all be stardard single-output nodes or all multi-output nodes.&quot;</span>
             <span class="p">)</span>
 
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;source_coordinates&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_validate_source_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid source_coordinates, invalid ndim (</span><span class="si">%d</span><span class="s2"> != 1)&quot;</span> <span class="o">%</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Invalid source_coordinates, source and source_coordinates size mismatch (</span><span class="si">%d</span><span class="s2"> != </span><span class="si">%d</span><span class="s2">)&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
     <span class="c1"># default representation</span>
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">source_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
@@ -363,8 +377,8 @@
 
             <span class="k">except</span><span class="p">:</span>  <span class="c1"># Likely non-monotonic coordinates</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-            <span class="n">src_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="n">I</span><span class="p">]</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">I</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">src_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 
         <span class="c1"># no downselection possible - get all sources compositor</span>
         <span class="k">else</span><span class="p">:</span>

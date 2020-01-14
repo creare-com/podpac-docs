@@ -243,7 +243,7 @@
 
 <div class="viewcode-block" id="StackedCoordinates.__init__"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize a multidimensional coords object.</span>
+<span class="sd">        Initialize a multidimensional coords bject.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -657,7 +657,41 @@
                 <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">tsl</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">sl</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">sl</span><span class="p">),</span> <span class="n">sl</span><span class="p">)</span>
                 <span class="n">coords</span><span class="p">[</span><span class="n">ialt</span><span class="p">]</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;segment_lengths&quot;</span><span class="p">,</span> <span class="n">tsl</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StackedCoordinates.transpose"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.transpose">[docs]</a>    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">dims</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transpose (re-order) the dimensions of the StackedCoordinates.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dim_1, dim_2, ... : str, optional</span>
+<span class="sd">            Reorder dims to this order. By default, reverse the dims.</span>
+<span class="sd">        in_place : boolean, optional</span>
+<span class="sd">            If True, transpose the dimensions in-place.</span>
+<span class="sd">            Otherwise (default), return a new, transposed Coordinates object.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        transposed : :class:`StackedCoordinates`</span>
+<span class="sd">            The transposed StackedCoordinates object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">in_place</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;in_place&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid transpose dimensions, input </span><span class="si">%s</span><span class="s2"> does match any dims in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span>
+
+        <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">dim</span><span class="p">)]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">in_place</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_coords&quot;</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
