@@ -200,6 +200,7 @@
 <span class="kn">import</span> <span class="nn">xarray.core.coordinates</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">string_types</span>
 <span class="kn">import</span> <span class="nn">pyproj</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="kn">import</span> <span class="n">settings</span>
@@ -211,6 +212,14 @@
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.stacked_coordinates</span> <span class="kn">import</span> <span class="n">StackedCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.dependent_coordinates</span> <span class="kn">import</span> <span class="n">DependentCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.rotated_coordinates</span> <span class="kn">import</span> <span class="n">RotatedCoordinates</span>
+
+<span class="c1"># Optional dependencies</span>
+<span class="kn">from</span> <span class="nn">lazy_import</span> <span class="kn">import</span> <span class="n">lazy_module</span><span class="p">,</span> <span class="n">lazy_class</span>
+
+<span class="n">rasterio</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;rasterio&quot;</span><span class="p">)</span>
+
+<span class="c1"># Set up logging</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates">[docs]</a><span class="k">class</span> <span class="nc">Coordinates</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
@@ -622,6 +631,38 @@
 
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="Coordinates.from_geotransform"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_geotransform">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_geotransform</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">geotransform</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates Coordinates from GDAL Geotransform. </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">rcoords</span> <span class="o">=</span> <span class="n">RotatedCoordinates</span><span class="o">.</span><span class="n">from_geotransform</span><span class="p">(</span><span class="n">geotransform</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rcoords</span><span class="o">.</span><span class="n">theta</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span>  <span class="c1"># More appropriate to use uniform coordinates</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">rcoords</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lat,lon&quot;</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">coords</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Rasterio source dataset does not have Rotated Coordinates&quot;</span><span class="p">)</span>
+
+            <span class="n">affine</span> <span class="o">=</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">Affine</span><span class="o">.</span><span class="n">from_gdal</span><span class="p">(</span><span class="o">*</span><span class="n">geotransform</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">affine</span><span class="o">.</span><span class="n">e</span> <span class="o">==</span> <span class="n">affine</span><span class="o">.</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">order</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">step</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">affine</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">affine</span><span class="o">.</span><span class="n">b</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">order</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">step</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">affine</span><span class="o">.</span><span class="n">e</span><span class="p">,</span> <span class="n">affine</span><span class="o">.</span><span class="n">a</span><span class="p">])</span>
+
+            <span class="n">origin</span> <span class="o">=</span> <span class="n">affine</span><span class="o">.</span><span class="n">f</span> <span class="o">+</span> <span class="n">step</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">affine</span><span class="o">.</span><span class="n">c</span> <span class="o">+</span> <span class="n">step</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">step</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">shape</span><span class="p">[::</span><span class="n">order</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">step</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">shape</span><span class="p">[::</span><span class="n">order</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">end</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="p">[::</span><span class="n">order</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;lat&quot;</span><span class="p">),</span>
+                    <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">shape</span><span class="p">[::</span><span class="n">order</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;lon&quot;</span><span class="p">),</span>
+                <span class="p">][::</span><span class="n">order</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">coords</span></div>
+
 <div class="viewcode-block" id="Coordinates.from_definition"><a class="viewcode-back" href="../../../../user/api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_definition">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_definition</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -873,6 +914,19 @@
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ushape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">):</span>  <span class="c1"># shortcut in case no stacking</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="n">ushape</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ud</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ud</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">ushape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="k">break</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ushape</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;:int: Number of dimensions. &quot;&quot;&quot;</span>
 
@@ -980,6 +1034,55 @@
         <span class="c1"># As such, we json.dumps the full definition.</span>
         <span class="n">json_d</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">full_definition</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">hash_alg</span><span class="p">(</span><span class="n">json_d</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">geotransform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; :tuple: GDAL geotransform. &quot;&quot;&quot;</span>
+        <span class="c1"># Make sure we only have 1 time and alt dimension</span>
+        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ushape</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;Only 2-D coordinates have a GDAL transform. This array has a &quot;time&quot; dimension of </span><span class="si">{}</span><span class="s1"> &gt; 1&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ushape</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ushape</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;alt&quot;</span><span class="p">)]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;Only 2-D coordinates have a GDAL transform. This array has a &quot;alt&quot; dimension of </span><span class="si">{}</span><span class="s1"> &gt; 1&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ushape</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;alt&quot;</span><span class="p">)]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Do the uniform coordinates case</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">],</span> <span class="n">UniformCoordinates1d</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">],</span> <span class="n">UniformCoordinates1d</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">):</span>
+                <span class="n">first</span><span class="p">,</span> <span class="n">second</span> <span class="o">=</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">first</span><span class="p">,</span> <span class="n">second</span> <span class="o">=</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span>  <span class="c1"># This case will have the exact correct geotransform</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">Affine</span><span class="o">.</span><span class="n">translation</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">first</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="bp">self</span><span class="p">[</span><span class="n">first</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">second</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="bp">self</span><span class="p">[</span><span class="n">second</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="p">)</span> <span class="o">*</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">Affine</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">first</span><span class="p">]</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">second</span><span class="p">]</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">to_gdal</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="p">(</span>
+            <span class="s2">&quot;lat,lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
+            <span class="ow">or</span> <span class="s2">&quot;lon,lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lat,lon&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lon,lat&quot;</span><span class="p">)),</span> <span class="n">RotatedCoordinates</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lat,lon&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lon,lat&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">geotransform</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;Only 2-D coordinates that are uniform or rotated have a GDAL transform. These coordinates &quot;</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> do not.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">):</span>
+            <span class="c1"># transform = (transform[3], transform[5], transform[4], transform[0], transform[2], transform[1])</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span> <span class="o">+</span> <span class="n">transform</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">transform</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Methods</span>
