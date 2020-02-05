@@ -1,0 +1,588 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Contributing &mdash; 1.2.0</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+  
+  
+  
+    <link rel="canonical" href="https://podpac.orgdeveloper/contributing.html"/>
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="AWS Lambda" href="aws.html" />
+    <link rel="prev" title="Design" href="design.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/icon.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../why-podpac.html">Why PODPAC?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets.html">Supported Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../roadmap.html">Development Roadmap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/coordinates.html">Coordinates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/nodes.html">Nodes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/pipelines.html">Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/cache.html">Cache</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/earthdata.html">NASA Earth Data Login</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/api.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="design.html">Design</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#coding-style">Coding style</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#autoformatting">Autoformatting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docstrings">Docstrings</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#format">Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#lint">Lint</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#import-conventions-api-conventions">Import Conventions / API Conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#public-api">Public API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#developer-api">Developer API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#integration-testing">Integration testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#skip-tests-on-ci">Skip Tests on CI</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#aws-marker">AWS Marker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-markers">Adding Markers</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#code-coverage">Code Coverage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#governance">Governance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs.html">Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PODPAC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Contributing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/developer/contributing.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
+<p>To get a sense of where the project is going, have a look at our <a class="reference internal" href="../roadmap.html"><span class="doc">Roadmap</span></a></p>
+<p>There are a number of ways to contribute:</p>
+<ul class="simple">
+<li><p>Create new issues for feature requests or to report bugs</p></li>
+<li><p>Adding / correcting documentation</p></li>
+<li><p>Adding a new unit test</p></li>
+<li><p>Contributing a new node that accesses a specific datasource</p></li>
+<li><p>Contributing a new node that implements a domain-specific algorithm</p></li>
+<li><p>Commenting on issues to help out other users</p></li>
+</ul>
+<p>To contribute:</p>
+<ul class="simple">
+<li><p>Fork the PODPAC repository on github</p></li>
+<li><p>Create a new feature branch from the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git checkout develop  <span class="c1"># Assuming you&#39;ve already checked out and tracked the develop branch</span>
+git branch feature/my_new_feature
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Make your changes / additions</p></li>
+<li><p>Add / modify the docstrings and other documentation</p></li>
+<li><p>Write any additional unit tests</p></li>
+<li><p>Create a new pull request</p></li>
+</ul>
+<p>At this point we will review your changes, request modifications, and ultimately accept or reject your modifications.</p>
+<div class="section" id="coding-style">
+<h2>Coding style<a class="headerlink" href="#coding-style" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Generally try to follow PEP8, but we’re not strict about it.</p></li>
+<li><p>Code should be compatible with both Python 2 and 3</p></li>
+</ul>
+<div class="section" id="autoformatting">
+<h3>Autoformatting<a class="headerlink" href="#autoformatting" title="Permalink to this headline">¶</a></h3>
+<p>Podpac uses <a class="reference external" href="https://github.com/python/black">Python Black</a> autoformatting. Configuratin can be found in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>. During installation for development, pre-commit hooks are automatically installed, including a hook that will run Black. Code that is not formatted with Black will fail in CI.</p>
+</div>
+<div class="section" id="docstrings">
+<h3>Docstrings<a class="headerlink" href="#docstrings" title="Permalink to this headline">¶</a></h3>
+<p>All classes and methods should be properly documented with docstrings.
+Docstrings will be used to create the package documentation.</p>
+<p>Many IDE’s have auto docstring generators to make this process easier. See the <a class="reference external" href="https://github.com/KristoforMaynard/SublimeAutoDocstring">AutoDocstring</a> sublime text plugin for one example.</p>
+<div class="section" id="format">
+<h4>Format<a class="headerlink" href="#format" title="Permalink to this headline">¶</a></h4>
+<p>Podpac adheres to the <a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/format.html">numpy format for docstrings</a>:</p>
+<p>Examples:</p>
+<ul class="simple">
+<li><p>https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html</p></li>
+<li><p>https://docs.scipy.org/doc/numpy/docs/howto_document.html#example-source</p></li>
+</ul>
+<p>Note that class attributes can be documented multiple ways.</p>
+<ul class="simple">
+<li><p>Key public attributes and properties should be documented in the main class docstring under <code class="docutils literal notranslate"><span class="pre">Parameters</span></code>.</p></li>
+<li><p>All public attributes (traits) should be documented in the subsequent line by setting its <code class="docutils literal notranslate"><span class="pre">__doc__</span></code> property.</p></li>
+<li><p>All public properties created with the <code class="docutils literal notranslate"><span class="pre">&#64;property</span></code> decorator should be documented in the getter method.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ExampleClass</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The summary line for a class docstring should fit on one line.</span>
+
+<span class="sd">    Additional details should be documented here.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    attr1 : str</span>
+<span class="sd">        Description of attr1.</span>
+<span class="sd">    attr2 : dict, optional</span>
+<span class="sd">        Description of attr2.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">attr1</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Str</span><span class="p">()</span>
+    <span class="n">attr</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;:str: Description of attr1&quot;</span>
+
+    <span class="n">attr2</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">attr2</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;:dict: Description of attr2&quot;</span>
+
+    <span class="n">attr3</span> <span class="p">:</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">()</span>
+    <span class="n">attr2</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;:int: Description of secondary attr3&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr4</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:bool: Description of attr4.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="references">
+<h4>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h4>
+<p>All references to podpac classes (<code class="docutils literal notranslate"><span class="pre">:class:</span></code>), methods (<code class="docutils literal notranslate"><span class="pre">:meth:</span></code>), and attributes (<code class="docutils literal notranslate"><span class="pre">:attr:</span></code>) should use the <em>public</em> path to the reference. If the class does not have a public reference, fall back on the <em>full</em> path reference to the class. For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class Method.  </span>
+<span class="sd">    See method :meth:`podpac.data.DataSource.eval`.</span>
+<span class="sd">    See attribute :attr:`podpac.core.data.interpolate.INTERPOLATION_METHODS`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coordinates : :class:`podpac.Coordinates`</span>
+<span class="sd">      Coordinate input</span>
+<span class="sd">    output : :class:`podpac.core.units.UnitsDataArray`, optional</span>
+<span class="sd">      Container for output</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    :class:`podpac.core.units.UnitsDataArray`</span>
+<span class="sd">      Returns a UnitsDataArray</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="lint">
+<h3>Lint<a class="headerlink" href="#lint" title="Permalink to this headline">¶</a></h3>
+<p>To help adhere to PEP8, we use the <code class="docutils literal notranslate"><span class="pre">pylint</span></code> module. This provides the most benefit if you <a class="reference external" href="https://pylint.readthedocs.io/en/latest/user_guide/ide-integration.html">configure your text editor or IDE</a>  to run pylint as you develop. To use <code class="docutils literal notranslate"><span class="pre">pylint</span></code> from the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pylint podpac                 <span class="c1"># lint the whole module</span>
+$ pylint podpac/settings.py     <span class="c1"># lint single file</span>
+</pre></div>
+</div>
+<p>Configuration options are specified in <code class="docutils literal notranslate"><span class="pre">.pylintrc</span></code>.</p>
+</div>
+</div>
+<div class="section" id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<p>We use the python <code class="docutils literal notranslate"><span class="pre">logging</span></code> library to support library logging.
+To include logging in your module, use:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>  <span class="c1"># creates a logger with the current module name</span>
+
+<span class="c1"># log a message</span>
+<span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Debug message&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Info message&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Warning message&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Error message&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Do not set levels, handlers, or formatters in your modules.
+See the <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger.debug">python logging documentation</a> for details on how to construct log messages.</p>
+<p>To handling logging in your application, you can use a simple config:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>  <span class="c1"># log to console</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;podpac.log&#39;</span><span class="p">)</span>  <span class="c1"># log to a file podpac.log</span>
+</pre></div>
+</div>
+<p>or a more complicated configuration which handles only podpac logs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># log only podpac logs</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;podpac&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+<span class="c1"># log only podpac logs in a file</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">FileHandler</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;podpac&#39;</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;podpac.log&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We have created a convience method <code class="docutils literal notranslate"><span class="pre">create_logfile()</span></code> in the <code class="docutils literal notranslate"><span class="pre">podpac.utils</span></code> module to
+automatically create a log file for only podpac logs.</p>
+</div>
+<div class="section" id="import-conventions-api-conventions">
+<h2>Import Conventions / API Conventions<a class="headerlink" href="#import-conventions-api-conventions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="public-api">
+<h3>Public API<a class="headerlink" href="#public-api" title="Permalink to this headline">¶</a></h3>
+<p>The client facing public API should be available on the root <code class="docutils literal notranslate"><span class="pre">podpac</span></code> module.
+These imports are defined in the root level <code class="docutils literal notranslate"><span class="pre">podpac/__init__.py</span></code> file.</p>
+<p>The public API will contain a top level of primary imports (i.e. <code class="docutils literal notranslate"><span class="pre">Node</span></code>, <code class="docutils literal notranslate"><span class="pre">Coordinate</span></code>) and a second level of imports that wrap more advanced public functionality. For example, <code class="docutils literal notranslate"><span class="pre">podpac.algorithm</span></code> will contain “advanced user” public imports from <code class="docutils literal notranslate"><span class="pre">podpac.core.algorithm</span></code>.  The goal here is to keep the public namespace of <code class="docutils literal notranslate"><span class="pre">podpac</span></code> lean while providing organized access to higher level functionality.  The most advanced users can always access the full functionality of the package via the <code class="docutils literal notranslate"><span class="pre">podpac.core</span></code> module (<a class="reference external" href="#developer-api">Developer API</a>). All of this configuration and organization should be contained in <code class="docutils literal notranslate"><span class="pre">podpac/__init__.py</span></code>, if possible.</p>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">podpac</span>
+
+<span class="nb">dir</span><span class="p">(</span><span class="n">podpac</span><span class="p">)</span>
+<span class="p">[</span>
+ <span class="c1"># Public Classes, Functions exposed here for users</span>
+ <span class="s1">&#39;Algorithm&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;Node&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;Coorindate&#39;</span><span class="p">,</span>
+ <span class="o">...</span>
+
+ <span class="c1"># organized submodules</span>
+ <span class="s1">&#39;algorithm,</span>
+ <span class="s1">&#39;data&#39;</span>
+ <span class="s1">&#39;compositor&#39;</span>
+ <span class="s1">&#39;pipeline&#39;</span>
+ <span class="s1">&#39;alglib&#39;</span>
+ <span class="s1">&#39;datalib&#39;</span>
+
+ <span class="c1"># the settings module</span>
+ <span class="s1">&#39;settings&#39;</span><span class="p">,</span>
+
+ <span class="c1"># developer API goes here. i.e. any non-public functions, or rarely used utility functions etc.</span>
+ <span class="s1">&#39;core&#39;</span>
+ <span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="developer-api">
+<h3>Developer API<a class="headerlink" href="#developer-api" title="Permalink to this headline">¶</a></h3>
+<p>The Developer API follows the hierarchical structure of the <code class="docutils literal notranslate"><span class="pre">core</span></code> directory.
+All source code written into the <code class="docutils literal notranslate"><span class="pre">core</span></code> podpac module should reference other modules using the full path to the module to maintain consistency.</p>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">podpac</span>
+
+<span class="nb">dir</span><span class="p">(</span><span class="n">podac</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+<span class="p">[</span>
+ <span class="s1">&#39;algorithm&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;compositor&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;coordinate&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;data&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;node&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;pipeline&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;units&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;utils&#39;</span>
+ <span class="o">...</span>
+ <span class="p">]</span>
+</pre></div>
+</div>
+<p>In source code <code class="docutils literal notranslate"><span class="pre">/podpac/core/node.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Podpac Module</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="o">...</span>
+
+<span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">Units</span><span class="p">,</span> <span class="n">UnitsDataArray</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span>
+</pre></div>
+</div>
+<p><strong>Note</strong>: The modules <code class="docutils literal notranslate"><span class="pre">podpac.settings</span></code> and <code class="docutils literal notranslate"><span class="pre">podpac.units.ureg</span></code> MUST be imported without using the <code class="docutils literal notranslate"><span class="pre">from</span></code> syntax. For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">podpac.settings</span>                 <span class="c1"># yes</span>
+<span class="kn">from</span> <span class="nn">podpac.settings</span> <span class="kn">import</span> <span class="n">CACHE_CIR</span>  <span class="c1"># no</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>We use <code class="docutils literal notranslate"><span class="pre">pytest</span></code> to run unit tests. To run tests, run from the root of the repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pytest
+$ pytest -k &quot;TestClass&quot;    # run only the TestClass
+</pre></div>
+</div>
+<p>Configuration options are specified in <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code>.</p>
+<div class="section" id="integration-testing">
+<h3>Integration testing<a class="headerlink" href="#integration-testing" title="Permalink to this headline">¶</a></h3>
+<p>We use <code class="docutils literal notranslate"><span class="pre">pytest</span></code> to write integration tests.
+Generally these tests should be written in seperate files from unit tests.
+To specify that a test is an integration test, use the custom pytest marker <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.integration</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
+<span class="k">class</span> <span class="nc">TestClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Integration tests do not run by default.
+To run integration tests from the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pytest -m integration
+</pre></div>
+</div>
+<p>See <a class="reference external" href="https://docs.pytest.org/en/latest/example/markers.html">working with custom markers</a> for more details on how to use markers in pytest.</p>
+</div>
+<div class="section" id="skip-tests-on-ci">
+<h3>Skip Tests on CI<a class="headerlink" href="#skip-tests-on-ci" title="Permalink to this headline">¶</a></h3>
+<p>In some circumstances, we don’t want tests to run during the CI process, e.g. when the test will incur charges from a cloud provider).</p>
+<p>To invoke tests with <code class="docutils literal notranslate"><span class="pre">--ci</span></code> command line option:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pytest --ci podpac
+</pre></div>
+</div>
+<div class="section" id="aws-marker">
+<h4>AWS Marker<a class="headerlink" href="#aws-marker" title="Permalink to this headline">¶</a></h4>
+<p>To specify that a test uses AWS and should not be run during CI tests, mark it as such:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">aws</span>
+<span class="k">def</span> <span class="nf">test_function</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">aws</span>
+<span class="k">class</span> <span class="nc">TestClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Alternatively, you can specifically run <em>only</em> AWS tests by using the <code class="docutils literal notranslate"><span class="pre">-m</span></code> command line option:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pytest -m aws podpac
+</pre></div>
+</div>
+</div>
+<div class="section" id="adding-markers">
+<h4>Adding Markers<a class="headerlink" href="#adding-markers" title="Permalink to this headline">¶</a></h4>
+<p>See <code class="docutils literal notranslate"><span class="pre">conftest.py</span></code> to add additional custom markers and behavior.</p>
+</div>
+</div>
+<div class="section" id="code-coverage">
+<h3>Code Coverage<a class="headerlink" href="#code-coverage" title="Permalink to this headline">¶</a></h3>
+<p>We use <a class="reference external" href="https://github.com/pytest-dev/pytest-cov"><code class="docutils literal notranslate"><span class="pre">pytest-cov</span></code></a> (which uses <a class="reference external" href="https://coverage.readthedocs.io/en/coverage-4.5.1/"><code class="docutils literal notranslate"><span class="pre">coverage</span></code></a> underneath) to monitor code coverage of unit tests. To record coverage while running tests, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ pytest --cov<span class="o">=</span>podpac --cov-report html:./artifacts/coverage podpac   <span class="c1"># outputs html coverage to directory artifacts/coverage</span>
+</pre></div>
+</div>
+<p>We use <a class="reference external" href="https://github.com/coveralls-clients/coveralls-python"><code class="docutils literal notranslate"><span class="pre">coveralls</span></code></a> to provide <a class="reference external" href="https://coveralls.io/github/creare-com/podpac">coverage status and visualization</a>. Commits will be marked as failing if coverage drops below 90% or drops by more than 0.5%.</p>
+</div>
+</div>
+<div class="section" id="governance">
+<h2>Governance<a class="headerlink" href="#governance" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>We encourage and welcome contributions from the wider community</p></li>
+<li><p>Presently, a small group of core developers decide which contributions will be incorporated</p>
+<ul>
+<li><p>This is a complex software library</p></li>
+<li><p>Until the library is mature, the interfaces and features need tight control</p></li>
+<li><p>Missing functionality for your project can be implemented as a 3rd party plugin</p></li>
+<li><p>For now, we are trying to be disciplined to avoid feature creep.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="aws.html" class="btn btn-neutral float-right" title="AWS Lambda" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="design.html" class="btn btn-neutral float-left" title="Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2020, Creare
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

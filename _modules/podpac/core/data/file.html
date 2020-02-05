@@ -92,33 +92,29 @@
             
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../settings.html">Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../earthdata.html">NASA Earth Data Login</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../aws.html">AWS Lambda</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Topics</span></p>
-<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../why-podpac.html">Why PODPAC?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../nodes.html">Nodes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../coordinates.html">Coordinates</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../pipelines.html">Pipelines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../cache.html">Cache</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">Supported Datasets</a></li>
-</ul>
-<p class="caption"><span class="caption-text">References</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API Reference</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Support</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../references.html">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../roadmap.html">Development Roadmap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/coordinates.html">Coordinates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/nodes.html">Nodes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/pipelines.html">Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/cache.html">Cache</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/earthdata.html">NASA Earth Data Login</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/api.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/design.html">Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/docs.html">Documentation</a></li>
 </ul>
 
             
@@ -196,11 +192,14 @@
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+<span class="kn">import</span> <span class="nn">pyproj</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">trait_is_defined</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">COMMON_DATA_DOC</span><span class="p">,</span> <span class="n">DataSource</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="n">ArrayCoordinates1d</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">RotatedCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="kn">import</span> <span class="n">Dimension</span><span class="p">,</span> <span class="n">VALID_DIMENSION_NAMES</span>
 
 <span class="c1"># Optional dependencies</span>
@@ -213,6 +212,9 @@
 <span class="n">zarr</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;zarr&quot;</span><span class="p">)</span>
 <span class="n">zarrGroup</span> <span class="o">=</span> <span class="n">lazy_class</span><span class="p">(</span><span class="s2">&quot;zarr.Group&quot;</span><span class="p">)</span>
 <span class="n">s3fs</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;s3fs&quot;</span><span class="p">)</span>
+
+<span class="c1"># Set up logging</span>
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
@@ -497,7 +499,7 @@
         <span class="k">return</span> <span class="n">d</span>
 
 
-<div class="viewcode-block" id="CSV"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="CSV"><a class="viewcode-back" href="../../../../user/api/podpac.data.CSV.html#podpac.data.CSV">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CSV</span><span class="p">(</span><span class="n">DatasetSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource from a .csv file.</span>
 
@@ -552,23 +554,23 @@
     <span class="k">def</span> <span class="nf">_get_col</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">key</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CSV.get_lat"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV.get_lat">[docs]</a>    <span class="k">def</span> <span class="nf">get_lat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="CSV.get_lat"><a class="viewcode-back" href="../../../../user/api/podpac.data.CSV.html#podpac.data.CSV.get_lat">[docs]</a>    <span class="k">def</span> <span class="nf">get_lat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get latitude coordinates from the csv file.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_key</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lat_key</span><span class="p">)]</span><span class="o">.</span><span class="n">values</span></div>
 
-<div class="viewcode-block" id="CSV.get_lon"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV.get_lon">[docs]</a>    <span class="k">def</span> <span class="nf">get_lon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="CSV.get_lon"><a class="viewcode-back" href="../../../../user/api/podpac.data.CSV.html#podpac.data.CSV.get_lon">[docs]</a>    <span class="k">def</span> <span class="nf">get_lon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get longitude coordinates from the csv file.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_key</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lon_key</span><span class="p">)]</span><span class="o">.</span><span class="n">values</span></div>
 
-<div class="viewcode-block" id="CSV.get_time"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV.get_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="CSV.get_time"><a class="viewcode-back" href="../../../../user/api/podpac.data.CSV.html#podpac.data.CSV.get_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get time coordinates from the csv file.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_key</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_key</span><span class="p">)]</span><span class="o">.</span><span class="n">values</span></div>
 
-<div class="viewcode-block" id="CSV.get_alt"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV.get_alt">[docs]</a>    <span class="k">def</span> <span class="nf">get_alt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="CSV.get_alt"><a class="viewcode-back" href="../../../../user/api/podpac.data.CSV.html#podpac.data.CSV.get_alt">[docs]</a>    <span class="k">def</span> <span class="nf">get_alt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get altitude coordinates from the csv file.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_key</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alt_key</span><span class="p">)]</span><span class="o">.</span><span class="n">values</span></div>
 
-<div class="viewcode-block" id="CSV.get_native_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="CSV.get_native_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.data.CSV.html#podpac.data.CSV.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
 <span class="sd">        </span>
@@ -581,7 +583,7 @@
         <span class="n">stacked</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
         <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">stacked</span><span class="p">],</span> <span class="o">**</span><span class="n">coords</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CSV.get_data"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="CSV.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.data.CSV.html#podpac.data.CSV.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -629,7 +631,7 @@
         <span class="k">return</span> <span class="n">d</span></div>
 
 
-<div class="viewcode-block" id="H5PY"><a class="viewcode-back" href="../../../../api/podpac.data.H5PY.html#podpac.data.H5PY">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="H5PY"><a class="viewcode-back" href="../../../../user/api/podpac.data.H5PY.html#podpac.data.H5PY">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">H5PY</span><span class="p">(</span><span class="n">DatasetSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource node using h5py.</span>
 <span class="sd">    </span>
@@ -686,11 +688,11 @@
         <span class="c1"># prefer with as: syntax</span>
         <span class="k">return</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_mode</span><span class="p">)</span>
 
-<div class="viewcode-block" id="H5PY.close_dataset"><a class="viewcode-back" href="../../../../api/podpac.data.H5PY.html#podpac.data.H5PY.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="H5PY.close_dataset"><a class="viewcode-back" href="../../../../user/api/podpac.data.H5PY.html#podpac.data.H5PY.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Closes the file. &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="H5PY.get_data"><a class="viewcode-back" href="../../../../api/podpac.data.H5PY.html#podpac.data.H5PY.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="H5PY.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.data.H5PY.html#podpac.data.H5PY.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -702,7 +704,7 @@
                 <span class="n">data</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">name</span><span class="p">)[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">coordinates_index</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="H5PY.attrs"><a class="viewcode-back" href="../../../../api/podpac.data.H5PY.html#podpac.data.H5PY.attrs">[docs]</a>    <span class="k">def</span> <span class="nf">attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="H5PY.attrs"><a class="viewcode-back" href="../../../../user/api/podpac.data.H5PY.html#podpac.data.H5PY.attrs">[docs]</a>    <span class="k">def</span> <span class="nf">attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Dataset or group key for which attributes will be summarized.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span></div>
@@ -830,7 +832,7 @@
 
 
 <span class="c1"># TODO</span>
-<div class="viewcode-block" id="Rasterio"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="Rasterio"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Rasterio</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create a DataSource using Rasterio.</span>
 <span class="sd"> </span>
@@ -860,8 +862,22 @@
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">)])</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nan_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">nodatavals</span><span class="p">)</span>
+
     <span class="c1"># node attrs</span>
-    <span class="n">band</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CInt</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">band</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CInt</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;band&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_band_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">band</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">band</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">band</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># All bands</span>
+        <span class="k">return</span> <span class="n">band</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -887,12 +903,12 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Rasterio.close_dataset"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Rasterio.close_dataset"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Closes the file for the datasource</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Rasterio.get_native_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="Rasterio.get_native_coordinates"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
 <span class="sd">        </span>
@@ -903,23 +919,20 @@
 
         <span class="c1"># check to see if the coordinates are rotated used affine</span>
         <span class="n">affine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">transform</span>
-        <span class="k">if</span> <span class="n">affine</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="n">affine</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Rotated coordinates are not yet supported&quot;</span><span class="p">)</span>
 
-        <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">crs</span><span class="o">.</span><span class="n">CRS</span><span class="p">):</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">crs</span><span class="o">.</span><span class="n">wkt</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;init&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
             <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">[</span><span class="s2">&quot;init&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">crs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">crs</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span><span class="o">.</span><span class="n">to_wkt</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unexpected rasterio crs &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
 
-        <span class="c1"># get bounds</span>
-        <span class="n">left</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">bounds</span>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">from_geotransform</span><span class="p">(</span><span class="n">affine</span><span class="o">.</span><span class="n">to_gdal</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span></div>
 
-        <span class="c1"># rasterio reads data upside-down from coordinate conventions, so lat goes from top to bottom</span>
-        <span class="n">lat</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span>
-        <span class="n">lon</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="Rasterio.get_data"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<div class="viewcode-block" id="Rasterio.get_data"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -928,7 +941,12 @@
 
         <span class="c1"># read data within coordinates_index window</span>
         <span class="n">window</span> <span class="o">=</span> <span class="p">((</span><span class="n">slc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">slc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">),</span> <span class="p">(</span><span class="n">slc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">slc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">))</span>
-        <span class="n">raster_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">,</span> <span class="n">out_shape</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># read all the bands</span>
+            <span class="n">raster_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">out_shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">),)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+            <span class="n">raster_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">raster_data</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># read the requested band</span>
+            <span class="n">raster_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">band</span><span class="p">,</span> <span class="n">out_shape</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
 
         <span class="c1"># set raster data to output array</span>
         <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="n">raster_data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
@@ -982,7 +1000,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_band_keys</span>
 
-<div class="viewcode-block" id="Rasterio.get_band_numbers"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_band_numbers">[docs]</a>    <span class="k">def</span> <span class="nf">get_band_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Rasterio.get_band_numbers"><a class="viewcode-back" href="../../../../user/api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_band_numbers">[docs]</a>    <span class="k">def</span> <span class="nf">get_band_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the bands that have a key equal to a specified value.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
