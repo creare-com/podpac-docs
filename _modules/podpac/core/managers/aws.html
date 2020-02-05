@@ -300,6 +300,24 @@
 <span class="sd">        Override :attr:`self.function_source_dist_key` and create lambda function using custom source podpac dist archive to :attr:`self.function_s3_bucket` during :meth:`self.build()` process.</span>
 <span class="sd">    function_tags : dict, optional</span>
 <span class="sd">        AWS Tags for Lambda function resource. Defaults to :dict:`podpac.settings[&quot;AWS_TAGS&quot;]` or {}.</span>
+<span class="sd">    function_budget_amount : float, optional</span>
+<span class="sd">        EXPERIMENTAL FEATURE</span>
+<span class="sd">        Monthly budget for function and associated AWS resources. </span>
+<span class="sd">        When usage reaches 80% of this amount, AWS will notify :attr:`function_budget_email`.</span>
+<span class="sd">        Defaults to :str:`podpac.settings[&quot;AWS_BUDGET_AMOUNT&quot;]`.</span>
+<span class="sd">    function_budget_email : str, optional</span>
+<span class="sd">        EXPERIMENTAL FEATURE</span>
+<span class="sd">        Email to notify when usage reaches 80% of :attr:`function_budget_amount`.</span>
+<span class="sd">        Defaults to :str:`podpac.settings[&quot;AWS_BUDGET_EMAIL&quot;]`.</span>
+<span class="sd">    function_budget_name : str, optional</span>
+<span class="sd">        EXPERIMENTAL FEATURE</span>
+<span class="sd">        Name for AWS budget</span>
+<span class="sd">    function_budget_currency : str, optional</span>
+<span class="sd">        EXPERIMENTAL FEATURE</span>
+<span class="sd">        Currency type for the :attr:`function_budget_amount`.</span>
+<span class="sd">        Defaults to &quot;USD&quot;.</span>
+<span class="sd">        See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/budgets.html#Budgets.Client.create_budget</span>
+<span class="sd">        for currency (or Unit) options.</span>
 <span class="sd">    session : :class:`podpac.managers.aws.Session`</span>
 <span class="sd">        AWS Session to use for this node.</span>
 <span class="sd">    source : :class:`podpac.Node`</span>
@@ -517,6 +535,25 @@
     <span class="k">def</span> <span class="nf">_function_api_tags_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_tags</span>
 
+    <span class="c1"># budget parameters</span>
+    <span class="n">function_budget_amount</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># see default below</span>
+    <span class="n">function_budget_email</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># see default below</span>
+    <span class="n">function_budget_name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># see default below</span>
+    <span class="n">function_budget_currency</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;USD&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_budget</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># raw response from AWS on &quot;get_&quot;</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;function_budget_amount&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_function_budget_amount_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;AWS_BUDGET_AMOUNT&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="kc">None</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;function_budget_email&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_function_budget_email_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;AWS_BUDGET_EMAIL&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="kc">None</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;function_budget_name&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_function_budget_name_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">-budget&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">function_name</span><span class="p">)</span>
+
     <span class="c1"># podpac node parameters</span>
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">source_output_format</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;netcdf&quot;</span><span class="p">)</span>
@@ -617,6 +654,10 @@
         <span class="c1"># create S3 bucket - this will skip pieces that already exist</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">create_bucket</span><span class="p">()</span>
 
+        <span class="c1"># create budget, if defined</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_amount</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_budget</span><span class="p">()</span>
+
         <span class="c1"># check to see if setup is valid after creation</span>
         <span class="c1"># TODO: remove this in favor of something more granular??</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">raise_exceptions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -649,6 +690,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">get_function</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">get_api</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_budget</span><span class="p">()</span>
 
         <span class="c1"># check that each resource has a valid configuration</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_role</span><span class="p">():</span>
@@ -662,6 +704,9 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_api</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">_raise</span><span class="p">(</span><span class="s2">&quot;Failed to validate API&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_budget</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">_raise</span><span class="p">(</span><span class="s2">&quot;Failed to validate budget&quot;</span><span class="p">)</span>
 
         <span class="c1"># check that the integration of resources is correct</span>
 
@@ -689,6 +734,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">delete_role</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">delete_api</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">delete_bucket</span><span class="p">(</span><span class="n">delete_objects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">delete_budget</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You must pass confirm=True to delete all AWS resources&quot;</span><span class="p">)</span></div>
 
@@ -745,6 +791,30 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">api_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
+        <span class="c1"># only show budget if its defined</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_amount</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">budget_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    Budget</span>
+<span class="s2">        Name: </span><span class="si">{function_budget_name}</span><span class="s2"></span>
+<span class="s2">        Amount: </span><span class="si">{function_budget_amount}</span><span class="s2"></span>
+<span class="s2">        Currency: </span><span class="si">{function_budget_currency}</span><span class="s2"></span>
+<span class="s2">        E-mail: </span><span class="si">{function_budget_email}</span><span class="s2"></span>
+<span class="s2">        Spent: </span><span class="si">{function_budget_usage}</span><span class="s2"> </span><span class="si">{function_budget_usage_currency}</span><span class="s2"></span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">function_budget_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_budget_name</span><span class="p">,</span>
+                <span class="n">function_budget_amount</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_budget_amount</span><span class="p">,</span>
+                <span class="n">function_budget_currency</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_budget_currency</span><span class="p">,</span>
+                <span class="n">function_budget_email</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_budget_email</span><span class="p">,</span>
+                <span class="n">function_budget_usage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_budget</span><span class="p">[</span><span class="s2">&quot;CalculatedSpend&quot;</span><span class="p">][</span><span class="s2">&quot;ActualSpend&quot;</span><span class="p">][</span><span class="s2">&quot;Amount&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_budget</span>
+                <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">function_budget_usage_currency</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_budget</span><span class="p">[</span><span class="s2">&quot;CalculatedSpend&quot;</span><span class="p">][</span><span class="s2">&quot;ActualSpend&quot;</span><span class="p">][</span><span class="s2">&quot;Unit&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_budget</span>
+                <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">budget_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
         <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">Lambda Node </span><span class="si">{status}</span><span class="s2"></span>
 <span class="s2">    Function</span>
@@ -779,6 +849,8 @@
 <span class="s2">        Tags: </span><span class="si">{function_role_tags}</span><span class="s2"></span>
 
 <span class="s2">        </span><span class="si">{api_output}</span><span class="s2"></span>
+
+<span class="s2">        </span><span class="si">{budget_output}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">,</span>
             <span class="n">function_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_name</span><span class="p">,</span>
@@ -807,6 +879,7 @@
             <span class="n">function_role_tags</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_role_tags</span><span class="p">,</span>
             <span class="n">_function_role_arn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_function_role_arn</span><span class="p">,</span>
             <span class="n">api_output</span><span class="o">=</span><span class="n">api_output</span><span class="p">,</span>
+            <span class="n">budget_output</span><span class="o">=</span><span class="n">budget_output</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
@@ -825,6 +898,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_restrict_pipelines</span><span class="p">:</span>
             <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Lambda function will only run for pipelines: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">function_restrict_pipelines</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">function_env_variables</span><span class="p">[</span><span class="s2">&quot;PODPAC_RESTRICT_PIPELINES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">function_restrict_pipelines</span><span class="p">)</span>
+
+        <span class="c1"># add special tag - value is hash, for lack of better value at this point</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function_tags</span><span class="p">[</span><span class="s2">&quot;_podpac_resource_hash&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span>
 
         <span class="c1"># if function already exists, this will return existing function</span>
         <span class="n">function</span> <span class="o">=</span> <span class="n">create_function</span><span class="p">(</span>
@@ -945,6 +1021,10 @@
 <div class="viewcode-block" id="Lambda.create_role"><a class="viewcode-back" href="../../../../user/api/podpac.managers.Lambda.html#podpac.managers.Lambda.create_role">[docs]</a>    <span class="k">def</span> <span class="nf">create_role</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create IAM role to execute podpac lambda function</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># add special tag - value is hash</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function_role_tags</span><span class="p">[</span><span class="s2">&quot;_podpac_resource_hash&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span>
+
         <span class="n">role</span> <span class="o">=</span> <span class="n">create_role</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">function_role_name</span><span class="p">,</span>
@@ -1031,6 +1111,9 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_function_role_arn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Function role must be created before creating a bucket&quot;</span><span class="p">)</span>
+
+        <span class="c1"># add special tags - value is hash</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function_s3_tags</span><span class="p">[</span><span class="s2">&quot;_podpac_resource_hash&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span>
 
         <span class="c1"># create bucket</span>
         <span class="n">bucket</span> <span class="o">=</span> <span class="n">create_bucket</span><span class="p">(</span>
@@ -1163,6 +1246,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_function_arn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Lambda function must be created before creating an API bucket&quot;</span><span class="p">)</span>
 
+        <span class="c1"># add special tag - value is hash</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function_api_tags</span><span class="p">[</span><span class="s2">&quot;_podpac_resource_hash&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span>
+
         <span class="c1"># create api and resource</span>
         <span class="n">api</span> <span class="o">=</span> <span class="n">create_api</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
@@ -1259,6 +1345,67 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_function_api_id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_function_api_url</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_function_api_resource_id</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    <span class="c1"># Function budget</span>
+<div class="viewcode-block" id="Lambda.create_budget"><a class="viewcode-back" href="../../../../user/api/podpac.managers.Lambda.html#podpac.managers.Lambda.create_budget">[docs]</a>    <span class="k">def</span> <span class="nf">create_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        EXPERIMENTAL FEATURE</span>
+<span class="sd">        Create budget for lambda function based on node hash.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;Creating an AWS Budget with PODPAC is an experimental feature. Please continue to monitor AWS usage costs seperately.&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">budget</span> <span class="o">=</span> <span class="n">create_budget</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_amount</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_email</span><span class="p">,</span>
+            <span class="n">budget_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_budget_name</span><span class="p">,</span>
+            <span class="n">budget_currency</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_budget_currency</span><span class="p">,</span>
+            <span class="n">budget_filter_tags</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;_podpac_resource_hash&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_budget</span><span class="p">(</span><span class="n">budget</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Lambda.get_budget"><a class="viewcode-back" href="../../../../user/api/podpac.managers.Lambda.html#podpac.managers.Lambda.get_budget">[docs]</a>    <span class="k">def</span> <span class="nf">get_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        EXPERIMENTAL FEATURE</span>
+<span class="sd">        Get budget definition for function</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            See :func:`podpac.managers.aws.get_budget`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">budget</span> <span class="o">=</span> <span class="n">get_budget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_budget</span><span class="p">(</span><span class="n">budget</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">budget</span></div>
+
+<div class="viewcode-block" id="Lambda.validate_budget"><a class="viewcode-back" href="../../../../user/api/podpac.managers.Lambda.html#podpac.managers.Lambda.validate_budget">[docs]</a>    <span class="k">def</span> <span class="nf">validate_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Validate budget definition for function</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            See :func:`podpac.managers.aws.get_budget`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_budget</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Lambda.delete_budget"><a class="viewcode-back" href="../../../../user/api/podpac.managers.Lambda.html#podpac.managers.Lambda.delete_budget">[docs]</a>    <span class="k">def</span> <span class="nf">delete_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete budget associated with function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_budget</span><span class="p">()</span>
+
+        <span class="c1"># delete budget</span>
+        <span class="n">delete_budget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_name</span><span class="p">)</span>
+
+        <span class="c1"># reset class attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_budget</span> <span class="o">=</span> <span class="kc">None</span></div>
 
     <span class="c1"># Logs</span>
 <div class="viewcode-block" id="Lambda.get_logs"><a class="viewcode-back" href="../../../../user/api/podpac.managers.Lambda.html#podpac.managers.Lambda.get_logs">[docs]</a>    <span class="k">def</span> <span class="nf">get_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1377,6 +1524,26 @@
 
             <span class="c1"># store a copy of the whole response from AWS</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_api</span> <span class="o">=</span> <span class="n">api</span>
+
+    <span class="k">def</span> <span class="nf">_set_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">budget</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set budget class members</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        budget : dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">budget</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">budget_filter_tags</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;_podpac_resource_hash&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">hash</span><span class="p">}</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;function_budget_amount&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">budget</span><span class="p">[</span><span class="s2">&quot;BudgetLimit&quot;</span><span class="p">][</span><span class="s2">&quot;Amount&quot;</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;function_budget_name&quot;</span><span class="p">,</span> <span class="n">budget</span><span class="p">[</span><span class="s2">&quot;BudgetName&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;function_budget_currency&quot;</span><span class="p">,</span> <span class="n">budget</span><span class="p">[</span><span class="s2">&quot;BudgetLimit&quot;</span><span class="p">][</span><span class="s2">&quot;Unit&quot;</span><span class="p">])</span>
+
+            <span class="c1"># TODO</span>
+            <span class="c1"># self.set_trait(&quot;function_budget_email&quot;, budget[&quot;BudgetLimit&quot;][&quot;Amount&quot;]))</span>
+
+            <span class="c1"># store a copy of the whole response from AWS</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_budget</span> <span class="o">=</span> <span class="n">budget</span>
 
     <span class="k">def</span> <span class="nf">_create_eval_pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;shorthand to create pipeline on eval&quot;&quot;&quot;</span>
@@ -1587,7 +1754,7 @@
 <span class="sd">    bucket_policy : dict, optional</span>
 <span class="sd">        Bucket policy document as dict. For parameters, see https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketPolicy.html#API_PutBucketPolicy_RequestSyntax </span>
 <span class="sd">    bucket_tags : dict, optional</span>
-<span class="sd">        Description</span>
+<span class="sd">        Bucket tags</span>
 <span class="sd">    </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -1609,6 +1776,9 @@
 
     <span class="k">if</span> <span class="n">bucket_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`bucket_name` is None in create_bucket&quot;</span><span class="p">)</span>
+
+    <span class="c1"># add special podpac tags for billing id</span>
+    <span class="n">bucket_tags</span><span class="p">[</span><span class="s2">&quot;_podpac_resource&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span>
 
     <span class="c1"># bucket configuration</span>
     <span class="n">bucket_config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ACL&quot;</span><span class="p">:</span> <span class="s2">&quot;private&quot;</span><span class="p">,</span> <span class="s2">&quot;Bucket&quot;</span><span class="p">:</span> <span class="n">bucket_name</span><span class="p">}</span>
@@ -1872,6 +2042,9 @@
     <span class="k">if</span> <span class="n">function_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`function_name` is None in create_function&quot;</span><span class="p">)</span>
 
+    <span class="c1"># add special podpac tags for billing id</span>
+    <span class="n">function_tags</span><span class="p">[</span><span class="s2">&quot;_podpac_resource&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span>
+
     <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating lambda function </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">function_name</span><span class="p">))</span>
     <span class="n">awslambda</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;lambda&quot;</span><span class="p">)</span>
 
@@ -2104,7 +2277,7 @@
     <span class="n">role_policy_document</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">role_policy_arns</span><span class="o">=</span><span class="p">[],</span>
     <span class="n">role_assume_policy_document</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">role_tags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">role_tags</span><span class="o">=</span><span class="p">{},</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create IAM role</span>
 <span class="sd">    </span>
@@ -2154,6 +2327,9 @@
             <span class="p">],</span>
         <span class="p">}</span>
 
+    <span class="c1"># add special podpac tags for billing id</span>
+    <span class="n">role_tags</span><span class="p">[</span><span class="s2">&quot;_podpac_resource&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span>
+
     <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating IAM role </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">role_name</span><span class="p">))</span>
     <span class="n">iam</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;iam&quot;</span><span class="p">)</span>
 
@@ -2164,11 +2340,10 @@
     <span class="p">}</span>
 
     <span class="c1"># for some reason the tags API is different here</span>
-    <span class="k">if</span> <span class="n">role_tags</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">tags</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">role_tags</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="n">role_tags</span><span class="p">[</span><span class="n">key</span><span class="p">]})</span>
-        <span class="n">iam_config</span><span class="p">[</span><span class="s2">&quot;Tags&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tags</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">role_tags</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="n">role_tags</span><span class="p">[</span><span class="n">key</span><span class="p">]})</span>
+    <span class="n">iam_config</span><span class="p">[</span><span class="s2">&quot;Tags&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tags</span>
 
     <span class="c1"># create role</span>
     <span class="n">iam</span><span class="o">.</span><span class="n">create_role</span><span class="p">(</span><span class="o">**</span><span class="n">iam_config</span><span class="p">)</span>
@@ -2360,6 +2535,9 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">api</span>
 
+    <span class="c1"># add special podpac tags for billing id</span>
+    <span class="n">api_tags</span><span class="p">[</span><span class="s2">&quot;_podpac_resource&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span>
+
     <span class="n">apigateway</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;apigateway&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">api</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2519,6 +2697,184 @@
     <span class="n">apigateway</span><span class="o">.</span><span class="n">delete_rest_api</span><span class="p">(</span><span class="n">restApiId</span><span class="o">=</span><span class="n">api</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
 
     <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Successfully removed API Gateway with ID </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">api</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]))</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
+<span class="c1"># Budget</span>
+<span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
+
+<span class="c1"># Budget</span>
+<span class="k">def</span> <span class="nf">create_budget</span><span class="p">(</span>
+    <span class="n">session</span><span class="p">,</span>
+    <span class="n">budget_amount</span><span class="p">,</span>
+    <span class="n">budget_email</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">budget_name</span><span class="o">=</span><span class="s2">&quot;podpac-resource-budget&quot;</span><span class="p">,</span>
+    <span class="n">budget_currency</span><span class="o">=</span><span class="s2">&quot;USD&quot;</span><span class="p">,</span>
+    <span class="n">budget_threshold</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span>
+    <span class="n">budget_filter_tags</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;_podpac_resource&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">},</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    EXPERIMENTAL FEATURE</span>
+<span class="sd">    Create a budget for podpac AWS resources based on tags.</span>
+<span class="sd">    By default, this creates a budget for all podpac created resources with the tag: {&quot;_podpac_resource&quot;: &quot;true&quot;}</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    session : :class:`Session`</span>
+<span class="sd">        AWS Boto3 Session. See :class:`Session` for creation.</span>
+<span class="sd">    budget_amount : int</span>
+<span class="sd">        Budget amount</span>
+<span class="sd">    budget_email : str, optional</span>
+<span class="sd">        Notification e-mail for budget alerts.</span>
+<span class="sd">        If no e-mail is provided, the budget must be monitored through the AWS interface.</span>
+<span class="sd">    budget_name : str, optional</span>
+<span class="sd">        Budget name</span>
+<span class="sd">    budget_currency : str, optional</span>
+<span class="sd">        Currency unit for budget. Defaults to &quot;USD&quot;.</span>
+<span class="sd">        See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/budgets.html#Budgets.Client.describe_budget</span>
+<span class="sd">        for Unit types.</span>
+<span class="sd">    budget_threshold : float, optional</span>
+<span class="sd">        Percent of the budget at which an e-mail notification is sent.</span>
+<span class="sd">    budget_filter_tags : dict, optional</span>
+<span class="sd">        Create budget for specific set of resource tags.</span>
+<span class="sd">        By default, the budget is created for all podpac created resources.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Returns Boto3 budget description</span>
+<span class="sd">        Equivalent to https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/budgets.html#Budgets.Client.describe_budget</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># see if budget already exists</span>
+    <span class="n">budget</span> <span class="o">=</span> <span class="n">get_budget</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">budget_name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">budget</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Budget &#39;</span><span class="si">{}</span><span class="s2">&#39; already exists. Using existing budget&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">budget_name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">budget</span>
+
+    <span class="c1"># format tags - this is a strange syntax discovered through inspection of boto3</span>
+    <span class="n">filter_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;user:</span><span class="si">{}</span><span class="s2">$</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">budget_filter_tags</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+    <span class="n">budgets</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;budgets&quot;</span><span class="p">)</span>
+
+    <span class="c1"># budget definition</span>
+    <span class="n">budget_definition</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;AccountId&quot;</span><span class="p">:</span> <span class="n">session</span><span class="o">.</span><span class="n">get_account_id</span><span class="p">(),</span>
+        <span class="s2">&quot;Budget&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;BudgetName&quot;</span><span class="p">:</span> <span class="n">budget_name</span><span class="p">,</span>
+            <span class="s2">&quot;BudgetLimit&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Amount&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">budget_amount</span><span class="p">),</span> <span class="s2">&quot;Unit&quot;</span><span class="p">:</span> <span class="n">budget_currency</span><span class="p">},</span>
+            <span class="s2">&quot;CostFilters&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;TagKeyValue&quot;</span><span class="p">:</span> <span class="n">filter_tags</span><span class="p">},</span>
+            <span class="s2">&quot;CostTypes&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;IncludeTax&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;IncludeSubscription&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;UseBlended&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;IncludeRefund&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;IncludeCredit&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;IncludeUpfront&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;IncludeRecurring&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;IncludeOtherSubscription&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;IncludeSupport&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;IncludeDiscount&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;UseAmortized&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;TimeUnit&quot;</span><span class="p">:</span> <span class="s2">&quot;MONTHLY&quot;</span><span class="p">,</span>  <span class="c1"># only support monthly for now</span>
+            <span class="s2">&quot;BudgetType&quot;</span><span class="p">:</span> <span class="s2">&quot;COST&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="c1"># handle e-mail and notifications</span>
+    <span class="k">if</span> <span class="n">budget_email</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;No notification e-mail provided for AWS Budget. This budget must be monitored through the AWS interface.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">budget_definition</span><span class="p">[</span><span class="s2">&quot;NotificationsWithSubscribers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Notification&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;NotificationType&quot;</span><span class="p">:</span> <span class="s2">&quot;ACTUAL&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;ComparisonOperator&quot;</span><span class="p">:</span> <span class="s2">&quot;GREATER_THAN&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Threshold&quot;</span><span class="p">:</span> <span class="n">budget_threshold</span><span class="p">,</span>
+                    <span class="s2">&quot;ThresholdType&quot;</span><span class="p">:</span> <span class="s2">&quot;PERCENTAGE&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;NotificationState&quot;</span><span class="p">:</span> <span class="s2">&quot;ALARM&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;Subscribers&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;SubscriptionType&quot;</span><span class="p">:</span> <span class="s2">&quot;EMAIL&quot;</span><span class="p">,</span> <span class="s2">&quot;Address&quot;</span><span class="p">:</span> <span class="n">budget_email</span><span class="p">}],</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+    <span class="c1"># create budget</span>
+    <span class="n">budgets</span><span class="o">.</span><span class="n">create_budget</span><span class="p">(</span><span class="o">**</span><span class="n">budget_definition</span><span class="p">)</span>
+
+    <span class="c1"># alert the user that they must activate tags</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;To finalize budget creation, you must visit https://console.aws.amazon.com/billing/home#/preferences/tags and &#39;Activate&#39; the following User Defined Cost Allocation tags: </span><span class="si">{}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">Budget tracking will not work if these User Defined Cost Allocation tags are not active.</span><span class="se">\n</span><span class="s2">Budget creation and usage updates may take 24 hours to take effect.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">budget_filter_tags</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># get finalized budget</span>
+    <span class="n">budget</span> <span class="o">=</span> <span class="n">get_budget</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">budget_name</span><span class="p">)</span>
+    <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Successfully created budget &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">budget_name</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">budget</span>
+
+
+<span class="k">def</span> <span class="nf">get_budget</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">budget_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    EXPERIMENTAL FEATURE</span>
+<span class="sd">    Get a budget by name</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    session : :class:`Session`</span>
+<span class="sd">        AWS Boto3 Session. See :class:`Session` for creation.</span>
+<span class="sd">    budget_name : str</span>
+<span class="sd">        Budget name</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Returns Boto3 budget description</span>
+<span class="sd">        Equivalent to https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/budgets.html#Budgets.Client.describe_budget</span>
+<span class="sd">        Returns None if budget is not found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Getting budget with name </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">budget_name</span><span class="p">))</span>
+    <span class="n">budgets</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;budgets&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">budgets</span><span class="o">.</span><span class="n">describe_budget</span><span class="p">(</span><span class="n">AccountId</span><span class="o">=</span><span class="n">session</span><span class="o">.</span><span class="n">get_account_id</span><span class="p">(),</span> <span class="n">BudgetName</span><span class="o">=</span><span class="n">budget_name</span><span class="p">)</span>
+        <span class="n">budget</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;Budget&quot;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">botocore</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ParamValidationError</span><span class="p">,</span> <span class="n">budgets</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">NotFoundException</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to get budget with name </span><span class="si">{}</span><span class="s2"> with exception: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">budget_name</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">budget</span>
+
+
+<span class="k">def</span> <span class="nf">delete_budget</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">budget_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Delete a budget by name</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    session : :class:`Session`</span>
+<span class="sd">        AWS Boto3 Session. See :class:`Session` for creation.</span>
+<span class="sd">    budget_name : str</span>
+<span class="sd">        Budget name</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">budgets</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;budgets&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">budgets</span><span class="o">.</span><span class="n">delete_budget</span><span class="p">(</span><span class="n">AccountId</span><span class="o">=</span><span class="n">session</span><span class="o">.</span><span class="n">get_account_id</span><span class="p">(),</span> <span class="n">BudgetName</span><span class="o">=</span><span class="n">budget_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">budgets</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">NotFoundException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Successfully removed budget with name &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">budget_name</span><span class="p">))</span>
 
 
 <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
