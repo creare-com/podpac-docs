@@ -686,7 +686,7 @@
         <span class="c1"># perhaps we just want to improve the &quot;create_&quot; methods to be self-healing</span>
 
         <span class="k">def</span> <span class="nf">_raise</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">raise_exceptions</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1359,6 +1359,11 @@
 <span class="sd">        EXPERIMENTAL FEATURE</span>
 <span class="sd">        Create budget for lambda function based on node hash.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># skip if no budget provided</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_amount</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Skipping Budget creation because function budget is not defined&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
         <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
             <span class="s2">&quot;Creating an AWS Budget with PODPAC is an experimental feature. Please continue to monitor AWS usage costs seperately.&quot;</span>
         <span class="p">)</span>
@@ -1384,6 +1389,12 @@
 <span class="sd">        dict</span>
 <span class="sd">            See :func:`podpac.managers.aws.get_budget`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># skip if no budget provided</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_amount</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Skipping Budget request because function budget is not defined&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
         <span class="n">budget</span> <span class="o">=</span> <span class="n">get_budget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_budget</span><span class="p">(</span><span class="n">budget</span><span class="p">)</span>
 
@@ -1397,6 +1408,11 @@
 <span class="sd">        dict</span>
 <span class="sd">            See :func:`podpac.managers.aws.get_budget`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># skip if no budget provided</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_budget_amount</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Skipping Budget validation because function budget is not defined&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_budget</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
