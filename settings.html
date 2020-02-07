@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Settings &mdash; 1.2.0</title>
+  <title>Settings &mdash; 1.3.0</title>
   
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                1.2.0
+                1.3.0
               </div>
             
           
@@ -97,26 +97,29 @@
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Settings</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#load-settings-from-default-paths">Load Settings from Default Paths</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#load-settings-from-a-custom-path">Load Settings from a Custom Path</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#active-settings-file">Active Settings File</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#save-settings">Save Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#default-settings">Default Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#details-on-specific-settings">Details on Specific Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#view-settings">View Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#edit-settings">Edit Settings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#as-a-dictionary">As a Dictionary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#as-a-json-file">As a JSON file</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="earthdata.html">NASA Earth Data Login</a></li>
-<li class="toctree-l1"><a class="reference internal" href="aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws.html">AWS Integration</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="why-podpac.html">Why PODPAC?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dependencies.html">Dependencies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nodes.html">Nodes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coordinates.html">Coordinates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipelines.html">Pipelines</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cache.html">Cache</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">Supported Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="earthdata.html">NASA Earth Data Login</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aws-development.html">AWS Development</a></li>
 </ul>
 <p class="caption"><span class="caption-text">References</span></p>
 <ul>
@@ -125,10 +128,10 @@
 <p class="caption"><span class="caption-text">Support</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="design.html">Design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Development Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
 
             
@@ -195,177 +198,159 @@
             
   <div class="section" id="settings">
 <h1>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h1>
-<p>PODPAC settings are accessed through the <code class="docutils literal notranslate"><span class="pre">podpac.settings</span></code> module.
-The settings are stored in a dictionary format:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+<p>This tutorial describes methods for viewing and editing PODPAC settings used to configure the features of the library.</p>
+<p>To follow along, open a Python interpreter or Jupyter notebook in the Python environment where PODPAC is installed.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># activate the PODPAC environment, using anaconda
+$ conda activate podpac
 
-<span class="nb">print</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+# open jupyter lab
+$ jupyter lab
 
-<span class="o">&gt;&gt;&gt;</span> <span class="p">{</span>
-        <span class="s1">&#39;DEBUG&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;CACHE_DIR&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s1">&#39;CACHE_TO_S3&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">:</span> <span class="s1">&#39;/Users/user/.podpac&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;AWS_ACCESS_KEY_ID&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s1">&#39;AWS_SECRET_ACCESS_KEY&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s1">&#39;AWS_REGION_NAME&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s1">&#39;S3_BUCKET_NAME&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s1">&#39;S3_JSON_FOLDER&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s1">&#39;S3_OUTPUT_FOLDER&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="s1">&#39;AUTOSAVE_SETTINGS&#39;</span><span class="p">:</span> <span class="kc">False</span>
-    <span class="p">}</span>
+# or start a ipython interpreter
+$ ipython
 </pre></div>
 </div>
-<p>These settings can be pre-configured by creating a custom <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> in the current working directory,
-the podpac root directory, or a directory specified by the user at runtime.</p>
-<div class="section" id="load-settings-from-default-paths">
-<h2>Load Settings from Default Paths<a class="headerlink" href="#load-settings-from-default-paths" title="Permalink to this headline">¶</a></h2>
-<p>You can override default podpac settings by creating a <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> file in one of two places:</p>
+<div class="section" id="view-settings">
+<h2>View Settings<a class="headerlink" href="#view-settings" title="Permalink to this headline">¶</a></h2>
+<p>PODPAC settings are accessed through the <code class="docutils literal notranslate"><span class="pre">podpac.settings</span></code> module.
+Import the settings module:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+</pre></div>
+</div>
+<p>The settings are stored in a dictionary format, accessible in the interpreter:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+<span class="p">{</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+ <span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">:</span> <span class="s1">&#39;C:</span><span class="se">\\</span><span class="s1">Users</span><span class="se">\\</span><span class="s1">user</span><span class="se">\\</span><span class="s1">.podpac&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;AUTOSAVE_SETTINGS&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+ <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>To view the default settings, view <code class="docutils literal notranslate"><span class="pre">settings.defaults</span></code>:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">settings</span><span class="o">.</span><span class="n">defaults</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+<span class="p">{</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+ <span class="s1">&#39;ROOT_PATH&#39;</span><span class="p">:</span> <span class="s1">&#39;C:</span><span class="se">\\</span><span class="s1">Users</span><span class="se">\\</span><span class="s1">user</span><span class="se">\\</span><span class="s1">.podpac&#39;</span><span class="p">,</span>
+ <span class="s1">&#39;AUTOSAVE_SETTINGS&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+ <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For documentation on individual PODPAC settings, view the <code class="docutils literal notranslate"><span class="pre">podpac.settings</span></code> module docstring:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span><span class="nb">print</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+
+    <span class="n">Persistently</span> <span class="n">stored</span> <span class="n">podpac</span> <span class="n">settings</span>
+
+    <span class="n">Podpac</span> <span class="n">settings</span> <span class="n">are</span> <span class="n">persistently</span> <span class="n">stored</span> <span class="ow">in</span><span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="edit-settings">
+<h2>Edit Settings<a class="headerlink" href="#edit-settings" title="Permalink to this headline">¶</a></h2>
+<p>PODPAC settings can be edited multiple ways:</p>
 <ul class="simple">
-<li><p>the podpac <code class="docutils literal notranslate"><span class="pre">ROOT_PATH</span></code>. By default this is a <code class="docutils literal notranslate"><span class="pre">.podpac</span></code> directory in the users home directory (i.e. <code class="docutils literal notranslate"><span class="pre">~/.podpac/settings.json</span></code>).</p></li>
-<li><p>the current working directory (i.e. <code class="docutils literal notranslate"><span class="pre">./settings.json</span></code>)</p></li>
+<li><p><a class="reference external" href="#as-a-dictionary">As a dictionary</a>: For interactive and dynamic changes</p></li>
+<li><p><a class="reference external" href="#as-a-json-file">As a JSON file</a>: For consistent configurations across installations</p></li>
 </ul>
-<p>If <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> files exist in multiple places, podpac will load settings in the following order,
+<div class="section" id="as-a-dictionary">
+<h3>As a Dictionary<a class="headerlink" href="#as-a-dictionary" title="Permalink to this headline">¶</a></h3>
+<p>Since the <code class="docutils literal notranslate"><span class="pre">podpac.settings</span></code> module is a dictionary, the simplest way to edit settings is to directly set values:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;CACHE_OUTPUT_DEFAULT&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>These changed settings will only be active for current interpreter session (or script).
+Close and reopen a new interpreter session and you will see the settings values are back to default:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>To persistently save changes to <code class="docutils literal notranslate"><span class="pre">settings</span></code> values, run <code class="docutils literal notranslate"><span class="pre">settings.save()</span></code> after making changes:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">settings</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To auto-save settings on <em>any</em> changes, set the <code class="docutils literal notranslate"><span class="pre">settings[&quot;AUTOSAVE_SETTINGS&quot;]</span></code> value to <code class="docutils literal notranslate"><span class="pre">True</span></code>:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;AUTOSAVE_SETTINGS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>To reset settings to defaults, call the <code class="docutils literal notranslate"><span class="pre">settings.reset()</span></code> method.
+To persistently reset defaults, call the <code class="docutils literal notranslate"><span class="pre">settings.save()</span></code> method after calling <code class="docutils literal notranslate"><span class="pre">settings.reset()</span></code>:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">settings</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>   <span class="c1"># to persistently reset defaults</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="as-a-json-file">
+<h3>As a JSON file<a class="headerlink" href="#as-a-json-file" title="Permalink to this headline">¶</a></h3>
+<p>PODPAC settings can be pre-configured by creating a custom <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> file.</p>
+<p>Create a <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> file in the current working directory:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;DEBUG&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;S3_BUCKET_NAME&quot;</span><span class="p">:</span> <span class="s2">&quot;podpac-bucket&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Open a new interpreter and load the <code class="docutils literal notranslate"><span class="pre">podpac.settings</span></code> module to see the overwritten values:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>This file can also be placed in the the PODPAC root directory.
+To see the PODPAC root directory, view <code class="docutils literal notranslate"><span class="pre">settings[&quot;ROOT_PATH&quot;]</span></code>:</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ROOT_PATH&quot;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="s1">&#39;C:</span><span class="se">\\</span><span class="s1">Users</span><span class="se">\\</span><span class="s1">user</span><span class="se">\\</span><span class="s1">.podpac&#39;</span>
+</pre></div>
+</div>
+<p>Edit the <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> file in the <code class="docutils literal notranslate"><span class="pre">&quot;ROOT_PATH&quot;</span></code> location, then open a new interpreter and load the <code class="docutils literal notranslate"><span class="pre">podpac.settings</span></code> module to see the overwritten values:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;DISK_CACHE_MAX_BYTES &quot;</span><span class="p">:</span> <span class="mf">1e9</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DISK_CACHE_MAX_BYTES&quot;</span><span class="p">]</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>  <span class="mf">1000000000.0</span>
+</pre></div>
+</div>
+<p>If a <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> files exist in multiple places, PODPAC will load settings in the following order,
 overwriting previously loaded settings in the process:</p>
 <ul class="simple">
 <li><p>podpac default settings</p></li>
 <li><p>home directory settings (<code class="docutils literal notranslate"><span class="pre">~/.podpac/settings.json</span></code>)</p></li>
 <li><p>current working directory settings (<code class="docutils literal notranslate"><span class="pre">./settings.json</span></code>)</p></li>
 </ul>
-</div>
-<div class="section" id="load-settings-from-a-custom-path">
-<h2>Load Settings from a Custom Path<a class="headerlink" href="#load-settings-from-a-custom-path" title="Permalink to this headline">¶</a></h2>
-<p>You can also load a <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> file from outside of the podpac <code class="docutils literal notranslate"><span class="pre">ROOT_PATH</span></code> or current working directory using the <code class="docutils literal notranslate"><span class="pre">settings.load()</span></code> method:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
-
-<span class="n">settings</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;custom/path/&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;settings.json&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="active-settings-file">
-<h2>Active Settings File<a class="headerlink" href="#active-settings-file" title="Permalink to this headline">¶</a></h2>
 <p>The attribute <code class="docutils literal notranslate"><span class="pre">settings.settings_path</span></code> shows the path of the last loaded settings file (e.g. the active settings file).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">settings_path</span><span class="p">)</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="o">.</span><span class="n">settings_path</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="s1">&#39;C:</span><span class="se">\\</span><span class="s1">Users</span><span class="se">\\</span><span class="s1">user</span><span class="se">\\</span><span class="s1">.podpac&#39;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="save-settings">
-<h2>Save Settings<a class="headerlink" href="#save-settings" title="Permalink to this headline">¶</a></h2>
-<p>The active settings file (<code class="docutils literal notranslate"><span class="pre">settings.settings_path</span></code>) can be saved by using the <code class="docutils literal notranslate"><span class="pre">settings.save()</span></code> method:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+<p>A <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> file can be loaded from outside the search path using the <code class="docutils literal notranslate"><span class="pre">settings.load()</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
 
-<span class="c1"># writes out current settings dictionary to json file at settings.settings_path</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">settings</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;custom/path/&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;settings.json&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>To keep the active settings file updated as changes are made to the settings dictionary at runtime,
-set the property <code class="docutils literal notranslate"><span class="pre">settings['AUTOSAVE_SETTINGS']</span></code> field to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
-</div>
-<div class="section" id="default-settings">
-<h2>Default Settings<a class="headerlink" href="#default-settings" title="Permalink to this headline">¶</a></h2>
-<p>The default settings can be accessed on the <code class="docutils literal notranslate"><span class="pre">settings.defaults</span></code> attribute.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="details-on-specific-settings">
-<h2>Details on Specific Settings<a class="headerlink" href="#details-on-specific-settings" title="Permalink to this headline">¶</a></h2>
-<p>For information on specific settings for your version of podpac see the settings module doc.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-<span class="go">&quot;&quot;&quot;</span>
-<span class="go">    Persistently stored podpac settings</span>
-
-<span class="go">    Podpac settings are persistently stored in a ``settings.json`` file created at runtime.</span>
-<span class="go">    By default, podpac will create a settings json file in the users</span>
-<span class="go">    home directory (``~/.podpac/settings.json``) when first run.</span>
-
-<span class="go">    Default settings can be overridden or extended by:</span>
-<span class="go">      * editing the ``settings.json`` file in the home directory (i.e. ``~/.podpac/settings.json``)</span>
-<span class="go">      * creating a ``settings.json`` in the current working directory (i.e. ``./settings.json``)</span>
-
-<span class="go">    If ``settings.json`` files exist in multiple places, podpac will load settings in the following order,</span>
-<span class="go">    overwriting previously loaded settings in the process:</span>
-<span class="go">      * podpac settings defaults</span>
-<span class="go">      * home directory settings (``~/.podpac/settings.json``)</span>
-<span class="go">      * current working directory settings (``./settings.json``)</span>
-
-<span class="go">    :attr:`settings.settings_path` shows the path of the last loaded settings file (e.g. the active settings file).</span>
-<span class="go">    To persistenyl update the active settings file as changes are made at runtime,</span>
-<span class="go">    set the ``settings[&#39;AUTOSAVE_SETTINGS&#39;]`` field to ``True``. The active setting file can be persistently</span>
-<span class="go">    saved at any time using :meth:`settings.save`.</span>
-
-<span class="go">    The default settings are shown below:</span>
-
-<span class="go">    Attributes</span>
-<span class="go">    ----------</span>
-<span class="go">    DEFAULT_CRS : str</span>
-<span class="go">        Default coordinate reference system for spatial coordinates. Defaults to &#39;EPSG:4326&#39;.</span>
-<span class="go">    AWS_ACCESS_KEY_ID : str</span>
-<span class="go">        The access key for your AWS account.</span>
-<span class="go">        See the `boto3 documentation</span>
-<span class="go">        &lt;https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variable-configuration&gt;`_</span>
-<span class="go">        for more details.</span>
-<span class="go">    AWS_SECRET_ACCESS_KEY : str</span>
-<span class="go">        The secret key for your AWS account.</span>
-<span class="go">        See the `boto3 documentation</span>
-<span class="go">        &lt;https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variable-configuration&gt;`_</span>
-<span class="go">        for more details.</span>
-<span class="go">    AWS_REGION_NAME : str</span>
-<span class="go">        Name of the AWS region, e.g. us-west-1, us-west-2, etc.</span>
-<span class="go">    DEFAULT_CACHE : list</span>
-<span class="go">        Defines a default list of cache stores in priority order. Defaults to `[&#39;ram&#39;]`.</span>
-<span class="go">    CACHE_OUTPUT_DEFAULT : bool</span>
-<span class="go">        Default value for node ``cache_output`` trait.</span>
-<span class="go">    RAM_CACHE_MAX_BYTES : int</span>
-<span class="go">        Maximum RAM cache size in bytes.</span>
-<span class="go">        Note, for RAM cache only, the limit is applied to the total amount of RAM used by the python process;</span>
-<span class="go">        not just the contents of the RAM cache. The python process will not be restrited by this limit,</span>
-<span class="go">        but once the limit is reached, additions to the cache will be subject to it.</span>
-<span class="go">        Defaults to ``1e9`` (~1G).</span>
-<span class="go">        Set to `None` explicitly for no limit.</span>
-<span class="go">    DISK_CACHE_MAX_BYTES : int</span>
-<span class="go">        Maximum disk space for use by the disk cache in bytes.</span>
-<span class="go">        Defaults to ``10e9`` (~10G).</span>
-<span class="go">        Set to `None` explicitly for no limit.</span>
-<span class="go">    S3_CACHE_MAX_BYTES : int</span>
-<span class="go">        Maximum storage space for use by the s3 cache in bytes.</span>
-<span class="go">        Defaults to ``10e9`` (~10G).</span>
-<span class="go">        Set to `None` explicitly for no limit.</span>
-<span class="go">    DISK_CACHE_DIR : str</span>
-<span class="go">        Subdirectory to use for the disk cache. Defaults to ``&#39;cache&#39;`` in the podpac root directory.</span>
-<span class="go">    S3_CACHE_DIR : str</span>
-<span class="go">        Subdirectory to use for S3 cache (within the specified S3 bucket). Defaults to ``&#39;cache&#39;``.</span>
-<span class="go">    RAM_CACHE_ENABLED: bool</span>
-<span class="go">        Enable caching to RAM. Note that if disabled, some nodes may fail. Defaults to ``True``.</span>
-<span class="go">    DISK_CACHE_ENABLED: bool</span>
-<span class="go">        Enable caching to disk. Note that if disabled, some nodes may fail. Defaults to ``True``.</span>
-<span class="go">    S3_CACHE_ENABLED: bool</span>
-<span class="go">        Enable caching to RAM. Note that if disabled, some nodes may fail. Defaults to ``True``.</span>
-<span class="go">    ROOT_PATH : str</span>
-<span class="go">        Path to primary podpac working directory. Defaults to the ``.podpac`` directory in the users home directory.</span>
-<span class="go">    S3_BUCKET_NAME : str</span>
-<span class="go">        The AWS S3 Bucket to use for cloud based processing.</span>
-<span class="go">    S3_JSON_FOLDER : str</span>
-<span class="go">        Folder within :attr:`S3_BUCKET_NAME` to use for cloud based processing.</span>
-<span class="go">    S3_OUTPUT_FOLDER : str</span>
-<span class="go">        Folder within :attr:`S3_BUCKET_NAME` to use for outputs.</span>
-<span class="go">    AUTOSAVE_SETTINGS: bool</span>
-<span class="go">        Save settings automatically as they are changed during runtime. Defaults to ``False``.</span>
-<span class="go">    MULTITHREADING: bool</span>
-<span class="go">        Uses multithreaded evaluation, when applicable. Defaults to ``False``.</span>
-<span class="go">    N_THREADS: int</span>
-<span class="go">        Number of threads to use (only if MULTITHREADING is True). Defaults to ``10``.</span>
-<span class="go">    CHUNK_SIZE: int, &#39;auto&#39;, None</span>
-<span class="go">        Chunk size for iterative evaluation, when applicable (e.g. Reduce Nodes). Use None for no iterative evaluation,</span>
-<span class="go">        and &#39;auto&#39; to automatically calculate a chunk size based on the system. Defaults to ``None``.</span>
-<span class="go">&quot;&quot;&quot;</span>
-<span class="go">&gt;&gt;&gt;</span>
-</pre></div>
 </div>
 </div>
 </div>

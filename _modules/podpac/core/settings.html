@@ -92,29 +92,36 @@
             
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../why-podpac.html">Why PODPAC?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html">Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../aws.html">AWS Integration</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../why-podpac.html">Why PODPAC?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../design.html">Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html">Nodes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coordinates.html">Coordinates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../pipelines.html">Pipelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cache.html">Cache</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">Supported Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../earthdata.html">NASA Earth Data Login</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../aws-development.html">AWS Development</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../roadmap.html">Development Roadmap</a></li>
-</ul>
-<p class="caption"><span class="caption-text">User Guide</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/settings.html">Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/coordinates.html">Coordinates</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/nodes.html">Nodes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/pipelines.html">Pipelines</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/cache.html">Cache</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/earthdata.html">NASA Earth Data Login</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/references.html">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/api.html">API Reference</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Developer Guide</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer/design.html">Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer/contributing.html">Contributing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer/aws.html">AWS Lambda</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer/docs.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 </ul>
 
             
@@ -472,6 +479,23 @@
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings_filepath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset settings to defaults.</span>
+
+<span class="sd">        This method will ignore the value in :attr:`AUTOSAVE_SETTINGS`.</span>
+<span class="sd">        To persistenly reset settings to defaults, call :meth:`settings.save()` after this method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># ignore autosave</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;AUTOSAVE_SETTINGS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># clear all values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># load default settings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_defaults</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;settings.json&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
