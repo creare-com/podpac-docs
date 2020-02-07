@@ -522,12 +522,14 @@
 
         <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">xcoord</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;outputs&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;output&quot;</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xcoord</span><span class="o">.</span><span class="n">indexes</span><span class="p">[</span><span class="n">dim</span><span class="p">],</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Float64Index</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Int64Index</span><span class="p">)):</span>
                 <span class="n">c</span> <span class="o">=</span> <span class="n">ArrayCoordinates1d</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">xcoord</span><span class="p">[</span><span class="n">dim</span><span class="p">])</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xcoord</span><span class="o">.</span><span class="n">indexes</span><span class="p">[</span><span class="n">dim</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">):</span>
                 <span class="n">c</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="o">.</span><span class="n">from_xarray</span><span class="p">(</span><span class="n">xcoord</span><span class="p">[</span><span class="n">dim</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span>
             <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">)</span></div>
@@ -666,7 +668,8 @@
             <span class="p">[</span>
                 <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">end</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shape</span><span class="p">[::</span><span class="n">order</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;lat&quot;</span><span class="p">),</span>
                 <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">shape</span><span class="p">[::</span><span class="n">order</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;lon&quot;</span><span class="p">),</span>
-            <span class="p">][::</span><span class="n">order</span><span class="p">]</span>
+            <span class="p">][::</span><span class="n">order</span><span class="p">],</span>
+            <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">coords</span></div>
 
