@@ -209,7 +209,6 @@
 
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># Core dependency of xarray</span>
 
 <span class="c1"># Optional Imports</span>
@@ -241,7 +240,7 @@
     <span class="k">return</span> <span class="n">_decorator</span>
 
 
-<span class="k">def</span> <span class="nf">trait_is_defined</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">trait_name</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">trait_is_defined</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">trait</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Utility method to determine if trait is defined on object without</span>
 <span class="sd">    call to default (@tl.default)</span>
 
@@ -249,7 +248,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    object : object</span>
 <span class="sd">        Class with traits</span>
-<span class="sd">    trait_name : str</span>
+<span class="sd">    trait : str</span>
 <span class="sd">        Class property to investigate</span>
 
 <span class="sd">    Returns</span>
@@ -258,16 +257,7 @@
 <span class="sd">        True if the trait exists on the object and is defined</span>
 <span class="sd">        False if the trait does not exist on the object or the trait is not defined</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">has_trait</span><span class="p">(</span><span class="n">trait_name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trait_name</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_trait_values</span>
-
-
-<span class="k">def</span> <span class="nf">trait_is_default</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">trait_name</span><span class="p">):</span>
-    <span class="n">trait</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">traits</span><span class="p">()[</span><span class="n">trait_name</span><span class="p">]</span>
-    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">trait_name</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trait</span><span class="o">.</span><span class="n">default_value</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">)):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">trait</span><span class="o">.</span><span class="n">default_value</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="n">trait</span><span class="o">.</span><span class="n">default_value</span>
+    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">has_trait</span><span class="p">(</span><span class="n">trait</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trait</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_trait_values</span>
 
 
 <span class="k">def</span> <span class="nf">create_logfile</span><span class="p">(</span>

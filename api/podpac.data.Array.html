@@ -223,8 +223,8 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.core.data.datasource.DataSource</span></code></p>
 <p>Create a DataSource from an array – this node is mostly meant for small experiments</p>
 <dl class="attribute">
-<dt id="podpac.data.Array.data">
-<code class="sig-name descname">data</code><a class="headerlink" href="#podpac.data.Array.data" title="Permalink to this definition">¶</a></dt>
+<dt id="podpac.data.Array.source">
+<code class="sig-name descname">source</code><a class="headerlink" href="#podpac.data.Array.source" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numpy array containing the source data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -256,7 +256,7 @@ cache behavior as having no cache – its data is in RAM already and caching is 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">),</span>
 <span class="go">                                 podpac.clinspace(1, 32, 32, &#39;lat&#39;),</span>
 <span class="go">                                 podpac.clinspace(1, 34, 34, &#39;lon&#39;)])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Array</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">native_coordinates</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Array</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">native_coordinates</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -306,29 +306,26 @@ cache behavior as having no cache – its data is in RAM already and caching is 
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.Array.get_data" title="podpac.data.Array.get_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data</span></code></a>(coordinates, coordinates_index)</p></td>
 <td><p>This method must be defined by the data source implementing the DataSource class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_cache</span></code>(key[, coordinates])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_native_coordinates</span></code>()</p></td>
+<td><p>Returns a Coordinates object that describes the native coordinates of the data source.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_cache</span></code>(key[, coordinates])</p></td>
 <td><p>Check for cached data for this node.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code>()</p></td>
 <td><p>Overwrite this method if a node needs to do any additional initialization after the standard initialization.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code>(path)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code>(path)</p></td>
 <td><p>Create podpac Node from file.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">put_cache</span></code>(data, key[, coordinates, overwrite])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">put_cache</span></code>(data, key[, coordinates, overwrite])</p></td>
 <td><p>Cache data for this node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rem_cache</span></code>(key[, coordinates, mode])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rem_cache</span></code>(key[, coordinates, mode])</p></td>
 <td><p>Clear cached data for this node.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code>(path)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code>(path)</p></td>
 <td><p>Write node to file.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_is_default</span></code>(name)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_is_defined</span></code>(name)</p></td>
-<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -357,44 +354,44 @@ cache behavior as having no cache – its data is in RAM already and caching is 
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">coordinate_index_type</span></code></p></td>
 <td><p>An enum whose value must be in a given sequence.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Array.data" title="podpac.data.Array.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
-<td><p>A coercing numpy array trait.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></p></td>
 <td><p>Full node definition.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
 <td><p>A trait which allows any value.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation</span></code></p></td>
 <td><p>A trait type representing a Union type.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation_class</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation_class</span></code></p></td>
 <td><p>Get the interpolation class currently set for this data source.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolators</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolators</span></code></p></td>
 <td><p>Return the interpolators selected for the previous node evaluation interpolation.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
 <td><p>definition for this node in json format</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nan_vals</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nan_vals</span></code></p></td>
 <td><p>An instance of a Python list.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Array.native_coordinates" title="podpac.data.Array.native_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native_coordinates</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.Array.native_coordinates" title="podpac.data.Array.native_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native_coordinates</span></code></a></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
 <td><p>A trait for unicode strings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
 <td><p>An instance of a Python list.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Array.source" title="podpac.data.Array.source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source</span></code></a></p></td>
+<td><p>A coercing numpy array trait.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
@@ -412,12 +409,6 @@ cache behavior as having no cache – its data is in RAM already and caching is 
 <dt id="podpac.data.Array.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#podpac.data.Array.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Do not overwrite me</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">data</code></dt>
-<dd><p>A coercing numpy array trait.</p>
 </dd></dl>
 
 <dl class="method">
@@ -464,6 +455,12 @@ at the requested source coordinates.</p>
 <dd><p>A trait whose value must be an instance of a specified class.</p>
 <p>The value can also be an instance of a subclass of the specified class.</p>
 <p>Subclasses can declare default classes by overriding the klass attribute</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">source</code></dt>
+<dd><p>A coercing numpy array trait.</p>
 </dd></dl>
 
 </dd></dl>

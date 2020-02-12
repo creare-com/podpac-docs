@@ -208,8 +208,6 @@
 
 <span class="n">COMMON_COMPOSITOR_DOC</span> <span class="o">=</span> <span class="n">COMMON_DATA_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># superset of COMMON_NODE_DOC</span>
 
-<span class="c1"># TODO AutoOutputsMixin</span>
-
 
 <div class="viewcode-block" id="Compositor"><a class="viewcode-back" href="../../../api/podpac.compositor.Compositor.html#podpac.compositor.Compositor">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_COMPOSITOR_DOC</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Compositor</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
@@ -217,6 +215,10 @@
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
+<span class="sd">    cache_native_coordinates : Bool</span>
+<span class="sd">        Default is True. If native_coordinates are requested by the user, it may take a long time to calculate if the</span>
+<span class="sd">        Compositor points to many sources. The result is relatively small and is cached by default. Caching may not be</span>
+<span class="sd">        desired if the datasource change or is updated.</span>
 <span class="sd">    interpolation : str, dict, optional</span>
 <span class="sd">        {interpolation}</span>
 <span class="sd">    is_source_coordinates_complete : Bool</span>
@@ -265,7 +267,7 @@
     <span class="p">)</span>
 
     <span class="n">sources</span> <span class="o">=</span> <span class="n">ArrayTrait</span><span class="p">(</span><span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">auto_sources</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cache_native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">interpolation</span> <span class="o">=</span> <span class="n">interpolation_trait</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">strict_source_outputs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
@@ -276,7 +278,6 @@
     <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;sources&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span>  <span class="c1"># check for consistent outputs</span>
-        <span class="c1"># TODO is this copy necessary? Can it be a less deep copy (e.g. that only copies defined traits)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]])</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;outputs&quot;</span><span class="p">)</span>
@@ -432,7 +433,7 @@
         <span class="c1"># Set the interpolation properties for sources</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">src_subset</span><span class="o">.</span><span class="n">ravel</span><span class="p">():</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trait_is_defined</span><span class="p">(</span><span class="s2">&quot;interpolation&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;interpolation&quot;</span><span class="p">):</span>
                     <span class="n">s</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;interpolation&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">)</span>
 
         <span class="c1"># Optimization: if coordinates complete and source coords is 1D,</span>
@@ -443,9 +444,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_source_coordinates_complete</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">coords_subset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">coords_dim</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">crs</span>
             <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_subset</span><span class="p">,</span> <span class="n">coords_subset</span><span class="p">):</span>
-                <span class="n">nc</span> <span class="o">=</span> <span class="n">merge_dims</span><span class="p">([</span><span class="n">Coordinates</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">coords_dim</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span><span class="p">])</span>
+                <span class="n">nc</span> <span class="o">=</span> <span class="n">merge_dims</span><span class="p">([</span><span class="n">Coordinates</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">coords_dim</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span><span class="p">])</span>
 
                 <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">&quot;native_coordinates&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
                     <span class="n">s</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;native_coordinates&quot;</span><span class="p">,</span> <span class="n">nc</span><span class="p">)</span>
@@ -518,8 +518,7 @@
 <span class="sd">        {definition_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Compositor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">base_definition</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_sources</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
