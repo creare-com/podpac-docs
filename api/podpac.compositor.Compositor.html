@@ -120,7 +120,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../api.html#coordinates">Coordinates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#data-sources">Data Sources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#interpolators">Interpolators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api.html#pipelines">Pipelines</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#algorithm-nodes">Algorithm Nodes</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#compositor-nodes">Compositor Nodes</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">podpac.compositor.Compositor</a></li>
@@ -213,14 +212,35 @@
 <em class="property">class </em><code class="sig-prename descclassname">podpac.compositor.</code><code class="sig-name descname">Compositor</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/compositor.html#Compositor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.compositor.Compositor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.core.node.Node</span></code></p>
 <dl class="attribute">
-<dt id="podpac.compositor.Compositor.cache_native_coordinates">
-<code class="sig-name descname">cache_native_coordinates</code><a class="headerlink" href="#podpac.compositor.Compositor.cache_native_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default is True. If native_coordinates are requested by the user, it may take a long time to calculate if the
-Compositor points to many sources. The result is relatively small and is cached by default. Caching may not be
-desired if the datasource change or is updated.</p>
+<dt id="podpac.compositor.Compositor.sources">
+<code class="sig-name descname">sources</code><a class="headerlink" href="#podpac.compositor.Compositor.sources" title="Permalink to this definition">¶</a></dt>
+<dd><p>An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to
+subselect the nodes that will be evaluated.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>Bool</p>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.compositor.Compositor.shared_coordinates">
+<code class="sig-name descname">shared_coordinates</code><a class="headerlink" href="#podpac.compositor.Compositor.shared_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates that are shared amongst all of the composited sources. Optional.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.compositor.Compositor.source_coordinates">
+<code class="sig-name descname">source_coordinates</code><a class="headerlink" href="#podpac.compositor.Compositor.source_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates that make each source unique. Must the same size as <code class="docutils literal notranslate"><span class="pre">sources</span></code> and single-dimensional. Optional.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -247,75 +267,6 @@ native_coordinates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>Bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="podpac.compositor.Compositor.shared_coordinates">
-<code class="sig-name descname">shared_coordinates</code><a class="headerlink" href="#podpac.compositor.Compositor.shared_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Coordinates that are shared amongst all of the composited sources</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a>, optional</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="podpac.compositor.Compositor.source">
-<code class="sig-name descname">source</code><a class="headerlink" href="#podpac.compositor.Compositor.source" title="Permalink to this definition">¶</a></dt>
-<dd><p>The source is used for a unique name to cache composited products.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="podpac.compositor.Compositor.source_coordinates">
-<code class="sig-name descname">source_coordinates</code><a class="headerlink" href="#podpac.compositor.Compositor.source_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Coordinates that make each source unique. Much be single-dimensional the same size as <code class="docutils literal notranslate"><span class="pre">sources</span></code>. Optional.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="podpac.compositor.Compositor.sources">
-<code class="sig-name descname">sources</code><a class="headerlink" href="#podpac.compositor.Compositor.sources" title="Permalink to this definition">¶</a></dt>
-<dd><p>An array of sources. This is a numpy array as opposed to a list so that boolean indexing may be used to
-subselect the nodes that will be evaluated.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">source_coordinates</code></dt>
-<dd><p>Coordinates that make each source unique. This is used for subsetting which sources to evaluate based on the
-user-requested coordinates. It is an optimization.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a>, optional</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="podpac.compositor.Compositor.strict_source_outputs">
-<code class="sig-name descname">strict_source_outputs</code><a class="headerlink" href="#podpac.compositor.Compositor.strict_source_outputs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default is False. When compositing multi-output sources, combine the outputs from all sources. If True, do not
-allow sources with different outputs (an exception will be raised if the sources contain different outputs).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -379,12 +330,6 @@ for most use-cases.</p></li>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cache</span></code>(key[, coordinates])</p></td>
 <td><p>Get cached data for this node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.get_shared_coordinates" title="podpac.compositor.Compositor.get_shared_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_shared_coordinates</span></code></a>()</p></td>
-<td><p>Coordinates shared by each source.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.get_source_coordinates" title="podpac.compositor.Compositor.get_source_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_source_coordinates</span></code></a>()</p></td>
-<td><p>Returns the coordinates describing each source.</p></td>
-</tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_cache</span></code>(key[, coordinates])</p></td>
 <td><p>Check for cached data for this node.</p></td>
 </tr>
@@ -409,6 +354,9 @@ for most use-cases.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.select_sources" title="podpac.compositor.Compositor.select_sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">select_sources</span></code></a>(coordinates)</p></td>
 <td><p>Downselect compositor sources based on requested coordinates.</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_is_defined</span></code>(name)</p></td>
+<td><p></p></td>
+</tr>
 </tbody>
 </table>
 <p class="rubric">Attributes</p>
@@ -418,8 +366,8 @@ for most use-cases.</p></li>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.base_definition" title="podpac.compositor.Compositor.base_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_definition</span></code></a></p></td>
-<td><p>Base node defintion for Compositor nodes.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">attrs</span></code></p></td>
+<td><p>List of node attributes</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_ref</span></code></p></td>
 <td><p>Default reference/name in node definitions</p></td>
@@ -427,53 +375,47 @@ for most use-cases.</p></li>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_ctrl</span></code></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.cache_native_coordinates" title="podpac.compositor.Compositor.cache_native_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_native_coordinates</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_output</span></code></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_output</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_update</span></code></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_update</span></code></p></td>
-<td><p>A boolean (True, False) trait.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></p></td>
-<td><p>Full node definition.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
 <td><p>A trait which allows any value.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.interpolation" title="podpac.compositor.Compositor.interpolation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation</span></code></a></p></td>
-<td><p>A trait type representing a Union type.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.interpolation" title="podpac.compositor.Compositor.interpolation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation</span></code></a></p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.is_source_coordinates_complete" title="podpac.compositor.Compositor.is_source_coordinates_complete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_source_coordinates_complete</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.is_source_coordinates_complete" title="podpac.compositor.Compositor.is_source_coordinates_complete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_source_coordinates_complete</span></code></a></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
-<td><p>definition for this node in json format</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
 <td><p>A trait for unicode strings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
 <td><p>An instance of a Python list.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.shared_coordinates" title="podpac.compositor.Compositor.shared_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_coordinates</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.shared_coordinates" title="podpac.compositor.Compositor.shared_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_coordinates</span></code></a></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.source_coordinates" title="podpac.compositor.Compositor.source_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_coordinates</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.source_coordinates" title="podpac.compositor.Compositor.source_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_coordinates</span></code></a></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.sources" title="podpac.compositor.Compositor.sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span></code></a></p></td>
-<td><p>A coercing numpy array trait.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.strict_source_outputs" title="podpac.compositor.Compositor.strict_source_outputs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strict_source_outputs</span></code></a></p></td>
-<td><p>A boolean (True, False) trait.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.compositor.Compositor.sources" title="podpac.compositor.Compositor.sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span></code></a></p></td>
+<td><p>An instance of a Python list.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
@@ -491,27 +433,6 @@ for most use-cases.</p></li>
 <dt id="podpac.compositor.Compositor.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#podpac.compositor.Compositor.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Do not overwrite me</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="podpac.compositor.Compositor.base_definition">
-<em class="property">property </em><code class="sig-name descname">base_definition</code><a class="headerlink" href="#podpac.compositor.Compositor.base_definition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base node defintion for Compositor nodes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Dictionary containing the location of the Node, the name of the plugin (if required), as well as any
-parameters and attributes that were tagged by children.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>OrderedDict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">cache_native_coordinates</code></dt>
-<dd><p>A boolean (True, False) trait.</p>
 </dd></dl>
 
 <dl class="method">
@@ -567,37 +488,10 @@ coordinates, and coordinate reference system.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="podpac.compositor.Compositor.get_shared_coordinates">
-<code class="sig-name descname">get_shared_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/compositor.html#Compositor.get_shared_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.compositor.Compositor.get_shared_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Coordinates shared by each source.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>NotImplementedError</strong> – Description</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="podpac.compositor.Compositor.get_source_coordinates">
-<code class="sig-name descname">get_source_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/compositor.html#Compositor.get_source_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.compositor.Compositor.get_source_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the coordinates describing each source.
-This may be implemented by derived classes, and is an optimization that allows evaluation subsets of source.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Coordinates describing each source.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="attribute">
 <dt>
 <code class="sig-name descname">interpolation</code></dt>
-<dd><p>A trait type representing a Union type.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt>
@@ -657,13 +551,7 @@ when <a class="reference internal" href="#podpac.compositor.Compositor.source_co
 <dl class="attribute">
 <dt>
 <code class="sig-name descname">sources</code></dt>
-<dd><p>A coercing numpy array trait.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">strict_source_outputs</code></dt>
-<dd><p>A boolean (True, False) trait.</p>
+<dd><p>An instance of a Python list.</p>
 </dd></dl>
 
 </dd></dl>

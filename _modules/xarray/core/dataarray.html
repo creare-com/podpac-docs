@@ -219,6 +219,7 @@
     <span class="n">resample</span><span class="p">,</span>
     <span class="n">rolling</span><span class="p">,</span>
     <span class="n">utils</span><span class="p">,</span>
+    <span class="n">weighted</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.accessor_dt</span> <span class="kn">import</span> <span class="n">CombinedDatetimelikeAccessor</span>
 <span class="kn">from</span> <span class="nn">.accessor_str</span> <span class="kn">import</span> <span class="n">StringAccessor</span>
@@ -444,6 +445,7 @@
     <span class="n">_rolling_cls</span> <span class="o">=</span> <span class="n">rolling</span><span class="o">.</span><span class="n">DataArrayRolling</span>
     <span class="n">_coarsen_cls</span> <span class="o">=</span> <span class="n">rolling</span><span class="o">.</span><span class="n">DataArrayCoarsen</span>
     <span class="n">_resample_cls</span> <span class="o">=</span> <span class="n">resample</span><span class="o">.</span><span class="n">DataArrayResample</span>
+    <span class="n">_weighted_cls</span> <span class="o">=</span> <span class="n">weighted</span><span class="o">.</span><span class="n">DataArrayWeighted</span>
 
     <span class="n">dt</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">CombinedDatetimelikeAccessor</span><span class="p">)</span>
 
@@ -490,8 +492,7 @@
 <span class="sd">            Name(s) of the data dimension(s). Must be either a hashable (only</span>
 <span class="sd">            for 1D data) or a sequence of hashables with length equal to the</span>
 <span class="sd">            number of dimensions. If this argument is omitted, dimension names</span>
-<span class="sd">            are taken from ``coords`` (if possible) and otherwise default to</span>
-<span class="sd">            ``[&#39;dim_0&#39;, ... &#39;dim_n&#39;]``.</span>
+<span class="sd">            default to ``[&#39;dim_0&#39;, ... &#39;dim_n&#39;]``.</span>
 <span class="sd">        name : str or None, optional</span>
 <span class="sd">            Name of this array.</span>
 <span class="sd">        attrs : dict_like or None, optional</span>
@@ -1062,8 +1063,7 @@
 
 <span class="sd">        Shallow versus deep copy</span>
 
-<span class="sd">        &gt;&gt;&gt; array = xr.DataArray([1, 2, 3], dims=&#39;x&#39;,</span>
-<span class="sd">        ...                      coords={&#39;x&#39;: [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]})</span>
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray([1, 2, 3], dims=&quot;x&quot;, coords={&quot;x&quot;: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]})</span>
 <span class="sd">        &gt;&gt;&gt; array.copy()</span>
 <span class="sd">        &lt;xarray.DataArray (x: 3)&gt;</span>
 <span class="sd">        array([1, 2, 3])</span>
@@ -1531,7 +1531,7 @@
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-<span class="sd">        &gt;&gt;&gt; da = xr.DataArray([1, 3], [(&#39;x&#39;, np.arange(2))])</span>
+<span class="sd">        &gt;&gt;&gt; da = xr.DataArray([1, 3], [(&quot;x&quot;, np.arange(2))])</span>
 <span class="sd">        &gt;&gt;&gt; da.interp(x=0.5)</span>
 <span class="sd">        &lt;xarray.DataArray ()&gt;</span>
 <span class="sd">        array(2.0)</span>
@@ -1662,20 +1662,24 @@
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray(data=[0, 1], dims=&quot;x&quot;,</span>
-<span class="sd">                               coords={&quot;x&quot;: [&quot;a&quot;, &quot;b&quot;], &quot;y&quot;: (&quot;x&quot;, [0, 1])})</span>
+
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray(</span>
+<span class="sd">        ...     data=[0, 1], dims=&quot;x&quot;, coords={&quot;x&quot;: [&quot;a&quot;, &quot;b&quot;], &quot;y&quot;: (&quot;x&quot;, [0, 1])},</span>
+<span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; arr</span>
 <span class="sd">        &lt;xarray.DataArray (x: 2)&gt;</span>
 <span class="sd">        array([0, 1])</span>
 <span class="sd">        Coordinates:</span>
 <span class="sd">          * x        (x) &lt;U1 &#39;a&#39; &#39;b&#39;</span>
 <span class="sd">            y        (x) int64 0 1</span>
+
 <span class="sd">        &gt;&gt;&gt; arr.swap_dims({&quot;x&quot;: &quot;y&quot;})</span>
 <span class="sd">        &lt;xarray.DataArray (y: 2)&gt;</span>
 <span class="sd">        array([0, 1])</span>
 <span class="sd">        Coordinates:</span>
 <span class="sd">            x        (y) &lt;U1 &#39;a&#39; &#39;b&#39;</span>
 <span class="sd">          * y        (y) int64 0 1</span>
+
 <span class="sd">        &gt;&gt;&gt; arr.swap_dims({&quot;x&quot;: &quot;z&quot;})</span>
 <span class="sd">        &lt;xarray.DataArray (z: 2)&gt;</span>
 <span class="sd">        array([0, 1])</span>
@@ -1776,12 +1780,11 @@
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray(data=np.ones((2, 3)),</span>
-<span class="sd">        ...                    dims=[&#39;x&#39;, &#39;y&#39;],</span>
-<span class="sd">        ...                    coords={&#39;x&#39;:</span>
-<span class="sd">        ...                        range(2), &#39;y&#39;:</span>
-<span class="sd">        ...                        range(3), &#39;a&#39;: (&#39;x&#39;, [3, 4])</span>
-<span class="sd">        ...                    })</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray(</span>
+<span class="sd">        ...     data=np.ones((2, 3)),</span>
+<span class="sd">        ...     dims=[&quot;x&quot;, &quot;y&quot;],</span>
+<span class="sd">        ...     coords={&quot;x&quot;: range(2), &quot;y&quot;: range(3), &quot;a&quot;: (&quot;x&quot;, [3, 4])},</span>
+<span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; arr</span>
 <span class="sd">        &lt;xarray.DataArray (x: 2, y: 3)&gt;</span>
 <span class="sd">        array([[1., 1., 1.],</span>
@@ -1790,7 +1793,7 @@
 <span class="sd">          * x        (x) int64 0 1</span>
 <span class="sd">          * y        (y) int64 0 1 2</span>
 <span class="sd">            a        (x) int64 3 4</span>
-<span class="sd">        &gt;&gt;&gt; arr.set_index(x=&#39;a&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; arr.set_index(x=&quot;a&quot;)</span>
 <span class="sd">        &lt;xarray.DataArray (x: 2, y: 3)&gt;</span>
 <span class="sd">        array([[1., 1., 1.],</span>
 <span class="sd">               [1., 1., 1.]])</span>
@@ -1892,7 +1895,9 @@
 <span class="sd">        ----------</span>
 <span class="sd">        dimensions : Mapping of the form new_name=(dim1, dim2, ...)</span>
 <span class="sd">            Names of new dimensions, and the existing dimensions that they</span>
-<span class="sd">            replace.</span>
+<span class="sd">            replace. An ellipsis (`...`) will be replaced by all unlisted dimensions.</span>
+<span class="sd">            Passing a list containing an ellipsis (`stacked_dim=[...]`) will stack over</span>
+<span class="sd">            all dimensions.</span>
 <span class="sd">        **dimensions_kwargs:</span>
 <span class="sd">            The keyword arguments form of ``dimensions``.</span>
 <span class="sd">            One of dimensions or dimensions_kwargs must be provided.</span>
@@ -1905,8 +1910,10 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; arr = DataArray(np.arange(6).reshape(2, 3),</span>
-<span class="sd">        ...                 coords=[(&#39;x&#39;, [&#39;a&#39;, &#39;b&#39;]), (&#39;y&#39;, [0, 1, 2])])</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray(</span>
+<span class="sd">        ...     np.arange(6).reshape(2, 3),</span>
+<span class="sd">        ...     coords=[(&quot;x&quot;, [&quot;a&quot;, &quot;b&quot;]), (&quot;y&quot;, [0, 1, 2])],</span>
+<span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; arr</span>
 <span class="sd">        &lt;xarray.DataArray (x: 2, y: 3)&gt;</span>
 <span class="sd">        array([[0, 1, 2],</span>
@@ -1914,8 +1921,8 @@
 <span class="sd">        Coordinates:</span>
 <span class="sd">          * x        (x) |S1 &#39;a&#39; &#39;b&#39;</span>
 <span class="sd">          * y        (y) int64 0 1 2</span>
-<span class="sd">        &gt;&gt;&gt; stacked = arr.stack(z=(&#39;x&#39;, &#39;y&#39;))</span>
-<span class="sd">        &gt;&gt;&gt; stacked.indexes[&#39;z&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; stacked = arr.stack(z=(&quot;x&quot;, &quot;y&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; stacked.indexes[&quot;z&quot;]</span>
 <span class="sd">        MultiIndex(levels=[[&#39;a&#39;, &#39;b&#39;], [0, 1, 2]],</span>
 <span class="sd">                   codes=[[0, 0, 0, 1, 1, 1], [0, 1, 2, 0, 1, 2]],</span>
 <span class="sd">                   names=[&#39;x&#39;, &#39;y&#39;])</span>
@@ -1955,8 +1962,10 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; arr = DataArray(np.arange(6).reshape(2, 3),</span>
-<span class="sd">        ...                 coords=[(&#39;x&#39;, [&#39;a&#39;, &#39;b&#39;]), (&#39;y&#39;, [0, 1, 2])])</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray(</span>
+<span class="sd">        ...     np.arange(6).reshape(2, 3),</span>
+<span class="sd">        ...     coords=[(&quot;x&quot;, [&quot;a&quot;, &quot;b&quot;]), (&quot;y&quot;, [0, 1, 2])],</span>
+<span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; arr</span>
 <span class="sd">        &lt;xarray.DataArray (x: 2, y: 3)&gt;</span>
 <span class="sd">        array([[0, 1, 2],</span>
@@ -1964,8 +1973,8 @@
 <span class="sd">        Coordinates:</span>
 <span class="sd">          * x        (x) |S1 &#39;a&#39; &#39;b&#39;</span>
 <span class="sd">          * y        (y) int64 0 1 2</span>
-<span class="sd">        &gt;&gt;&gt; stacked = arr.stack(z=(&#39;x&#39;, &#39;y&#39;))</span>
-<span class="sd">        &gt;&gt;&gt; stacked.indexes[&#39;z&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; stacked = arr.stack(z=(&quot;x&quot;, &quot;y&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; stacked.indexes[&quot;z&quot;]</span>
 <span class="sd">        MultiIndex(levels=[[&#39;a&#39;, &#39;b&#39;], [0, 1, 2]],</span>
 <span class="sd">                   codes=[[0, 0, 0, 1, 1, 1], [0, 1, 2, 0, 1, 2]],</span>
 <span class="sd">                   names=[&#39;x&#39;, &#39;y&#39;])</span>
@@ -2004,9 +2013,11 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; import xarray as xr</span>
-<span class="sd">        &gt;&gt;&gt; arr = DataArray(np.arange(6).reshape(2, 3),</span>
-<span class="sd">        ...                 coords=[(&#39;x&#39;, [&#39;a&#39;, &#39;b&#39;]), (&#39;y&#39;, [0, 1, 2])])</span>
-<span class="sd">        &gt;&gt;&gt; data = xr.Dataset({&#39;a&#39;: arr, &#39;b&#39;: arr.isel(y=0)})</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray(</span>
+<span class="sd">        ...     np.arange(6).reshape(2, 3),</span>
+<span class="sd">        ...     coords=[(&quot;x&quot;, [&quot;a&quot;, &quot;b&quot;]), (&quot;y&quot;, [0, 1, 2])],</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; data = xr.Dataset({&quot;a&quot;: arr, &quot;b&quot;: arr.isel(y=0)})</span>
 <span class="sd">        &gt;&gt;&gt; data</span>
 <span class="sd">        &lt;xarray.Dataset&gt;</span>
 <span class="sd">        Dimensions:  (x: 2, y: 3)</span>
@@ -2016,12 +2027,12 @@
 <span class="sd">        Data variables:</span>
 <span class="sd">            a        (x, y) int64 0 1 2 3 4 5</span>
 <span class="sd">            b        (x) int64 0 3</span>
-<span class="sd">        &gt;&gt;&gt; stacked = data.to_stacked_array(&quot;z&quot;, [&#39;y&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; stacked.indexes[&#39;z&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; stacked = data.to_stacked_array(&quot;z&quot;, [&quot;y&quot;])</span>
+<span class="sd">        &gt;&gt;&gt; stacked.indexes[&quot;z&quot;]</span>
 <span class="sd">        MultiIndex(levels=[[&#39;a&#39;, &#39;b&#39;], [0, 1, 2]],</span>
 <span class="sd">                labels=[[0, 0, 0, 1], [0, 1, 2, -1]],</span>
 <span class="sd">                names=[&#39;variable&#39;, &#39;y&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; roundtripped = stacked.to_unstacked_dataset(dim=&#39;z&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; roundtripped = stacked.to_unstacked_dataset(dim=&quot;z&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; data.identical(roundtripped)</span>
 <span class="sd">        True</span>
 
@@ -2430,20 +2441,14 @@
 <span class="sd">        * 0D -&gt; `xarray.DataArray`</span>
 <span class="sd">        * 1D -&gt; `pandas.Series`</span>
 <span class="sd">        * 2D -&gt; `pandas.DataFrame`</span>
-<span class="sd">        * 3D -&gt; `pandas.Panel` *(deprecated)*</span>
 
-<span class="sd">        Only works for arrays with 3 or fewer dimensions.</span>
+<span class="sd">        Only works for arrays with 2 or fewer dimensions.</span>
 
 <span class="sd">        The DataArray constructor performs the inverse transformation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: consolidate the info about pandas constructors and the</span>
         <span class="c1"># attributes that correspond to their indexes into a separate module?</span>
-        <span class="n">constructors</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="mi">0</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
-            <span class="mi">1</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
-            <span class="mi">2</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-            <span class="mi">3</span><span class="p">:</span> <span class="n">pdcompat</span><span class="o">.</span><span class="n">Panel</span><span class="p">,</span>
-        <span class="p">}</span>
+        <span class="n">constructors</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">}</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">constructor</span> <span class="o">=</span> <span class="n">constructors</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
@@ -2816,7 +2821,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Access plotting functions for DataArray&#39;s</span>
 
-<span class="sd">        &gt;&gt;&gt; d = DataArray([[1, 2], [3, 4]])</span>
+<span class="sd">        &gt;&gt;&gt; d = xr.DataArray([[1, 2], [3, 4]])</span>
 
 <span class="sd">        For convenience just call this directly</span>
 
@@ -2879,15 +2884,21 @@
 <span class="sd">        difference : same type as caller</span>
 <span class="sd">            The n-th order finite difference of this object.</span>
 
+<span class="sd">        .. note::</span>
+
+<span class="sd">            `n` matches numpy&#39;s behavior and is different from pandas&#39; first</span>
+<span class="sd">            argument named `periods`.</span>
+
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 5, 6, 6], [[1, 2, 3, 4]], [&#39;x&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; arr.diff(&#39;x&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 5, 6, 6], [[1, 2, 3, 4]], [&quot;x&quot;])</span>
+<span class="sd">        &gt;&gt;&gt; arr.diff(&quot;x&quot;)</span>
 <span class="sd">        &lt;xarray.DataArray (x: 3)&gt;</span>
 <span class="sd">        array([0, 1, 0])</span>
 <span class="sd">        Coordinates:</span>
 <span class="sd">        * x        (x) int64 2 3 4</span>
-<span class="sd">        &gt;&gt;&gt; arr.diff(&#39;x&#39;, 2)</span>
+<span class="sd">        &gt;&gt;&gt; arr.diff(&quot;x&quot;, 2)</span>
 <span class="sd">        &lt;xarray.DataArray (x: 2)&gt;</span>
 <span class="sd">        array([ 1, -1])</span>
 <span class="sd">        Coordinates:</span>
@@ -2937,7 +2948,7 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 6, 7], dims=&#39;x&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 6, 7], dims=&quot;x&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; arr.shift(x=1)</span>
 <span class="sd">        &lt;xarray.DataArray (x: 3)&gt;</span>
 <span class="sd">        array([ nan,   5.,   6.])</span>
@@ -2987,7 +2998,7 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 6, 7], dims=&#39;x&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 6, 7], dims=&quot;x&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; arr.roll(x=1)</span>
 <span class="sd">        &lt;xarray.DataArray (x: 3)&gt;</span>
 <span class="sd">        array([7, 5, 6])</span>
@@ -3036,18 +3047,20 @@
 <span class="sd">        --------</span>
 
 <span class="sd">        &gt;&gt;&gt; da_vals = np.arange(6 * 5 * 4).reshape((6, 5, 4))</span>
-<span class="sd">        &gt;&gt;&gt; da = DataArray(da_vals, dims=[&#39;x&#39;, &#39;y&#39;, &#39;z&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; da = xr.DataArray(da_vals, dims=[&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])</span>
 <span class="sd">        &gt;&gt;&gt; dm_vals = np.arange(4)</span>
-<span class="sd">        &gt;&gt;&gt; dm = DataArray(dm_vals, dims=[&#39;z&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; dm = xr.DataArray(dm_vals, dims=[&quot;z&quot;])</span>
 
 <span class="sd">        &gt;&gt;&gt; dm.dims</span>
 <span class="sd">        (&#39;z&#39;)</span>
+
 <span class="sd">        &gt;&gt;&gt; da.dims</span>
 <span class="sd">        (&#39;x&#39;, &#39;y&#39;, &#39;z&#39;)</span>
 
 <span class="sd">        &gt;&gt;&gt; dot_result = da.dot(dm)</span>
 <span class="sd">        &gt;&gt;&gt; dot_result.dims</span>
 <span class="sd">        (&#39;x&#39;, &#39;y&#39;)</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
@@ -3096,9 +3109,11 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; da = xr.DataArray(np.random.rand(5),</span>
-<span class="sd">        ...                   coords=[pd.date_range(&#39;1/1/2000&#39;, periods=5)],</span>
-<span class="sd">        ...                   dims=&#39;time&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; da = xr.DataArray(</span>
+<span class="sd">        ...     np.random.rand(5),</span>
+<span class="sd">        ...     coords=[pd.date_range(&quot;1/1/2000&quot;, periods=5)],</span>
+<span class="sd">        ...     dims=&quot;time&quot;,</span>
+<span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; da</span>
 <span class="sd">        &lt;xarray.DataArray (time: 5)&gt;</span>
 <span class="sd">        array([ 0.965471,  0.615637,  0.26532 ,  0.270962,  0.552878])</span>
@@ -3120,6 +3135,7 @@
         <span class="n">dim</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Hashable</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">interpolation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>
         <span class="n">keep_attrs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">skipna</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Compute the qth quantile of the data along the specified dimension.</span>
 
@@ -3147,6 +3163,8 @@
 <span class="sd">            If True, the dataset&#39;s attributes (`attrs`) will be copied from</span>
 <span class="sd">            the original object to the new one.  If False (default), the new</span>
 <span class="sd">            object will be returned without attributes.</span>
+<span class="sd">        skipna : bool, optional</span>
+<span class="sd">            Whether to skip missing values when aggregating.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3159,7 +3177,7 @@
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
-<span class="sd">        numpy.nanquantile, pandas.Series.quantile, Dataset.quantile</span>
+<span class="sd">        numpy.nanquantile, numpy.quantile, pandas.Series.quantile, Dataset.quantile</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -3196,7 +3214,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span>
-            <span class="n">q</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">keep_attrs</span><span class="o">=</span><span class="n">keep_attrs</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">interpolation</span>
+            <span class="n">q</span><span class="p">,</span>
+            <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span>
+            <span class="n">keep_attrs</span><span class="o">=</span><span class="n">keep_attrs</span><span class="p">,</span>
+            <span class="n">interpolation</span><span class="o">=</span><span class="n">interpolation</span><span class="p">,</span>
+            <span class="n">skipna</span><span class="o">=</span><span class="n">skipna</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
@@ -3232,8 +3254,8 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 6, 7], dims=&#39;x&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; arr.rank(&#39;x&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 6, 7], dims=&quot;x&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; arr.rank(&quot;x&quot;)</span>
 <span class="sd">        &lt;xarray.DataArray (x: 3)&gt;</span>
 <span class="sd">        array([ 1.,   2.,   3.])</span>
 <span class="sd">        Dimensions without coordinates: x</span>
@@ -3273,8 +3295,11 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; da = xr.DataArray(np.arange(12).reshape(4, 3), dims=[&#39;x&#39;, &#39;y&#39;],</span>
-<span class="sd">        ...                   coords={&#39;x&#39;: [0, 0.1, 1.1, 1.2]})</span>
+<span class="sd">        &gt;&gt;&gt; da = xr.DataArray(</span>
+<span class="sd">        ...     np.arange(12).reshape(4, 3),</span>
+<span class="sd">        ...     dims=[&quot;x&quot;, &quot;y&quot;],</span>
+<span class="sd">        ...     coords={&quot;x&quot;: [0, 0.1, 1.1, 1.2]},</span>
+<span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; da</span>
 <span class="sd">        &lt;xarray.DataArray (x: 4, y: 3)&gt;</span>
 <span class="sd">        array([[ 0,  1,  2],</span>
@@ -3285,7 +3310,7 @@
 <span class="sd">          * x        (x) float64 0.0 0.1 1.1 1.2</span>
 <span class="sd">        Dimensions without coordinates: y</span>
 <span class="sd">        &gt;&gt;&gt;</span>
-<span class="sd">        &gt;&gt;&gt; da.differentiate(&#39;x&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; da.differentiate(&quot;x&quot;)</span>
 <span class="sd">        &lt;xarray.DataArray (x: 4, y: 3)&gt;</span>
 <span class="sd">        array([[30.      , 30.      , 30.      ],</span>
 <span class="sd">               [27.545455, 27.545455, 27.545455],</span>
@@ -3327,8 +3352,11 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; da = xr.DataArray(np.arange(12).reshape(4, 3), dims=[&#39;x&#39;, &#39;y&#39;],</span>
-<span class="sd">        ...                   coords={&#39;x&#39;: [0, 0.1, 1.1, 1.2]})</span>
+<span class="sd">        &gt;&gt;&gt; da = xr.DataArray(</span>
+<span class="sd">        ...     np.arange(12).reshape(4, 3),</span>
+<span class="sd">        ...     dims=[&quot;x&quot;, &quot;y&quot;],</span>
+<span class="sd">        ...     coords={&quot;x&quot;: [0, 0.1, 1.1, 1.2]},</span>
+<span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; da</span>
 <span class="sd">        &lt;xarray.DataArray (x: 4, y: 3)&gt;</span>
 <span class="sd">        array([[ 0,  1,  2],</span>
@@ -3339,7 +3367,7 @@
 <span class="sd">          * x        (x) float64 0.0 0.1 1.1 1.2</span>
 <span class="sd">        Dimensions without coordinates: y</span>
 <span class="sd">        &gt;&gt;&gt;</span>
-<span class="sd">        &gt;&gt;&gt; da.integrate(&#39;x&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; da.integrate(&quot;x&quot;)</span>
 <span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
 <span class="sd">        array([5.4, 6.6, 7.8])</span>
 <span class="sd">        Dimensions without coordinates: y</span>
@@ -3419,6 +3447,174 @@
         <span class="kn">from</span> <span class="nn">.parallel</span> <span class="kn">import</span> <span class="n">map_blocks</span>
 
         <span class="k">return</span> <span class="n">map_blocks</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">pad</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pad_width</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+        <span class="n">stat_length</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">constant_values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">end_values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">reflect_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">pad_width_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Pad this array along one or more dimensions.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            This function is experimental and its behaviour is likely to change</span>
+<span class="sd">            especially regarding padding of dimension coordinates (or IndexVariables).</span>
+
+<span class="sd">        When using one of the modes (&quot;edge&quot;, &quot;reflect&quot;, &quot;symmetric&quot;, &quot;wrap&quot;),</span>
+<span class="sd">        coordinates will be padded with the same mode, otherwise coordinates</span>
+<span class="sd">        are padded using the &quot;constant&quot; mode with fill_value dtypes.NA.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pad_width : Mapping with the form of {dim: (pad_before, pad_after)}</span>
+<span class="sd">            Number of values padded along each dimension.</span>
+<span class="sd">            {dim: pad} is a shortcut for pad_before = pad_after = pad</span>
+<span class="sd">        mode : str</span>
+<span class="sd">            One of the following string values (taken from numpy docs)</span>
+
+<span class="sd">            &#39;constant&#39; (default)</span>
+<span class="sd">                Pads with a constant value.</span>
+<span class="sd">            &#39;edge&#39;</span>
+<span class="sd">                Pads with the edge values of array.</span>
+<span class="sd">            &#39;linear_ramp&#39;</span>
+<span class="sd">                Pads with the linear ramp between end_value and the</span>
+<span class="sd">                array edge value.</span>
+<span class="sd">            &#39;maximum&#39;</span>
+<span class="sd">                Pads with the maximum value of all or part of the</span>
+<span class="sd">                vector along each axis.</span>
+<span class="sd">            &#39;mean&#39;</span>
+<span class="sd">                Pads with the mean value of all or part of the</span>
+<span class="sd">                vector along each axis.</span>
+<span class="sd">            &#39;median&#39;</span>
+<span class="sd">                Pads with the median value of all or part of the</span>
+<span class="sd">                vector along each axis.</span>
+<span class="sd">            &#39;minimum&#39;</span>
+<span class="sd">                Pads with the minimum value of all or part of the</span>
+<span class="sd">                vector along each axis.</span>
+<span class="sd">            &#39;reflect&#39;</span>
+<span class="sd">                Pads with the reflection of the vector mirrored on</span>
+<span class="sd">                the first and last values of the vector along each</span>
+<span class="sd">                axis.</span>
+<span class="sd">            &#39;symmetric&#39;</span>
+<span class="sd">                Pads with the reflection of the vector mirrored</span>
+<span class="sd">                along the edge of the array.</span>
+<span class="sd">            &#39;wrap&#39;</span>
+<span class="sd">                Pads with the wrap of the vector along the axis.</span>
+<span class="sd">                The first values are used to pad the end and the</span>
+<span class="sd">                end values are used to pad the beginning.</span>
+<span class="sd">        stat_length : int, tuple or mapping of the form {dim: tuple}</span>
+<span class="sd">            Used in &#39;maximum&#39;, &#39;mean&#39;, &#39;median&#39;, and &#39;minimum&#39;.  Number of</span>
+<span class="sd">            values at edge of each axis used to calculate the statistic value.</span>
+<span class="sd">            {dim_1: (before_1, after_1), ... dim_N: (before_N, after_N)} unique</span>
+<span class="sd">            statistic lengths along each dimension.</span>
+<span class="sd">            ((before, after),) yields same before and after statistic lengths</span>
+<span class="sd">            for each dimension.</span>
+<span class="sd">            (stat_length,) or int is a shortcut for before = after = statistic</span>
+<span class="sd">            length for all axes.</span>
+<span class="sd">            Default is ``None``, to use the entire axis.</span>
+<span class="sd">        constant_values : scalar, tuple or mapping of the form {dim: tuple}</span>
+<span class="sd">            Used in &#39;constant&#39;.  The values to set the padded values for each</span>
+<span class="sd">            axis.</span>
+<span class="sd">            ``{dim_1: (before_1, after_1), ... dim_N: (before_N, after_N)}`` unique</span>
+<span class="sd">            pad constants along each dimension.</span>
+<span class="sd">            ``((before, after),)`` yields same before and after constants for each</span>
+<span class="sd">            dimension.</span>
+<span class="sd">            ``(constant,)`` or ``constant`` is a shortcut for ``before = after = constant`` for</span>
+<span class="sd">            all dimensions.</span>
+<span class="sd">            Default is 0.</span>
+<span class="sd">        end_values : scalar, tuple or mapping of the form {dim: tuple}</span>
+<span class="sd">            Used in &#39;linear_ramp&#39;.  The values used for the ending value of the</span>
+<span class="sd">            linear_ramp and that will form the edge of the padded array.</span>
+<span class="sd">            ``{dim_1: (before_1, after_1), ... dim_N: (before_N, after_N)}`` unique</span>
+<span class="sd">            end values along each dimension.</span>
+<span class="sd">            ``((before, after),)`` yields same before and after end values for each</span>
+<span class="sd">            axis.</span>
+<span class="sd">            ``(constant,)`` or ``constant`` is a shortcut for ``before = after = constant`` for</span>
+<span class="sd">            all axes.</span>
+<span class="sd">            Default is 0.</span>
+<span class="sd">        reflect_type : {&#39;even&#39;, &#39;odd&#39;}, optional</span>
+<span class="sd">            Used in &#39;reflect&#39;, and &#39;symmetric&#39;.  The &#39;even&#39; style is the</span>
+<span class="sd">            default with an unaltered reflection around the edge value.  For</span>
+<span class="sd">            the &#39;odd&#39; style, the extended part of the array is created by</span>
+<span class="sd">            subtracting the reflected values from two times the edge value.</span>
+<span class="sd">        **pad_width_kwargs:</span>
+<span class="sd">            The keyword arguments form of ``pad_width``.</span>
+<span class="sd">            One of ``pad_width`` or ``pad_width_kwargs`` must be provided.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        padded : DataArray</span>
+<span class="sd">            DataArray with the padded coordinates and data.</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        DataArray.shift, DataArray.roll, DataArray.bfill, DataArray.ffill, numpy.pad, dask.array.pad</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        By default when ``mode=&quot;constant&quot;`` and ``constant_values=None``, integer types will be</span>
+<span class="sd">        promoted to ``float`` and padded with ``np.nan``. To avoid type promotion</span>
+<span class="sd">        specify ``constant_values=np.nan``</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 6, 7], coords=[(&quot;x&quot;, [0,1,2])])</span>
+<span class="sd">        &gt;&gt;&gt; arr.pad(x=(1,2), constant_values=0)</span>
+<span class="sd">        &lt;xarray.DataArray (x: 6)&gt;</span>
+<span class="sd">        array([0, 5, 6, 7, 0, 0])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * x        (x) float64 nan 0.0 1.0 2.0 nan nan</span>
+
+<span class="sd">        &gt;&gt;&gt; da = xr.DataArray([[0,1,2,3], [10,11,12,13]],</span>
+<span class="sd">                              dims=[&quot;x&quot;, &quot;y&quot;],</span>
+<span class="sd">                              coords={&quot;x&quot;: [0,1], &quot;y&quot;: [10, 20 ,30, 40], &quot;z&quot;: (&quot;x&quot;, [100, 200])}</span>
+<span class="sd">            )</span>
+<span class="sd">        &gt;&gt;&gt; da.pad(x=1)</span>
+<span class="sd">        &lt;xarray.DataArray (x: 4, y: 4)&gt;</span>
+<span class="sd">        array([[nan, nan, nan, nan],</span>
+<span class="sd">               [ 0.,  1.,  2.,  3.],</span>
+<span class="sd">               [10., 11., 12., 13.],</span>
+<span class="sd">               [nan, nan, nan, nan]])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * x        (x) float64 nan 0.0 1.0 nan</span>
+<span class="sd">          * y        (y) int64 10 20 30 40</span>
+<span class="sd">            z        (x) float64 nan 100.0 200.0 nan</span>
+<span class="sd">        &gt;&gt;&gt; da.pad(x=1, constant_values=np.nan)</span>
+<span class="sd">        &lt;xarray.DataArray (x: 4, y: 4)&gt;</span>
+<span class="sd">        array([[-9223372036854775808, -9223372036854775808, -9223372036854775808,</span>
+<span class="sd">                -9223372036854775808],</span>
+<span class="sd">               [                   0,                    1,                    2,</span>
+<span class="sd">                                   3],</span>
+<span class="sd">               [                  10,                   11,                   12,</span>
+<span class="sd">                                  13],</span>
+<span class="sd">               [-9223372036854775808, -9223372036854775808, -9223372036854775808,</span>
+<span class="sd">                -9223372036854775808]])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * x        (x) float64 nan 0.0 1.0 nan</span>
+<span class="sd">          * y        (y) int64 10 20 30 40</span>
+<span class="sd">            z        (x) float64 nan 100.0 200.0 nan</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+            <span class="n">pad_width</span><span class="o">=</span><span class="n">pad_width</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+            <span class="n">stat_length</span><span class="o">=</span><span class="n">stat_length</span><span class="p">,</span>
+            <span class="n">constant_values</span><span class="o">=</span><span class="n">constant_values</span><span class="p">,</span>
+            <span class="n">end_values</span><span class="o">=</span><span class="n">end_values</span><span class="p">,</span>
+            <span class="n">reflect_type</span><span class="o">=</span><span class="n">reflect_type</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">pad_width_kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
     <span class="c1"># this needs to be at the end, or mypy will confuse with `str`</span>
     <span class="c1"># https://mypy.readthedocs.io/en/latest/common_issues.html#dealing-with-conflicting-names</span>

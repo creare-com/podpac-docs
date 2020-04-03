@@ -196,7 +196,6 @@
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">string_types</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
@@ -207,10 +206,10 @@
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">UnitsDataArray</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeException</span>
-<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">trait_is_defined</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">node_eval</span>
-<span class="kn">from</span> <span class="nn">podpac.core.data.interpolation</span> <span class="kn">import</span> <span class="n">Interpolation</span><span class="p">,</span> <span class="n">interpolation_trait</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolation</span> <span class="kn">import</span> <span class="n">Interpolation</span><span class="p">,</span> <span class="n">InterpolationTrait</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -329,6 +328,8 @@
 <span class="sd">    coordinate_index_type : str, optional</span>
 <span class="sd">        Type of index to use for data source. Possible values are ``[&#39;list&#39;, &#39;numpy&#39;, &#39;xarray&#39;, &#39;pandas&#39;]``</span>
 <span class="sd">        Default is &#39;numpy&#39;</span>
+<span class="sd">    cache_native_coordinates : bool</span>
+<span class="sd">        Whether to cache native coordinates using the podpac ``cache_ctrl``. Default False.</span>
 
 <span class="sd">    </span>
 <span class="sd">    Notes</span>
@@ -336,25 +337,21 @@
 <span class="sd">    Custom DataSource Nodes must implement the :meth:`get_data` and :meth:`get_native_coordinates` methods.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">interpolation</span> <span class="o">=</span> <span class="n">interpolation_trait</span><span class="p">()</span>
+    <span class="n">interpolation</span> <span class="o">=</span> <span class="n">InterpolationTrait</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">nan_vals</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
     <span class="n">coordinate_index_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;numpy&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">)</span>  <span class="c1"># , &quot;xarray&quot;, &quot;pandas&quot;],</span>
-    <span class="n">nan_vals</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cache_native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># privates</span>
     <span class="n">_interpolation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Interpolation</span><span class="p">)</span>
+    <span class="n">_native_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">_original_requested_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">_requested_source_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
     <span class="n">_requested_source_coordinates_index</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Tuple</span><span class="p">()</span>
     <span class="n">_requested_source_data</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">)</span>
     <span class="n">_evaluated_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
-
-    <span class="c1"># when native_coordinates is not defined, default calls get_native_coordinates</span>
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;native_coordinates&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_default_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
 
     <span class="c1"># this adds a more helpful error message if user happens to try an inspect _interpolation before evaluate</span>
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;_interpolation&quot;</span><span class="p">)</span>
@@ -397,6 +394,22 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span><span class="o">.</span><span class="n">_last_interpolator_queue</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{native_coordinates}&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native_coordinates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_native_coordinates</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_native_coordinates</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="s2">&quot;native_coordinates&quot;</span><span class="p">):</span>
+            <span class="n">nc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cache</span><span class="p">(</span><span class="s2">&quot;native_coordinates&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_native_coordinates&quot;</span><span class="p">,</span> <span class="n">nc</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_native_coordinates</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_native_coordinates&quot;</span><span class="p">,</span> <span class="n">nc</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_native_coordinates</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="s2">&quot;native_coordinates&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nc</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Private Methods</span>
@@ -453,9 +466,8 @@
             <span class="n">udata_array</span> <span class="o">=</span> <span class="n">udata_array</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
 
         <span class="c1"># fill nan_vals in data array</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">nan_val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">:</span>
-                <span class="n">udata_array</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">udata_array</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="n">nan_val</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">for</span> <span class="n">nan_val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">:</span>
+            <span class="n">udata_array</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">udata_array</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="n">nan_val</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
         <span class="k">return</span> <span class="n">udata_array</span>
 
@@ -661,78 +673,23 @@
         <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
 
 <span class="sd">        Raises</span>
-<span class="sd">        --------</span>
+<span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>
-<span class="sd">            Raised if get_native_coordinates is not implemented by data source subclass.</span>
+<span class="sd">            This needs to be implemented by derived classes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="DataSource.set_native_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.DataSource.html#podpac.data.DataSource.set_native_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">set_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set the native_coordinates. Used by Compositors as an optimization.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        coordinates : :class:`podpac.Coordinates`</span>
+<span class="sd">            Coordinates to set. Usually these are coordinates that are shared across compositor sources.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;native_coordinates&quot;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-                <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">.native_coordinates is not defined and &quot;</span>
-                <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">.get_native_coordinates() is not implemented&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
-            <span class="p">)</span></div>
-
-    <span class="nd">@property</span>
-    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">base_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Base node definition for DataSource nodes.</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        {definition_return}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">d</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">DataSource</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">base_definition</span>
-
-        <span class="c1"># check attrs and remove unnecesary attrs</span>
-        <span class="n">attrs</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attrs&quot;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="k">if</span> <span class="s2">&quot;source&quot;</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;The &#39;source&#39; property cannot be tagged as an &#39;attr&#39;&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;interpolation&quot;</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;The &#39;interpolation&#39; property cannot be tagged as an &#39;attr&#39;&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;nan_vals&quot;</span> <span class="ow">in</span> <span class="n">attrs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_vals</span><span class="p">:</span>
-            <span class="k">del</span> <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;nan_vals&quot;</span><span class="p">]</span>
-
-        <span class="c1"># set source or lookup_source</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;lookup_source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
-
-        <span class="c1"># assign the interpolation definition</span>
-        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span>
-
-        <span class="k">return</span> <span class="n">d</span>
-
-    <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
-    <span class="c1"># Operators/Magic Methods</span>
-    <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">source_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
-
-        <span class="n">rep</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">source_name</span> <span class="o">!=</span> <span class="s2">&quot;DataSource&quot;</span><span class="p">:</span>
-            <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot; DataSource&quot;</span>
-
-        <span class="n">source_disp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
-        <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">source: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source_disp</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">trait_is_defined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;native_coordinates&quot;</span><span class="p">):</span>
-            <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">native_coordinates: &quot;</span>
-            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">):</span>
-                    <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\t\t</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">):</span>
-                    <span class="k">for</span> <span class="n">_c</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
-                        <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\t\t</span><span class="si">%s</span><span class="s2">[</span><span class="si">%s</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">_c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">_c</span><span class="p">)</span>
-
-                <span class="c1"># rep += &#39;{}: {}&#39;.format(c.name, c)</span>
-        <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">interpolation: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">rep</span></div>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">trait_is_defined</span><span class="p">(</span><span class="s2">&quot;_native_coordinates&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_native_coordinates&quot;</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

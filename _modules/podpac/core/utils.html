@@ -209,6 +209,7 @@
 
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># Core dependency of xarray</span>
 
 <span class="c1"># Optional Imports</span>
@@ -240,7 +241,7 @@
     <span class="k">return</span> <span class="n">_decorator</span>
 
 
-<span class="k">def</span> <span class="nf">trait_is_defined</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">trait</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">trait_is_defined</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">trait_name</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Utility method to determine if trait is defined on object without</span>
 <span class="sd">    call to default (@tl.default)</span>
 
@@ -248,7 +249,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    object : object</span>
 <span class="sd">        Class with traits</span>
-<span class="sd">    trait : str</span>
+<span class="sd">    trait_name : str</span>
 <span class="sd">        Class property to investigate</span>
 
 <span class="sd">    Returns</span>
@@ -257,7 +258,7 @@
 <span class="sd">        True if the trait exists on the object and is defined</span>
 <span class="sd">        False if the trait does not exist on the object or the trait is not defined</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">has_trait</span><span class="p">(</span><span class="n">trait</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trait</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_trait_values</span>
+    <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">has_trait</span><span class="p">(</span><span class="n">trait_name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trait_name</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">_trait_values</span>
 
 
 <span class="k">def</span> <span class="nf">create_logfile</span><span class="p">(</span>
@@ -351,13 +352,7 @@
     <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="c1"># coerce type</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">tl</span><span class="o">.</span><span class="n">TraitError</span><span class="p">(</span>
-                    <span class="s2">&quot;The &#39;</span><span class="si">%s</span><span class="s2">&#39; trait of an </span><span class="si">%s</span><span class="s2"> instance must be an np.ndarray, but a value of </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> was specified&quot;</span>
-                    <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-                <span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
         <span class="c1"># ndim</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="n">value</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
@@ -394,9 +389,11 @@
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">NodeTrait</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">ForwardDeclaredInstance</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">NodeTrait</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">NodeTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s2">&quot;Node&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">Node</span> <span class="k">as</span> <span class="n">_Node</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">NodeTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_Node</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NodeTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
@@ -407,61 +404,50 @@
 
 <span class="k">class</span> <span class="nc">JSONEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-        <span class="c1"># podpac Coordinates objects</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">):</span>
+        <span class="c1"># podpac objects with definitions</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Interpolation</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">Style</span><span class="p">)):</span>
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span>
 
-        <span class="c1"># podpac Node objects</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span>
-
-        <span class="c1"># podpac Style objects</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">Style</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span>
-
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Interpolation</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">definition</span>
+        <span class="c1"># podpac Interpolator type</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span> <span class="ow">and</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">podpac</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">INTERPOLATORS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obj</span><span class="p">()</span><span class="o">.</span><span class="n">definition</span>
 
         <span class="c1"># pint Units</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
-        <span class="c1"># numpy arrays</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_timedelta_string</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-
         <span class="c1"># datetime64</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 
         <span class="c1"># timedelta64</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_timedelta_string</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
         <span class="c1"># datetime</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">)):</span>
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
 
         <span class="c1"># dataframe</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
 
-        <span class="c1"># Interpolator</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">interpolation</span><span class="o">.</span><span class="n">INTERPOLATORS</span><span class="p">:</span>
-                <span class="n">interpolater_class</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-                <span class="n">interpolator</span> <span class="o">=</span> <span class="n">interpolater_class</span><span class="p">()</span>
-                <span class="k">return</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">definition</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">pass</span>
+        <span class="c1"># numpy array</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_timedelta_string</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># completely serialize the individual elements using the custom encoder</span>
+                    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">],</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot serialize numpy array</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
 
-        <span class="c1"># default</span>
+        <span class="c1"># raise the TypeError</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
 
 
@@ -492,18 +478,28 @@
     <span class="k">return</span> <span class="n">params</span>
 
 
-<span class="k">def</span> <span class="nf">_get_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_get_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Helper function to get data from an url with error checking.</span>
-
+<span class="sd">    </span>
 <span class="sd">    Parameters</span>
-<span class="sd">    -----------</span>
-<span class="sd">    auth_session: podpac.core.authentication.EarthDataSession</span>
-<span class="sd">        Authenticated EDS session</span>
-<span class="sd">    url: str</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
 <span class="sd">        URL to website</span>
+<span class="sd">    session : :class:`requests.Session`, optional</span>
+<span class="sd">        Requests session to use when making the GET request to `url`</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Text response from request.</span>
+<span class="sd">        See https://2.python-requests.org/en/master/api/#requests.Response.text</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">session</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
             <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Could not connect to </span><span class="si">{}</span><span class="s2">, status code </span><span class="si">{}</span><span class="s2">. </span><span class="se">\n</span><span class="s2"> *** Return Text *** </span><span class="se">\n</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> *** End Return Text ***&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -516,7 +512,76 @@
         <span class="n">r</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cannot authenticate to </span><span class="si">{}</span><span class="s2">. Check credentials. Error was as follows:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span>
+
+    <span class="k">return</span> <span class="n">r</span>
+
+
+<span class="k">def</span> <span class="nf">cached_property</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator that creates a property that is cached.</span>
+
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    use_cache_ctrl : bool</span>
+<span class="sd">        If True, the property is cached using the Node cache_ctrl. If False, the property is only cached as a private</span>
+<span class="sd">        attribute. Default False.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Podpac caching using the cache_ctrl will be unreliable if the property depends on any non-tagged traits.</span>
+<span class="sd">    The property should only use node attrs (traits tagged with ``attr=True``).</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    &gt;&gt;&gt; class MyNode(Node):</span>
+<span class="sd">            # property that is recomputed every time</span>
+<span class="sd">            @property</span>
+<span class="sd">            def my_property(self):</span>
+<span class="sd">                return 0</span>
+
+<span class="sd">            # property is computed once for each object</span>
+<span class="sd">            @cached_property</span>
+<span class="sd">            def my_cached_property(self):</span>
+<span class="sd">                return 1</span>
+
+<span class="sd">            # property that is computed once and can be reused by other Nodes or sessions, depending on the cache_ctrl</span>
+<span class="sd">            @cached_property(use_cache_ctrl=True)</span>
+<span class="sd">            def my_persistent_cached_property(self):</span>
+<span class="sd">                return 2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">use_cache_ctrl</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;use_cache_ctrl&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cached_property decorator does not accept any positional arguments&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cached_property decorator does not accept keyword argument &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">d</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;_podpac_cached_property_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">fn</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">use_cache_ctrl</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">use_cache_ctrl</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="n">wrapper</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">d</span>
 </pre></div>
 
            </div>

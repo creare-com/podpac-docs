@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.data.interpolation &mdash; 1.3.1</title>
+  <title>podpac.core.interpolation.interpolation &mdash; 1.3.1</title>
   
 
   
@@ -17,7 +17,7 @@
   
   
   
-    <link rel="canonical" href="https://podpac.org_modules/podpac/core/data/interpolation.html"/>
+    <link rel="canonical" href="https://podpac.org_modules/podpac/core/interpolation/interpolation.html"/>
   
 
   
@@ -168,7 +168,7 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>podpac.core.data.interpolation</li>
+      <li>podpac.core.interpolation.interpolation</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -183,7 +183,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for podpac.core.data.interpolation</h1><div class="highlight"><pre>
+  <h1>Source code for podpac.core.interpolation.interpolation</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
@@ -193,8 +193,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># podpac imports</span>
-<span class="kn">from</span> <span class="nn">podpac.core.data.interpolator</span> <span class="kn">import</span> <span class="n">Interpolator</span>
-<span class="kn">from</span> <span class="nn">podpac.core.data.interpolators</span> <span class="kn">import</span> <span class="n">NearestNeighbor</span><span class="p">,</span> <span class="n">NearestPreview</span><span class="p">,</span> <span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyPoint</span><span class="p">,</span> <span class="n">ScipyGrid</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolator</span> <span class="kn">import</span> <span class="n">Interpolator</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolators</span> <span class="kn">import</span> <span class="n">NearestNeighbor</span><span class="p">,</span> <span class="n">NearestPreview</span><span class="p">,</span> <span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyPoint</span><span class="p">,</span> <span class="n">ScipyGrid</span>
 
 <span class="n">INTERPOLATION_DEFAULT</span> <span class="o">=</span> <span class="s2">&quot;nearest&quot;</span>
 <span class="sd">&quot;&quot;&quot;str : Default interpolation method used when creating a new :class:`Interpolation` class &quot;&quot;&quot;</span>
@@ -251,10 +251,12 @@
 
 
 <span class="c1"># load interpolators when module is first loaded</span>
+<span class="c1"># TODO does this really only load once?</span>
+<span class="c1"># TODO maybe move this whole section?</span>
 <span class="n">load_interpolators</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="InterpolationException"><a class="viewcode-back" href="../../../../api/podpac.data.InterpolationException.html#podpac.data.InterpolationException">[docs]</a><span class="k">class</span> <span class="nc">InterpolationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="InterpolationException"><a class="viewcode-back" href="../../../../api/podpac.data.InterpolationException.html#podpac.compositor.InterpolationException">[docs]</a><span class="k">class</span> <span class="nc">InterpolationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Custom label for interpolation exceptions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -262,23 +264,7 @@
     <span class="k">pass</span></div>
 
 
-<span class="k">def</span> <span class="nf">interpolation_trait</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="n">INTERPOLATION_DEFAULT</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a new interpolation trait</span>
-<span class="sd">    </span>
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    tl.Union</span>
-<span class="sd">        Union trait for an interpolation definition</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="n">INTERPOLATION_METHODS</span><span class="p">),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Interpolation</span><span class="p">)],</span>
-        <span class="n">allow_none</span><span class="o">=</span><span class="n">allow_none</span><span class="p">,</span>
-        <span class="n">default_value</span><span class="o">=</span><span class="n">default_value</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">)</span>
-
-
-<div class="viewcode-block" id="Interpolation"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.data.Interpolation">[docs]</a><span class="k">class</span> <span class="nc">Interpolation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolation"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.compositor.Interpolation">[docs]</a><span class="k">class</span> <span class="nc">Interpolation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create an interpolation class to handle one interpolation method per unstacked dimension.</span>
 <span class="sd">    Used to interpolate data within a datasource.</span>
 <span class="sd">    </span>
@@ -300,7 +286,7 @@
     <span class="n">_last_interpolator_queue</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># container for the last run interpolator queue - useful for debugging</span>
     <span class="n">_last_select_queue</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># container for the last run select queue - useful for debugging</span>
 
-<div class="viewcode-block" id="Interpolation.__init__"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.data.Interpolation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="n">INTERPOLATION_DEFAULT</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolation.__init__"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.compositor.Interpolation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="n">INTERPOLATION_DEFAULT</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -597,7 +583,7 @@
         <span class="c1"># TODO: adjust by interpolation cost</span>
         <span class="k">return</span> <span class="n">interpolator_queue</span>
 
-<div class="viewcode-block" id="Interpolation.select_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.data.Interpolation.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolation.select_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.compositor.Interpolation.select_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Select a subset or coordinates if interpolator can downselect.</span>
 <span class="sd">        </span>
@@ -644,7 +630,7 @@
 
         <span class="k">return</span> <span class="n">selected_coords</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">selected_coords_idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Interpolation.interpolate"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.data.Interpolation.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpolation.interpolate"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.compositor.Interpolation.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Interpolate data from requested coordinates to source coordinates</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
@@ -700,6 +686,18 @@
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">output_data</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">InterpolationTrait</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">):</span>
+    <span class="n">default_value</span> <span class="o">=</span> <span class="n">INTERPOLATION_DEFAULT</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">trait_types</span><span class="o">=</span><span class="p">[</span><span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="n">INTERPOLATION_METHODS</span><span class="p">),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Interpolation</span><span class="p">)],</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">InterpolationTrait</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">trait_types</span><span class="o">=</span><span class="n">trait_types</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 
            </div>

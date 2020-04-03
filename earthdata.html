@@ -111,9 +111,8 @@
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">Supported Datasets</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">NASA Earth Data Login</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#creating-an-earthdata-login-account">Creating an EarthData Login Account</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#saving-earthdata-credentials-in-podpac-settings">Saving EarthData Credentials in PODPAC Settings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#setting-credentials-at-runtime">Setting credentials at Runtime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-an-earthdata-login-account">Creating an Earthdata Login Account</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-earthdata-credentials-in-podpac">Using Earthdata Credentials in PODPAC</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="aws-development.html">AWS Development</a></li>
@@ -212,11 +211,11 @@ NASA.</p></li>
 </ul>
 </div>
 <div class="section" id="creating-an-earthdata-login-account">
-<h2>Creating an EarthData Login Account<a class="headerlink" href="#creating-an-earthdata-login-account" title="Permalink to this headline">¶</a></h2>
+<h2>Creating an Earthdata Login Account<a class="headerlink" href="#creating-an-earthdata-login-account" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Go to the <a class="reference external" href="https://urs.earthdata.nasa.gov/users/new">EarthData Registration Page</a>
+<li><p>Go to the <a class="reference external" href="https://urs.earthdata.nasa.gov/users/new">Earthdata Registration Page</a>
 page and follow the instructions to register an account</p></li>
-<li><p>Go to the <a class="reference external" href="https://urs.earthdata.nasa.gov/">EarthData Login Page</a> to log into
+<li><p>Go to the <a class="reference external" href="https://urs.earthdata.nasa.gov/">Earthdata Login Page</a> to log into
 your account</p></li>
 <li><p>To enable OpenDAP access:</p>
 <ul>
@@ -231,46 +230,36 @@ your account</p></li>
 <li><p>For each, click the <code class="docutils literal notranslate"><span class="pre">APPROVE</span></code> button</p></li>
 </ul>
 </li>
-<li><p>At this stage, your EarthData account should be set up and ready to use for
+<li><p>At this stage, your Earthdata account should be set up and ready to use for
 accessing data through OpenDAP</p></li>
 </ul>
 </div>
-<div class="section" id="saving-earthdata-credentials-in-podpac-settings">
-<h2>Saving EarthData Credentials in PODPAC Settings<a class="headerlink" href="#saving-earthdata-credentials-in-podpac-settings" title="Permalink to this headline">¶</a></h2>
-<p>For convenience, PODPAC can store your EarthData login details so that you do
-not have to provide your username and password at run time or in every script.</p>
-<blockquote>
-<div><p><strong>NOTE:</strong> PODPAC stores your credentials in a plain text file. If this is
-a security issue for you, do not use this method.</p>
-</div></blockquote>
-<p>To store your credentials use the following code in an interactive Python session:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac.core.authentication</span> <span class="kn">import</span> <span class="n">EarthDataSession</span>
+<div class="section" id="using-earthdata-credentials-in-podpac">
+<h2>Using Earthdata Credentials in PODPAC<a class="headerlink" href="#using-earthdata-credentials-in-podpac" title="Permalink to this headline">¶</a></h2>
+<p>PODPAC uses Earthdata credentials to access the SMAP data source nodes.
+You can store the credentials for SMAP nodes using the <code class="docutils literal notranslate"><span class="pre">Node</span></code> method <code class="docutils literal notranslate"><span class="pre">set_credentials</span></code>.</p>
+<p>To store credentials for SMAP nodes, use the following code in an interactive Python session:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac.datalib</span> <span class="kn">import</span> <span class="n">SMAP</span>
 
-<span class="n">EarthDataSession</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;&lt;earthdata-username&gt;&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;&lt;earthdata-password&gt;&quot;</span><span class="p">,</span> <span class="n">store_credentials</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">SMAP</span><span class="p">()</span>
+<span class="n">node</span><span class="o">.</span><span class="n">set_credentials</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;&lt;earthdata-username&gt;&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;&lt;earthdata-password&gt;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">set_credentials</span></code> method stores credentials for a Node in the PODPAC settings.
+To persistently save the credentials in the PODPAC settings
+(to avoid running <code class="docutils literal notranslate"><span class="pre">set_credentials</span></code> at runtime or in a script), run <code class="docutils literal notranslate"><span class="pre">settings.save()</span></code>:</p>
+<blockquote>
+<div><p><strong>NOTE:</strong> PODPAC stores credentials in plain text.
+Be conscious of outputting the PODPAC settings to a file when it contains credentials.</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">settings</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Your credentials will be saved in <code class="docutils literal notranslate"><span class="pre">$HOME\.podpac\settings.json</span></code>
 where <code class="docutils literal notranslate"><span class="pre">$HOME</span></code> is usually <code class="docutils literal notranslate"><span class="pre">C:\users\&lt;USERNAME&gt;</span></code> on Windows and <code class="docutils literal notranslate"><span class="pre">/home/&lt;USERNAME&gt;</span></code>
 on Linux systems.</p>
-</div>
-<div class="section" id="setting-credentials-at-runtime">
-<h2>Setting credentials at Runtime<a class="headerlink" href="#setting-credentials-at-runtime" title="Permalink to this headline">¶</a></h2>
-<p>To set credentials at runtime, you can either provide an authenticated session
-or the username and password to the PyDAP node or child node. For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac.authentication</span> <span class="kn">import</span> <span class="n">EarthDataSession</span>
-
-<span class="n">eds</span> <span class="o">=</span> <span class="n">EarthDataSession</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;&lt;earthdata-username&gt;&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;&lt;earthdata-password&gt;&quot;</span><span class="p">)</span>
-
-<span class="kn">from</span> <span class="nn">podpac.data</span> <span class="kn">import</span> <span class="n">PyDAP</span>
-
-<span class="n">pydap_node</span> <span class="o">=</span> <span class="n">PyDAP</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;&lt;opendap_url&gt;&quot;</span><span class="p">,</span> <span class="n">auth_session</span><span class="o">=</span><span class="n">eds</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Or</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">podpac.data</span> <span class="kn">import</span> <span class="n">PyDAP</span>
-<span class="n">pydap_node</span> <span class="o">=</span> <span class="n">PyDAP</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;&lt;opendap_url&gt;&quot;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s2">&quot;&lt;earthdata-username&gt;&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;&lt;earthdata-password&gt;&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
 </div>
 </div>
 

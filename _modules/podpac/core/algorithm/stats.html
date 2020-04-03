@@ -231,21 +231,6 @@
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dims&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dims&quot;</span><span class="p">]]</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Reduce</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_first_init</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Translates requested reduction dimensions.</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        out : UnitsDataArray</span>
-<span class="sd">            The output array</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">            List of dimensions after reduction</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="nf">dims_axes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Finds the indices for the dimensions that will be reduced. This is passed to numpy. </span>
 <span class="sd">        </span>
@@ -1026,6 +1011,8 @@
 <span class="c1"># Time-Grouped Reduce</span>
 <span class="c1"># =============================================================================</span>
 
+<span class="n">_REDUCE_FUNCTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;any&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;prod&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="s2">&quot;var&quot;</span><span class="p">,</span> <span class="s2">&quot;custom&quot;</span><span class="p">]</span>
+
 
 <div class="viewcode-block" id="GroupReduce"><a class="viewcode-back" href="../../../../api/podpac.algorithm.GroupReduce.html#podpac.algorithm.GroupReduce">[docs]</a><span class="k">class</span> <span class="nc">GroupReduce</span><span class="p">(</span><span class="n">UnaryAlgorithm</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1043,15 +1030,12 @@
 <span class="sd">        Source node</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">coordinates_source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">coordinates_source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># see https://github.com/pydata/xarray/blob/eeb109d9181c84dfb93356c5f14045d839ee64cb/xarray/core/accessors.py#L61</span>
-    <span class="n">groupby</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">([</span><span class="s2">&quot;dayofyear&quot;</span><span class="p">])</span>  <span class="c1"># could add season, month, etc</span>
-
-    <span class="n">reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">(</span>
-        <span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;any&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;prod&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="s2">&quot;var&quot;</span><span class="p">,</span> <span class="s2">&quot;custom&quot;</span><span class="p">]</span>
-    <span class="p">)</span>
-    <span class="n">custom_reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">()</span>
+    <span class="n">groupby</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">([</span><span class="s2">&quot;dayofyear&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># could add season, month, etc</span>
+    <span class="n">reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">(</span><span class="n">_REDUCE_FUNCTIONS</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">custom_reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">_source_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
 
