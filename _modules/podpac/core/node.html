@@ -92,35 +92,24 @@
             
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html#id18">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html#id71">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html#id92">}</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../aws.html">AWS Integration</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Topics</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../why-podpac.html">Why PODPAC?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../design.html">Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Dependencies</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html">Nodes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../coordinates.html">Coordinates</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../cache.html">Cache</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">Supported Datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../earthdata.html">NASA Earth Data Login</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../aws-development.html">AWS Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id10">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id19">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id22">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id25">}</a></li>
 </ul>
 <p class="caption"><span class="caption-text">References</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Support</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../references.html">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../docs.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../roadmap.html">Development Roadmap</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 </ul>
 
             
@@ -195,6 +184,7 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">md5</span> <span class="k">as</span> <span class="n">hash_alg</span>
@@ -203,6 +193,7 @@
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">import</span> <span class="nn">six</span>
 
+<span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">ureg</span><span class="p">,</span> <span class="n">UnitsDataArray</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span>
@@ -259,9 +250,15 @@
 
 
 <div class="viewcode-block" id="NodeException"><a class="viewcode-back" href="../../../api/podpac.NodeException.html#podpac.NodeException">[docs]</a><span class="k">class</span> <span class="nc">NodeException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Summary &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Base class for exceptions when using podpac nodes &quot;&quot;&quot;</span>
 
     <span class="k">pass</span></div>
+
+
+<span class="k">class</span> <span class="nc">NodeDefinitionError</span><span class="p">(</span><span class="n">NodeException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Raised node definition errors, such as when the definition is circular or is not yet unavailable. &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span>
 
 
 <div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
@@ -273,7 +270,7 @@
 <span class="sd">    cache_output: bool</span>
 <span class="sd">        Should the node&#39;s output be cached? If not provided or None, uses default based on settings.</span>
 <span class="sd">    cache_update: bool</span>
-<span class="sd">        Default is False. Should the node&#39;s cached output be updated from the source data?</span>
+<span class="sd">        Default is True. Should the node&#39;s cached output be updated from the source data?</span>
 <span class="sd">    cache_ctrl: :class:`podpac.core.cache.cache.CacheCtrl`</span>
 <span class="sd">        Class that controls caching. If not provided, uses default based on settings.</span>
 <span class="sd">    dtype : type</span>
@@ -348,6 +345,10 @@
     <span class="c1"># Flag that is True if the Node was run multi-threaded, or None if the question doesn&#39;t apply</span>
     <span class="n">_multi_threaded</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
+    <span class="c1"># util</span>
+    <span class="n">_definition_guard</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">_traits_initialized_guard</span> <span class="o">=</span> <span class="kc">False</span>
+
 <div class="viewcode-block" id="Node.__init__"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Do not overwrite me &quot;&quot;&quot;</span>
 
@@ -369,8 +370,11 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">tkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
                     <span class="n">trait</span><span class="o">.</span><span class="n">read_only</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="c1"># Call traitlets constructor</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">tkwargs</span><span class="p">)</span>
+            <span class="c1"># Call traitlets constructor</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">tkwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_traits_initialized_guard</span> <span class="o">=</span> <span class="kc">True</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -558,7 +562,7 @@
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inputs</span>
 
         <span class="c1"># style</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span> <span class="o">!=</span> <span class="n">Style</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">definition</span><span class="p">:</span>
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">definition</span>
 
         <span class="k">return</span> <span class="n">d</span>
@@ -574,86 +578,104 @@
 <span class="sd">            Dictionary-formatted node definition.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">refs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">definitions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_definition_guard&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">NodeDefinitionError</span><span class="p">(</span><span class="s2">&quot;node definition has a circular dependency&quot;</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">refs</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">node</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">ref</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_traits_initialized_guard&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">NodeDefinitionError</span><span class="p">(</span><span class="s2">&quot;node is not yet fully initialized&quot;</span><span class="p">)</span>
 
-            <span class="c1"># get base definition</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">_base_definition</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_definition_guard</span> <span class="o">=</span> <span class="kc">True</span>
 
-            <span class="k">if</span> <span class="s2">&quot;inputs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-                <span class="c1"># sort and shallow copy</span>
-                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">refs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">definitions</span> <span class="o">=</span> <span class="p">[]</span>
 
-                <span class="c1"># replace nodes with references, adding nodes depth first</span>
-                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
-                        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_node</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
-                        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">add_node</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
-                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">add_node</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">refs</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">node</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">ref</span>
+
+                <span class="c1"># get base definition</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">_base_definition</span>
+
+                <span class="k">if</span> <span class="s2">&quot;inputs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="c1"># sort and shallow copy</span>
+                    <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
+
+                    <span class="c1"># replace nodes with references, adding nodes depth first</span>
+                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
+                            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">add_node</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+                            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">add_node</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+                        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">add_node</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid input &#39;</span><span class="si">%s</span><span class="s2">&#39; of type &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+
+                <span class="k">if</span> <span class="s2">&quot;attrs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="c1"># sort and shallow copy</span>
+                    <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
+
+                <span class="c1"># get base ref and then ensure it is unique</span>
+                <span class="n">ref</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">base_ref</span>
+                <span class="k">while</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">refs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;_[1-9][0-9]*$&quot;</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+                        <span class="n">ref</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid input &#39;</span><span class="si">%s</span><span class="s2">&#39; of type &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+                        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="s2">&quot;attrs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-                <span class="c1"># sort and shallow copy</span>
-                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">key</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;attrs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
+                <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                <span class="n">refs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+                <span class="n">definitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 
-            <span class="c1"># get base ref and then ensure it is unique</span>
-            <span class="n">ref</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">base_ref</span>
-            <span class="k">while</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">refs</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;_[1-9][0-9]*$&quot;</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
-                    <span class="n">ref</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                    <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">ref</span>
 
-            <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-            <span class="n">refs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
-            <span class="n">definitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="c1"># add top level node</span>
+            <span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="n">ref</span>
+            <span class="c1"># finalize, verify serializable, and return</span>
+            <span class="n">definition</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">refs</span><span class="p">,</span> <span class="n">definitions</span><span class="p">))</span>
+            <span class="n">definition</span><span class="p">[</span><span class="s2">&quot;podpac_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">__version__</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">definition</span>
 
-        <span class="c1"># add top level node</span>
-        <span class="n">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-        <span class="c1"># finalize, verify serializable, and return</span>
-        <span class="n">definition</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">refs</span><span class="p">,</span> <span class="n">definitions</span><span class="p">))</span>
-        <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">definition</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_definition_guard</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;definition for this node in json format</span>
+        <span class="sd">&quot;&quot;&quot;Definition for this node in JSON format.&quot;&quot;&quot;</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            JSON-formatted node definition.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">json_pretty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Definition for this node in JSON format, with indentation suitable for display.&quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Style should not be part of the hash</span>
-        <span class="n">defn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">json</span>
+        <span class="sd">&quot;&quot;&quot; hash for this node, used in caching and to determine equality. &quot;&quot;&quot;</span>
 
-        <span class="c1"># Note: this ONLY works because the Style node has NO dictionaries as part</span>
-        <span class="c1"># of its attributes</span>
-        <span class="n">hashstr</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&quot;style&quot;:\{.*?\},?&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">defn</span><span class="p">)</span>
+        <span class="c1"># deepcopy so that the cached definition property is not modified by the deletes below</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">hash_alg</span><span class="p">(</span><span class="n">hashstr</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="c1"># omit version</span>
+        <span class="k">if</span> <span class="s2">&quot;podpac_version&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;podpac_version&quot;</span><span class="p">]</span>
+
+        <span class="c1"># omit style in every node</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;style&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;style&quot;</span><span class="p">]</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hash_alg</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Node.save"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -708,12 +730,17 @@
 <span class="sd">            Cached data not found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">definition</span>
+        <span class="k">except</span> <span class="n">NodeDefinitionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cache unavailable, </span><span class="si">%s</span><span class="s2"> (key=&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;cached data not found for key &#39;</span><span class="si">%s</span><span class="s2">&#39; and coordinates </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Node.put_cache"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.put_cache">[docs]</a>    <span class="k">def</span> <span class="nf">put_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.put_cache"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.put_cache">[docs]</a>    <span class="k">def</span> <span class="nf">put_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Cache data for this node.</span>
 
@@ -726,13 +753,18 @@
 <span class="sd">        coordinates : podpac.Coordinates, optional</span>
 <span class="sd">            Coordinates that the cached data depends on. Omit for coordinate-independent data.</span>
 <span class="sd">        overwrite : bool, optional</span>
-<span class="sd">            Overwrite existing data, default False</span>
+<span class="sd">            Overwrite existing data, default True.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NodeException</span>
 <span class="sd">            Cached data already exists (and overwrite is False)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">definition</span>
+        <span class="k">except</span> <span class="n">NodeDefinitionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cache unavailable, </span><span class="si">%s</span><span class="s2"> (key=&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
@@ -760,13 +792,18 @@
 <span class="sd">            True if there is cached data for this node, key, and coordinates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">definition</span>
+        <span class="k">except</span> <span class="n">NodeDefinitionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cache unavailable, </span><span class="si">%s</span><span class="s2"> (key=&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">with</span> <span class="n">thread_manager</span><span class="o">.</span><span class="n">cache_lock</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Node.rem_cache"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.rem_cache">[docs]</a>    <span class="k">def</span> <span class="nf">rem_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.rem_cache"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.rem_cache">[docs]</a>    <span class="k">def</span> <span class="nf">rem_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Clear cached data for this node.</span>
 
@@ -778,15 +815,22 @@
 <span class="sd">            Default is None. Delete cached objects for these coordinates. If `&#39;*&#39;`, cached data is deleted for all</span>
 <span class="sd">            coordinates, including coordinate-independent data. If None, will only affect coordinate-independent data.</span>
 <span class="sd">        mode: str, optional</span>
-<span class="sd">            Specify which cache stores are affected.</span>
+<span class="sd">            Specify which cache stores are affected. Default &#39;all&#39;.</span>
 
 
 <span class="sd">        See Also</span>
 <span class="sd">        ---------</span>
 <span class="sd">        `podpac.core.cache.cache.CacheCtrl.clear` to remove ALL cache for ALL nodes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">definition</span>
+        <span class="k">except</span> <span class="n">NodeDefinitionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cache unavailable, </span><span class="si">%s</span><span class="s2"> (key=&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">rem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
 
     <span class="c1"># --------------------------------------------------------#</span>
@@ -815,12 +859,22 @@
 <span class="sd">        load : create a node from file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="k">if</span> <span class="s2">&quot;podpac_version&quot;</span> <span class="ow">in</span> <span class="n">definition</span> <span class="ow">and</span> <span class="n">definition</span><span class="p">[</span><span class="s2">&quot;podpac_version&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">__version__</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;node definition version mismatch &quot;</span>
+                <span class="s2">&quot;(this node was created with podpac version &#39;</span><span class="si">%s</span><span class="s2">&#39;, &quot;</span>
+                <span class="s2">&quot;but your current podpac version is &#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">definition</span><span class="p">[</span><span class="s2">&quot;podpac_version&quot;</span><span class="p">],</span> <span class="n">podpac</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+            <span class="p">)</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid definition: definition cannot be empty.&quot;</span><span class="p">)</span>
 
         <span class="c1"># parse node definitions in order</span>
         <span class="n">nodes</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">definition</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;podpac_version&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+
             <span class="k">if</span> <span class="s2">&quot;node&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid definition for node &#39;</span><span class="si">%s</span><span class="s2">&#39;: &#39;node&#39; property required&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
 
@@ -1098,11 +1152,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_from_cache</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
-
-            <span class="c1"># We need to check if the cache now has the key because it is possible that</span>
-            <span class="c1"># the previous function call added the key with the coordinates to the cache</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_output</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_update</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_update</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_output</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_from_cache</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="c1"># extract single output, if necessary</span>

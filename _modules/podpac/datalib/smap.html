@@ -92,35 +92,24 @@
             
               <p class="caption"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html#id18">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html#id71">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html#id92">}</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../aws.html">AWS Integration</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Topics</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../why-podpac.html">Why PODPAC?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../design.html">Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Dependencies</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html">Nodes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../coordinates.html">Coordinates</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../cache.html">Cache</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">Supported Datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../earthdata.html">NASA Earth Data Login</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../aws-development.html">AWS Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id10">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id19">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id22">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id25">}</a></li>
 </ul>
 <p class="caption"><span class="caption-text">References</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Support</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../references.html">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../docs.html">Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../roadmap.html">Development Roadmap</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 </ul>
 
             
@@ -234,10 +223,10 @@
 <span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">NodeException</span>
 <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">authentication</span>
-<span class="kn">from</span> <span class="nn">podpac.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span>
+<span class="kn">from</span> <span class="nn">podpac.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">merge_dims</span>
 <span class="kn">from</span> <span class="nn">podpac.data</span> <span class="kn">import</span> <span class="n">PyDAP</span>
-<span class="kn">from</span> <span class="nn">podpac.compositor</span> <span class="kn">import</span> <span class="n">OrderedCompositor</span>
 <span class="kn">from</span> <span class="nn">podpac.utils</span> <span class="kn">import</span> <span class="n">cached_property</span><span class="p">,</span> <span class="n">DiskCacheMixin</span>
+<span class="kn">from</span> <span class="nn">podpac.compositor</span> <span class="kn">import</span> <span class="n">OrderedCompositor</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">COMMON_DATA_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">_get_from_url</span>
 
@@ -476,8 +465,68 @@
         <span class="k">return</span>
 
 
+<span class="k">class</span> <span class="nc">SMAPCompositor</span><span class="p">(</span><span class="n">OrderedCompositor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sources : list</span>
+<span class="sd">        Source nodes, in order of preference. Later sources are only used where earlier sources do not provide data.</span>
+<span class="sd">    source_coordinates : :class:`podpac.Coordinates`</span>
+<span class="sd">        Coordinates that make each source unique. Must the same size as ``sources`` and single-dimensional.</span>
+<span class="sd">    shared_coordinates : :class:`podpac.Coordinates`.</span>
+<span class="sd">        Coordinates that are shared amongst all of the composited sources.</span>
+<span class="sd">    is_source_coordinates_complete : Bool</span>
+<span class="sd">        This flag is used to automatically construct coordinates as on optimization. Default is False.</span>
+<span class="sd">        For example, if the source coordinates could include the year-month-day of the source, but the actual source</span>
+<span class="sd">        also has hour-minute-second information, the source_coordinates is incomplete.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">is_source_coordinates_complete</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">shared_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">select_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Select sources based on requested coordinates, including setting coordinates, if possible.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coordinates : :class:`podpac.Coordinates`</span>
+<span class="sd">            Coordinates to evaluate at compositor sources</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        sources : :class:`np.ndarray`</span>
+<span class="sd">            Array of sources</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">         * If :attr:`source_coordinates` is defined, only sources that intersect the requested coordinates are selected.</span>
+<span class="sd">         * Sets sources :attr:`interpolation`.</span>
+<span class="sd">         * If source coordinates complete, sets sources :attr:`coordinates` as an optimization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="sd">&quot;&quot;&quot; Optimization: . &quot;&quot;&quot;</span>
+
+        <span class="n">src_subset</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">SMAPCompositor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">select_sources</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_source_coordinates_complete</span><span class="p">:</span>
+            <span class="n">coords_subset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">coords_dim</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">crs</span>
+            <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_subset</span><span class="p">,</span> <span class="n">coords_subset</span><span class="p">):</span>
+                <span class="n">nc</span> <span class="o">=</span> <span class="n">merge_dims</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">Coordinates</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">coords_dim</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span><span class="p">,</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">set_native_coordinates</span><span class="p">(</span><span class="n">nc</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">src_subset</span>
+
+
 <div class="viewcode-block" id="SMAPSource"><a class="viewcode-back" href="../../../api/podpac.datalib.SMAPSource.html#podpac.datalib.SMAPSource">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">SMAPSource</span><span class="p">(</span><span class="n">SMAPSessionMixin</span><span class="p">,</span> <span class="n">PyDAP</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">SMAPSource</span><span class="p">(</span><span class="n">SMAPSessionMixin</span><span class="p">,</span> <span class="n">DiskCacheMixin</span><span class="p">,</span> <span class="n">PyDAP</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Accesses SMAP data given a specific openDAP URL. This is the base class giving access to SMAP data, and knows how</span>
 <span class="sd">    to extract the correct coordinates and data keys for the soil moisture data.</span>
 
@@ -565,9 +614,9 @@
             <span class="n">times</span> <span class="o">=</span> <span class="n">times</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">18</span><span class="p">],</span> <span class="s2">&quot;timedelta64[h]&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">times</span>
 
-<div class="viewcode-block" id="SMAPSource.get_native_coordinates"><a class="viewcode-back" href="../../../api/podpac.datalib.SMAPSource.html#podpac.datalib.SMAPSource.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
+<div class="viewcode-block" id="SMAPSource.get_coordinates"><a class="viewcode-back" href="../../../api/podpac.datalib.SMAPSource.html#podpac.datalib.SMAPSource.get_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{get_coordinates}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lon_key</span><span class="p">][:,</span> <span class="p">:])</span>
         <span class="n">lats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lat_key</span><span class="p">][:,</span> <span class="p">:])</span>
@@ -590,13 +639,13 @@
             <span class="n">pm_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_key</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rdk</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root_data_key</span> <span class="o">+</span> <span class="s2">&quot;PM&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_pm&quot;</span>
 
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">d</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">am_key</span><span class="p">][</span><span class="n">s</span><span class="p">])</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">pass</span>
 
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">native_coordinates</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">d</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">pm_key</span><span class="p">][</span><span class="n">s</span><span class="p">])</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">pass</span>
@@ -687,9 +736,9 @@
     <span class="k">def</span> <span class="nf">_layerkey_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{rdk}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">property</span>
 
-<div class="viewcode-block" id="SMAPProperties.get_native_coordinates"><a class="viewcode-back" href="../../../api/podpac.datalib.SMAPProperties.html#podpac.datalib.SMAPProperties.get_native_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_native_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;{get_native_coordinates}</span>
+<div class="viewcode-block" id="SMAPProperties.get_coordinates"><a class="viewcode-back" href="../../../api/podpac.datalib.SMAPProperties.html#podpac.datalib.SMAPProperties.get_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{get_coordinates}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lon_key</span><span class="p">][:,</span> <span class="p">:])</span>
         <span class="n">lats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lat_key</span><span class="p">][:,</span> <span class="p">:])</span>
@@ -726,7 +775,7 @@
 
 
 <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">SMAPDateFolder</span><span class="p">(</span><span class="n">SMAPSessionMixin</span><span class="p">,</span> <span class="n">DiskCacheMixin</span><span class="p">,</span> <span class="n">OrderedCompositor</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">SMAPDateFolder</span><span class="p">(</span><span class="n">SMAPSessionMixin</span><span class="p">,</span> <span class="n">DiskCacheMixin</span><span class="p">,</span> <span class="n">SMAPCompositor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compositor of all the SMAP source urls present in a particular folder which is defined for a particular date</span>
 
 <span class="sd">    Attributes</span>
@@ -760,7 +809,6 @@
     <span class="n">folder_date</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">layer_key</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">latlon_delta</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">outputs</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># this is necessary because of the source caching backup</span>
 
     <span class="n">file_url_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;.*_[0-9]</span><span class="si">{8}</span><span class="s2">T[0-9]</span><span class="si">{6}</span><span class="s2">_.*\.h5&quot;</span><span class="p">)</span>
     <span class="n">file_url_re2</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;.*_[0-9]</span><span class="si">{8}</span><span class="s2">_.*\.h5&quot;</span><span class="p">)</span>
@@ -782,6 +830,15 @@
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;layer_key&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_layerkey_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">SMAP_PRODUCT_MAP</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s2">&quot;layer_key&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;shared_coordinates&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_default_shared_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Coordinates that are shared by all files in the folder.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span> <span class="ow">in</span> <span class="n">SMAP_INCOMPLETE_SOURCE_COORDINATES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">coords</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">folder_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -813,22 +870,21 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="s2">&quot;sources&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-            <span class="n">time_crds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">is_monotonic</span> <span class="ow">and</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">is_uniform</span> <span class="ow">and</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">tol</span> <span class="o">=</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">tol</span> <span class="o">=</span> <span class="n">tol</span> <span class="o">-</span> <span class="n">tol</span>
-                <span class="n">tol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">(</span><span class="n">tol</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        <span class="n">time_crds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">is_monotonic</span> <span class="ow">and</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">is_uniform</span> <span class="ow">and</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">tol</span> <span class="o">=</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">time_crds</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">tol</span> <span class="o">=</span> <span class="n">tol</span> <span class="o">-</span> <span class="n">tol</span>
+            <span class="n">tol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">(</span><span class="n">tol</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
 
-            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;layer_key&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_key</span><span class="p">,</span> <span class="s2">&quot;interpolation&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="s2">&quot;time_tolerance&quot;</span><span class="p">:</span> <span class="n">tol</span><span class="p">}}</span>
-
-            <span class="k">return</span> <span class="p">[</span><span class="n">SMAPSource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_url</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">]</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;layer_key&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_key</span><span class="p">,</span> <span class="s2">&quot;interpolation&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="s2">&quot;time_tolerance&quot;</span><span class="p">:</span> <span class="n">tol</span><span class="p">}}</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">SMAPSource</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_url</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_source_coordinates_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Flag use to optimize creation of native_coordinates. If the source_coordinates are complete,</span>
-<span class="sd">        native_coordinates can easily be reconstructed, and same with shared coordinates. </span>
+        <span class="sd">&quot;&quot;&quot;Flag use to optimize creation of coordinates. If the source_coordinates are complete,</span>
+<span class="sd">        coordinates can easily be reconstructed, and same with shared coordinates. </span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -857,16 +913,6 @@
                 <span class="n">crds</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">times</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">put_cache</span><span class="p">(</span><span class="n">crds</span><span class="p">,</span> <span class="s2">&quot;source.coordinates&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">crds</span>
-
-    <span class="nd">@cached_property</span><span class="p">(</span><span class="n">use_cache_ctrl</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">shared_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Coordinates that are shared by all files in the folder.&quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span> <span class="ow">in</span> <span class="n">SMAP_INCOMPLETE_SOURCE_COORDINATES</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
-        <span class="n">coords</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">native_coordinates</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">coords</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
 
     <span class="c1"># TODO just return the elements, then return each actual thing separately</span>
     <span class="nd">@cached_property</span>
@@ -946,7 +992,7 @@
 
 
 <div class="viewcode-block" id="SMAP"><a class="viewcode-back" href="../../../api/podpac.datalib.SMAP.html#podpac.datalib.SMAP">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">SMAP</span><span class="p">(</span><span class="n">SMAPSessionMixin</span><span class="p">,</span> <span class="n">OrderedCompositor</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">SMAP</span><span class="p">(</span><span class="n">SMAPSessionMixin</span><span class="p">,</span> <span class="n">DiskCacheMixin</span><span class="p">,</span> <span class="n">SMAPCompositor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compositor of all the SMAPDateFolder&#39;s for every available SMAP date. Essentially a compositor of all SMAP data</span>
 <span class="sd">    for a particular product.</span>
 
@@ -964,8 +1010,6 @@
     <span class="n">product</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="n">SMAP_PRODUCT_MAP</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;product&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;SPL4SMAU&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">layer_key</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">outputs</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># this is necessary because of the source caching backup</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># might as well</span>
 
     <span class="n">date_url_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[0-9]</span><span class="si">{4}</span><span class="s2">\.[0-9]</span><span class="si">{2}</span><span class="s2">\.[0-9]</span><span class="si">{2}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -983,10 +1027,25 @@
     <span class="k">def</span> <span class="nf">_layerkey_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">SMAP_PRODUCT_MAP</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s2">&quot;layer_key&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;shared_coordinates&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_default_shared_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Coordinates that are shared by all files in the SMAP product family. </span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        For example, the gridded SMAP data have the same lat-lon coordinates in every file (global at some resolution), </span>
+<span class="sd">        and the only difference between files is the time coordinate. </span>
+<span class="sd">        This is not true for the SMAP-Sentinel product, in which case this function returns None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span> <span class="ow">in</span> <span class="n">SMAP_INCOMPLETE_SOURCE_COORDINATES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">sample_source</span> <span class="o">=</span> <span class="n">SMAPDateFolder</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">folder_date</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">available_dates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">sample_source</span><span class="o">.</span><span class="n">shared_coordinates</span>
+
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">available_dates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Available dates in SMAP date format, sorted.&quot;&quot;&quot;</span>
-
         <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%03d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)])</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">_get_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1004,8 +1063,8 @@
         <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span>
             <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
-            <span class="s2">&quot;shared_coordinates&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span><span class="p">,</span>
             <span class="s2">&quot;layer_key&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_key</span><span class="p">,</span>
+            <span class="s2">&quot;shared_coordinates&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_coordinates</span><span class="p">,</span>  <span class="c1"># this is an optimization</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">SMAPDateFolder</span><span class="p">(</span><span class="n">folder_date</span><span class="o">=</span><span class="n">date</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_dates</span><span class="p">]</span>
 
@@ -1016,23 +1075,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">available_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_dates</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">available_times</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
-
-    <span class="nd">@cached_property</span>  <span class="c1"># (use_cache_ctrl=True)</span>
-    <span class="k">def</span> <span class="nf">shared_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Coordinates that are shared by all files in the SMAP product family. </span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        ------</span>
-<span class="sd">        For example, the gridded SMAP data have the same lat-lon coordinates in every file (global at some resolution), </span>
-<span class="sd">        and the only difference between files is the time coordinate. </span>
-<span class="sd">        This is not true for the SMAP-Sentinel product, in which case this function returns None</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span> <span class="ow">in</span> <span class="n">SMAP_INCOMPLETE_SOURCE_COORDINATES</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
-        <span class="n">sample_source</span> <span class="o">=</span> <span class="n">SMAPDateFolder</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">folder_date</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">available_dates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-        <span class="k">return</span> <span class="n">sample_source</span><span class="o">.</span><span class="n">shared_coordinates</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">base_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1055,7 +1097,7 @@
 <div class="viewcode-block" id="SMAP.find_coordinates"><a class="viewcode-back" href="../../../api/podpac.datalib.SMAP.html#podpac.datalib.SMAP.find_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">find_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        {native_coordinates}</span>
+<span class="sd">        {coordinates}</span>
 <span class="sd">        </span>
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
@@ -1218,8 +1260,6 @@
     <span class="sd">&quot;&quot;&quot;Compositor of SMAP-Sentinel and the Level 4 SMAP Analysis Update soil moisture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">shared_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
-
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">sources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Orders the compositor of SPL2SMAP_S in front of SPL4SMAU. &quot;&quot;&quot;</span>
@@ -1273,14 +1313,14 @@
 
     <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
 
-    <span class="n">username</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Username:&quot;</span><span class="p">)</span>
-    <span class="n">password</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getpass</span><span class="p">(</span><span class="s2">&quot;Password:&quot;</span><span class="p">)</span>
-
     <span class="n">product</span> <span class="o">=</span> <span class="s2">&quot;SPL4SMAU&quot;</span>
     <span class="n">interpolation</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;time_tolerance&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;h&quot;</span><span class="p">)}}</span>
 
     <span class="n">sm</span> <span class="o">=</span> <span class="n">SMAP</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="n">product</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">interpolation</span><span class="p">)</span>
-    <span class="n">sm</span><span class="o">.</span><span class="n">set_credentials</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">)</span>
+
+    <span class="c1"># username = input(&quot;Username: &quot;)</span>
+    <span class="c1"># password = getpass.getpass(&quot;Password: &quot;)</span>
+    <span class="c1"># sm.set_credentials(username=username, password=password)</span>
 
     <span class="c1"># SMAP info</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">sm</span><span class="p">)</span>
@@ -1291,21 +1331,22 @@
     <span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SMAP source_coordinates:&quot;</span><span class="p">,</span> <span class="n">sm</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SMAP shared_coordinates:&quot;</span><span class="p">,</span> <span class="n">sm</span><span class="o">.</span><span class="n">shared_coordinates</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sources:&quot;</span><span class="p">,</span> <span class="n">sm</span><span class="o">.</span><span class="n">sources</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sources:&quot;</span><span class="p">,</span> <span class="n">sm</span><span class="o">.</span><span class="n">sources</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;... (</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">sm</span><span class="o">.</span><span class="n">sources</span><span class="p">))</span>
 
     <span class="c1"># sample SMAPDateFolder info</span>
     <span class="n">sm_datefolder</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DateFolder:&quot;</span><span class="p">,</span> <span class="n">sm_datefolder</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DateFolder Definition:&quot;</span><span class="p">,</span> <span class="n">sm_datefolder</span><span class="o">.</span><span class="n">json_pretty</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DateFolder source_coordinates:&quot;</span><span class="p">,</span> <span class="n">sm_datefolder</span><span class="o">.</span><span class="n">source_coordinates</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DateFolder shared_coordinates:&quot;</span><span class="p">,</span> <span class="n">sm_datefolder</span><span class="o">.</span><span class="n">shared_coordinates</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DateFolder Sources:&quot;</span><span class="p">,</span> <span class="n">sm_datefolder</span><span class="o">.</span><span class="n">sources</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DateFolder Sources:&quot;</span><span class="p">,</span> <span class="n">sm_datefolder</span><span class="o">.</span><span class="n">sources</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;... (</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">sm_datefolder</span><span class="o">.</span><span class="n">sources</span><span class="p">))</span>
 
     <span class="c1"># sample SMAPSource info</span>
     <span class="n">sm_source</span> <span class="o">=</span> <span class="n">sm_datefolder</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DAP Source:&quot;</span><span class="p">,</span> <span class="n">sm_source</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DAP Source Definition:&quot;</span><span class="p">,</span> <span class="n">sm_source</span><span class="o">.</span><span class="n">json_pretty</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DAP Native Coordinates:&quot;</span><span class="p">,</span> <span class="n">sm_source</span><span class="o">.</span><span class="n">native_coordinates</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sample DAP Native Coordinates:&quot;</span><span class="p">,</span> <span class="n">sm_source</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Another Sample DAP Native Coordinates:&quot;</span><span class="p">,</span> <span class="n">sm_datefolder</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
 
     <span class="c1"># eval whole world</span>
     <span class="n">c_world</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span>
