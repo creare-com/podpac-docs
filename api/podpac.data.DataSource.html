@@ -239,7 +239,7 @@ class will be used without modification.</p>
 <li><p><strong>nan_vals</strong> (<em>List</em><em>, </em><em>optional</em>) – List of values from source data that should be interpreted as ‘no data’ or ‘nans’</p></li>
 <li><p><strong>coordinate_index_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of index to use for data source. Possible values are <code class="docutils literal notranslate"><span class="pre">['list',</span> <span class="pre">'numpy',</span> <span class="pre">'xarray',</span> <span class="pre">'pandas']</span></code>
 Default is ‘numpy’</p></li>
-<li><p><strong>cache_native_coordinates</strong> (<em>bool</em>) – Whether to cache native coordinates using the podpac <code class="docutils literal notranslate"><span class="pre">cache_ctrl</span></code>. Default False.</p></li>
+<li><p><strong>cache_coordinates</strong> (<em>bool</em>) – Whether to cache coordinates using the podpac <code class="docutils literal notranslate"><span class="pre">cache_ctrl</span></code>. Default False.</p></li>
 </ul>
 </dd>
 </dl>
@@ -280,7 +280,7 @@ Default is ‘numpy’</p></li>
 <td><p>Evaluate the node for each of the coordinates in the group.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.DataSource.find_coordinates" title="podpac.data.DataSource.find_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_coordinates</span></code></a>()</p></td>
-<td><p>Get the available native coordinates for the Node.</p></td>
+<td><p>Get the available coordinates for the Node.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_url</span></code>(url)</p></td>
 <td><p>Create podpac Node from a WMS/WCS request.</p></td>
@@ -289,7 +289,7 @@ Default is ‘numpy’</p></li>
 <td><p>Get cached data for this node.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.DataSource.get_coordinates" title="podpac.data.DataSource.get_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_coordinates</span></code></a>()</p></td>
-<td><p>Returns a Coordinates object that describes the native coordinates of the data source.</p></td>
+<td><p>Returns a Coordinates object that describes the coordinates of the data source.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.DataSource.get_data" title="podpac.data.DataSource.get_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data</span></code></a>(coordinates, coordinates_index)</p></td>
 <td><p>This method must be defined by the data source implementing the DataSource class.</p></td>
@@ -312,7 +312,7 @@ Default is ‘numpy’</p></li>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code>(path)</p></td>
 <td><p>Write node to file.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.DataSource.set_native_coordinates" title="podpac.data.DataSource.set_native_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_native_coordinates</span></code></a>(coordinates[, force])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.DataSource.set_coordinates" title="podpac.data.DataSource.set_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_coordinates</span></code></a>(coordinates[, force])</p></td>
 <td><p>Set the coordinates.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_is_defined</span></code>(name)</p></td>
@@ -333,11 +333,11 @@ Default is ‘numpy’</p></li>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_ref</span></code></p></td>
 <td><p>Default reference/name in node definitions</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_ctrl</span></code></p></td>
-<td><p>A trait whose value must be an instance of a specified class.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.DataSource.cache_native_coordinates" title="podpac.data.DataSource.cache_native_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_native_coordinates</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.DataSource.cache_coordinates" title="podpac.data.DataSource.cache_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_coordinates</span></code></a></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_ctrl</span></code></p></td>
+<td><p>A trait whose value must be an instance of a specified class.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_output</span></code></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
@@ -403,8 +403,8 @@ Default is ‘numpy’</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="podpac.data.DataSource.cache_native_coordinates">
-<code class="sig-name descname">cache_native_coordinates</code><a class="headerlink" href="#podpac.data.DataSource.cache_native_coordinates" title="Permalink to this definition">¶</a></dt>
+<dt id="podpac.data.DataSource.cache_coordinates">
+<code class="sig-name descname">cache_coordinates</code><a class="headerlink" href="#podpac.data.DataSource.cache_coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><p>A boolean (True, False) trait.</p>
 </dd></dl>
 
@@ -424,10 +424,10 @@ Default is ‘numpy’</p></li>
 <dt id="podpac.data.DataSource.eval">
 <code class="sig-name descname">eval</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coordinates</span></em>, <em class="sig-param"><span class="n">output</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/data/datasource.html#DataSource.eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.DataSource.eval" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluates this node using the supplied coordinates.</p>
-<p>The native coordinates are mapped to the requested coordinates, interpolated if necessary, and set to
+<p>The coordinates are mapped to the requested coordinates, interpolated if necessary, and set to
 <cite>_requested_source_coordinates</cite> with associated index <cite>_requested_source_coordinates_index</cite>. The requested
 source coordinates and index are passed to <cite>get_data()</cite> returning the source data at the
-native coordinatesset to <cite>_requested_source_data</cite>. Finally <cite>_requested_source_data</cite> is interpolated
+coordinatesset to <cite>_requested_source_data</cite>. Finally <cite>_requested_source_data</cite> is interpolated
 using the <cite>interpolate</cite> method and set to the <cite>output</cite> attribute of the node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -456,7 +456,7 @@ coordinates, and coordinate reference system.</p></li>
 <dl class="py method">
 <dt id="podpac.data.DataSource.find_coordinates">
 <code class="sig-name descname">find_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/data/datasource.html#DataSource.find_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.DataSource.find_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the available native coordinates for the Node. For a DataSource, this is just the coordinates.</p>
+<dd><p>Get the available coordinates for the Node. For a DataSource, this is just the coordinates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><strong>coords_list</strong> – singleton list containing the coordinates (Coordinates object)</p>
@@ -470,7 +470,7 @@ coordinates, and coordinate reference system.</p></li>
 <dl class="py method">
 <dt id="podpac.data.DataSource.get_coordinates">
 <code class="sig-name descname">get_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/data/datasource.html#DataSource.get_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.DataSource.get_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a Coordinates object that describes the native coordinates of the data source.</p>
+<dd><p>Returns a Coordinates object that describes the coordinates of the data source.</p>
 <p>In most cases, this method is defined by the data source implementing the DataSource class.
 If method is not implemented by the data source, it will try to return <code class="docutils literal notranslate"><span class="pre">self.coordinates</span></code>
 if <code class="docutils literal notranslate"><span class="pre">self.coordinates</span></code> is not None.</p>
@@ -581,8 +581,8 @@ an empty OrderedDict</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="podpac.data.DataSource.set_native_coordinates">
-<code class="sig-name descname">set_native_coordinates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coordinates</span></em>, <em class="sig-param"><span class="n">force</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/data/datasource.html#DataSource.set_native_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.DataSource.set_native_coordinates" title="Permalink to this definition">¶</a></dt>
+<dt id="podpac.data.DataSource.set_coordinates">
+<code class="sig-name descname">set_coordinates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coordinates</span></em>, <em class="sig-param"><span class="n">force</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/data/datasource.html#DataSource.set_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.DataSource.set_coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the coordinates. Used by Compositors as an optimization.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
