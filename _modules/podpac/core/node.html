@@ -268,7 +268,10 @@
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cache_output: bool</span>
-<span class="sd">        Should the node&#39;s output be cached? If not provided or None, uses default based on settings.</span>
+<span class="sd">        Should the node&#39;s output be cached? If not provided or None, uses default based on settings </span>
+<span class="sd">        (CACHE_NODE_OUTPUT_DEFAULT for general Nodes, and CACHE_DATASOURCE_OUTPUT_DEFAULT  for DataSource nodes). </span>
+<span class="sd">        If True, outputs will be cached and retrieved from cache. If False, outputs will not be cached OR retrieved from cache (even if </span>
+<span class="sd">        they exist in cache). </span>
 <span class="sd">    cache_update: bool</span>
 <span class="sd">        Default is True. Should the node&#39;s cached output be updated from the source data?</span>
 <span class="sd">    cache_ctrl: :class:`podpac.core.cache.cache.CacheCtrl`</span>
@@ -332,7 +335,7 @@
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;cache_output&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_cache_output_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;CACHE_OUTPUT_DEFAULT&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;CACHE_NODE_OUTPUT_DEFAULT&quot;</span><span class="p">]</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;cache_ctrl&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_cache_ctrl_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1144,7 +1147,7 @@
         <span class="n">key</span> <span class="o">=</span> <span class="n">cache_key</span>
         <span class="n">cache_coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span>  <span class="c1"># order agnostic caching</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_update</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_update</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_output</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">):</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cache_coordinates</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
