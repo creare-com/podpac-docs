@@ -445,25 +445,16 @@
             <span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">get_rasterio_transform</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;Summary</span>
-<span class="sd">            </span>
-<span class="sd">            Parameters</span>
-<span class="sd">            ----------</span>
-<span class="sd">            c : TYPE</span>
-<span class="sd">                Description</span>
-<span class="sd">            </span>
-<span class="sd">            Returns</span>
-<span class="sd">            -------</span>
-<span class="sd">            TYPE</span>
-<span class="sd">                Description</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">west</span><span class="p">,</span> <span class="n">east</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">area_bounds</span>
-            <span class="n">south</span><span class="p">,</span> <span class="n">north</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">area_bounds</span>
-            <span class="n">cols</span><span class="p">,</span> <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-            <span class="c1"># print (east, west, south, north)</span>
+            <span class="n">west</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">east</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">south</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">north</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
             <span class="k">return</span> <span class="n">transform</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span><span class="n">west</span><span class="p">,</span> <span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">north</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">rows</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">Env</span><span class="p">():</span>
+            <span class="c1"># src_transform = transform.Affine.from_gdal(*source_coordinates.geotransform)</span>
             <span class="n">src_transform</span> <span class="o">=</span> <span class="n">get_rasterio_transform</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">)</span>
             <span class="n">src_crs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;init&quot;</span><span class="p">:</span> <span class="n">source_coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">}</span>
             <span class="c1"># Need to make sure array is c-contiguous</span>
@@ -472,6 +463,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">source</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">source_data</span><span class="o">.</span><span class="n">data</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
 
+            <span class="c1"># dst_transform = transform.Affine.from_gdal(*eval_coordinates.geotransform)</span>
             <span class="n">dst_transform</span> <span class="o">=</span> <span class="n">get_rasterio_transform</span><span class="p">(</span><span class="n">eval_coordinates</span><span class="p">)</span>
             <span class="n">dst_crs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;init&quot;</span><span class="p">:</span> <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">}</span>
             <span class="c1"># Need to make sure array is c-contiguous</span>
