@@ -194,7 +194,6 @@
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">UnitsDataArray</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="kn">import</span> <span class="n">VALID_DIMENSION_NAMES</span><span class="p">,</span> <span class="n">make_coord_delta</span><span class="p">,</span> <span class="n">make_coord_delta_array</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeException</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span>
@@ -332,7 +331,6 @@
 
     <span class="n">interpolation</span> <span class="o">=</span> <span class="n">InterpolationTrait</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">nan_vals</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">boundary</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">coordinate_index_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;numpy&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">)</span>  <span class="c1"># , &quot;xarray&quot;, &quot;pandas&quot;],</span>
     <span class="n">cache_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
@@ -353,34 +351,6 @@
     <span class="k">def</span> <span class="nf">_default_interpolation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span>
-
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;boundary&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_validate_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="n">val</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">boundary</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_DIMENSION_NAMES</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid dimension &#39;</span><span class="si">%s</span><span class="s2">&#39; in boundary&quot;</span> <span class="o">%</span> <span class="n">dim</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">boundary</span><span class="p">)</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">delta</span> <span class="o">=</span> <span class="n">make_coord_delta</span><span class="p">(</span><span class="n">boundary</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                        <span class="s2">&quot;Invalid boundary for dimension &#39;</span><span class="si">%s</span><span class="s2">&#39; (&#39;</span><span class="si">%s</span><span class="s2">&#39; is not a valid coordinate delta)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">boundary</span><span class="p">)</span>
-                    <span class="p">)</span>
-
-                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid boundary for dimension &#39;</span><span class="si">%s</span><span class="s2">&#39; (</span><span class="si">%s</span><span class="s2"> &lt; 0)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">delta</span><span class="p">))</span>
-
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">boundary</span><span class="p">)</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">make_coord_delta_array</span><span class="p">(</span><span class="n">boundary</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Non-centered boundary not yet supported for dimension &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">dim</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">boundary</span><span class="p">)</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">boundary</span><span class="p">:</span>
-                    <span class="n">make_coord_delta_array</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Non-uniform boundary not yet supported for dimension &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">dim</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">val</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;cache_output&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_cache_output_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -574,11 +544,12 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
             <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
 
-        <span class="c1"># intersect the coordinates with requested coordinates to get coordinates within requested coordinates bounds</span>
+        <span class="c1"># intersect the coordinates with requested coordinates</span>
+        <span class="c1"># to get coordinates within requested coordinates bounds</span>
         <span class="c1"># TODO: support coordinate_index_type parameter to define other index types</span>
-        <span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span> <span class="o">=</span> <span class="n">rsc</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span> <span class="o">=</span> <span class="n">rsci</span>
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span>
+            <span class="n">coordinates</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
 
         <span class="c1"># if requested coordinates and coordinates do not intersect, shortcut with nan UnitsDataArary</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -594,11 +565,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation</span><span class="p">()</span>
 
         <span class="c1"># interpolate requested coordinates before getting data</span>
-        <span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span><span class="o">.</span><span class="n">select_coordinates</span><span class="p">(</span>
+        <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span><span class="o">.</span><span class="n">select_coordinates</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span><span class="p">,</span> <span class="n">coordinates</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span> <span class="o">=</span> <span class="n">rsc</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span> <span class="o">=</span> <span class="n">rsci</span>
 
         <span class="c1"># Check the coordinate_index_type</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_index_type</span> <span class="o">==</span> <span class="s2">&quot;slice&quot;</span><span class="p">:</span>  <span class="c1"># Most restrictive</span>
@@ -647,9 +619,6 @@
                     <span class="s2">&quot;Output coordinate reference system (</span><span class="si">{}</span><span class="s2">) does not match&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
                     <span class="o">+</span> <span class="s2">&quot;request Coordinates coordinate reference system (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
                 <span class="p">)</span>
-
-        <span class="c1"># get indexed boundary</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_boundary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_boundary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span><span class="p">)</span>
 
         <span class="c1"># interpolate data into output</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span>
@@ -718,33 +687,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">trait_is_defined</span><span class="p">(</span><span class="s2">&quot;_coordinates&quot;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_coordinates&quot;</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span></div>
-
-    <span class="k">def</span> <span class="nf">_get_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Select the boundary for the given the coordinates index. Only non-uniform boundary arrays need to be indexed.</span>
-
-<span class="sd">        Arguments</span>
-<span class="sd">        ---------</span>
-<span class="sd">        index : tuple</span>
-<span class="sd">            Coordinates index (e.g. coordinates_index)</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        boundary : dict</span>
-<span class="sd">            Indexed boundary. Uniform boundaries are unchanged and non-uniform boundary arrays are indexed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">boundary</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">index</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary</span><span class="p">:</span>
-                    <span class="k">pass</span>
-                <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundary</span><span class="p">[</span><span class="n">dim</span><span class="p">])</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">boundary</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundary</span><span class="p">[</span><span class="n">dim</span><span class="p">][</span><span class="n">I</span><span class="p">])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">boundary</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">boundary</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_coordinates&quot;</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
