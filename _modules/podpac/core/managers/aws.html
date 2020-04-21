@@ -121,6 +121,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../roadmap.html">Development Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html#breaking-changes">Breaking changes</a></li>
 </ul>
 
             
@@ -197,6 +198,8 @@
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
+<span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">string_types</span>
+
 <span class="kn">import</span> <span class="nn">boto3</span>
 <span class="kn">import</span> <span class="nn">botocore</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
@@ -222,7 +225,7 @@
 
 <div class="viewcode-block" id="Lambda"><a class="viewcode-back" href="../../../../api/podpac.managers.Lambda.html#podpac.managers.Lambda">[docs]</a><span class="k">class</span> <span class="nc">Lambda</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A `Node` wrapper to evaluate source on AWS Lambda function</span>
-<span class="sd">    </span>
+
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -244,10 +247,12 @@
 <span class="sd">        S3 bucket name to use with lambda function. Defaults to :str:`podpac.settings[&quot;S3_BUCKET_NAME&quot;]` or &quot;podpac-autogen-&lt;timestamp&gt;&quot; with the timestamp to ensure uniqueness.</span>
 <span class="sd">    eval_settings : dict, optional</span>
 <span class="sd">        Default is podpac.settings. PODPAC settings that will be used to evaluate the Lambda function.</span>
+<span class="sd">    eval_timeout : float, optional</span>
+<span class="sd">        Default is None. The amount of time to wait for an eval to return. To get near asynchronous response, set this to a small number. </span>
 
 <span class="sd">    Other Attributes</span>
 <span class="sd">    ----------------</span>
-<span class="sd">    attrs : dict</span>
+<span class="sd">    node_attrs : dict</span>
 <span class="sd">        Additional attributes passed on to the Lambda definition of the base node</span>
 <span class="sd">    download_result : Bool</span>
 <span class="sd">        Flag that indicated whether node should wait to download the data.</span>
@@ -324,6 +329,8 @@
 <span class="sd">        Defaults to &quot;USD&quot;.</span>
 <span class="sd">        See https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/budgets.html#Budgets.Client.create_budget</span>
 <span class="sd">        for currency (or Unit) options.</span>
+<span class="sd">    output_format : dict, optional</span>
+<span class="sd">        Definition for how output is saved after results are computed.</span>
 <span class="sd">    session : :class:`podpac.managers.aws.Session`</span>
 <span class="sd">        AWS Session to use for this node.</span>
 <span class="sd">    source : :class:`podpac.Node`</span>
@@ -350,7 +357,7 @@
         <span class="p">)</span>
 
     <span class="c1"># general function parameters</span>
-    <span class="n">function_eval_trigger</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span> <span class="s2">&quot;S3&quot;</span><span class="p">,</span> <span class="s2">&quot;APIGateway&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">function_eval_trigger</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span> <span class="s2">&quot;S3&quot;</span><span class="p">,</span> <span class="s2">&quot;APIGateway&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># lambda function parameters</span>
     <span class="n">function_name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># see default below</span>
@@ -370,7 +377,7 @@
     <span class="n">function_source_bucket</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;podpac-dist&quot;</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">function_source_dist_key</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># see default below</span>
     <span class="n">function_source_dependencies_key</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># see default below</span>
-    <span class="n">function_allow_unsafe_eval</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">function_allow_unsafe_eval</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># see default below</span>
     <span class="n">function_restrict_pipelines</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="p">[])</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">_function_arn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">_function_last_modified</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -379,6 +386,12 @@
     <span class="n">_function_triggers</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="p">{},</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">_function_valid</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">_function</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># raw response from AWS on &quot;get_&quot;</span>
+
+    <span class="n">output_format</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">outputs</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;function_name&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_function_name_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -413,6 +426,12 @@
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;function_tags&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_function_tags_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;AWS_TAGS&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{}</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;function_allow_unsafe_eval&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_function_allow_unsafe_eval_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;UNSAFE_EVAL_HASH&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_settings</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eval_settings</span><span class="p">[</span><span class="s2">&quot;UNSAFE_EVAL_HASH&quot;</span><span class="p">],</span> <span class="n">string_types</span>
+        <span class="p">)</span>
 
     <span class="c1"># role parameters</span>
     <span class="n">function_role_name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">readonly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># see default below</span>
@@ -564,10 +583,11 @@
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">source_output_format</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;netcdf&quot;</span><span class="p">)</span>
     <span class="n">source_output_name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span>
-    <span class="n">attrs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span>
+    <span class="n">node_attrs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span>
     <span class="n">download_result</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">force_compute</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">eval_settings</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">eval_timeout</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="mi">610</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;source_output_name&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_source_output_name_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -591,9 +611,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;pipeline&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">definition</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_attrs</span><span class="p">:</span>
             <span class="n">out_node</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;pipeline&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;pipeline&quot;</span><span class="p">][</span><span class="n">out_node</span><span class="p">][</span><span class="s2">&quot;attrs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;pipeline&quot;</span><span class="p">][</span><span class="n">out_node</span><span class="p">][</span><span class="s2">&quot;attrs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_attrs</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_output_format</span><span class="p">}</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_settings</span>
         <span class="k">return</span> <span class="n">d</span>
@@ -1579,26 +1599,44 @@
         <span class="n">pipeline</span><span class="p">[</span><span class="s2">&quot;settings&quot;</span><span class="p">][</span>
             <span class="s2">&quot;FUNCTION_DEPENDENCIES_KEY&quot;</span>
         <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_s3_dependencies_key</span>  <span class="c1"># overwrite in case this is specified explicitly by class</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span><span class="p">:</span>
+            <span class="n">pipeline</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span>
 
         <span class="k">return</span> <span class="n">pipeline</span>
 
     <span class="k">def</span> <span class="nf">_eval_invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;eval node through invoke trigger&quot;&quot;&quot;</span>
-        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Evaluating pipeline via invoke&quot;</span><span class="p">)</span>
 
         <span class="c1"># create eval pipeline</span>
         <span class="n">pipeline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_eval_pipeline</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
 
         <span class="c1"># create lambda client</span>
-        <span class="n">awslambda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;lambda&quot;</span><span class="p">)</span>
-
-        <span class="c1"># invoke</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;UTF-8&quot;</span><span class="p">))</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">awslambda</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
-            <span class="n">FunctionName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_name</span><span class="p">,</span>
-            <span class="n">LogType</span><span class="o">=</span><span class="s2">&quot;Tail&quot;</span><span class="p">,</span>  <span class="c1"># include the execution log in the response.</span>
-            <span class="n">Payload</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span>
+            <span class="n">read_timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_timeout</span><span class="p">,</span> <span class="n">max_pool_connections</span><span class="o">=</span><span class="mi">1001</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;max_attempts&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
         <span class="p">)</span>
+        <span class="n">awslambda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;lambda&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="c1"># pipeline payload</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;UTF-8&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">download_result</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Evaluating pipeline via invoke synchronously&quot;</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">awslambda</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+                <span class="n">FunctionName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_name</span><span class="p">,</span>
+                <span class="n">LogType</span><span class="o">=</span><span class="s2">&quot;Tail&quot;</span><span class="p">,</span>  <span class="c1"># include the execution log in the response.</span>
+                <span class="n">Payload</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># async invocation</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Evaluating pipeline via invoke asynchronously&quot;</span><span class="p">)</span>
+            <span class="n">awslambda</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+                <span class="n">FunctionName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function_name</span><span class="p">,</span>
+                <span class="n">InvocationType</span><span class="o">=</span><span class="s2">&quot;Event&quot;</span><span class="p">,</span>
+                <span class="n">LogType</span><span class="o">=</span><span class="s2">&quot;Tail&quot;</span><span class="p">,</span>  <span class="c1"># include the execution log in the response.</span>
+                <span class="n">Payload</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">return</span>
 
         <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Received response from lambda function&quot;</span><span class="p">)</span>
 
@@ -1614,7 +1652,11 @@
 
         <span class="c1"># After waiting, load the pickle file like this:</span>
         <span class="n">payload</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;Payload&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">UnitsDataArray</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">UnitsDataArray</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="c1"># Not actually a data-array, returning a string instead</span>
+            <span class="k">return</span> <span class="n">payload</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span>
 
     <span class="k">def</span> <span class="nf">_eval_s3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1894,7 +1936,7 @@
     <span class="n">object_config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ACL&quot;</span><span class="p">:</span> <span class="n">object_acl</span><span class="p">,</span> <span class="s2">&quot;Bucket&quot;</span><span class="p">:</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">bucket_path</span><span class="p">}</span>
 
     <span class="n">object_body</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">object_body</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>

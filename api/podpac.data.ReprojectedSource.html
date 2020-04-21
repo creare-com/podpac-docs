@@ -121,6 +121,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#data-sources">Data Sources</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="podpac.data.Array.html">podpac.data.Array</a></li>
 <li class="toctree-l3"><a class="reference internal" href="podpac.data.CSV.html">podpac.data.CSV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="podpac.data.Dataset.html">podpac.data.Dataset</a></li>
 <li class="toctree-l3"><a class="reference internal" href="podpac.data.H5PY.html">podpac.data.H5PY</a></li>
 <li class="toctree-l3"><a class="reference internal" href="podpac.data.PyDAP.html">podpac.data.PyDAP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="podpac.data.Rasterio.html">podpac.data.Rasterio</a></li>
@@ -130,10 +131,10 @@
 <li class="toctree-l3"><a class="reference internal" href="podpac.data.DataSource.html">podpac.data.DataSource</a></li>
 <li class="toctree-l3"><a class="reference internal" href="podpac.data.Interpolation.html">podpac.data.Interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="podpac.data.INTERPOLATION_DEFAULT.html">podpac.data.INTERPOLATION_DEFAULT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="podpac.data.INTERPOLATION_METHODS.html">podpac.data.INTERPOLATION_METHODS</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#interpolators">Interpolators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api.html#pipelines">Pipelines</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#algorithm-nodes">Algorithm Nodes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#compositor-nodes">Compositor Nodes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#datalib">Datalib</a></li>
@@ -149,6 +150,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../roadmap.html">Development Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#breaking-changes">Breaking changes</a></li>
 </ul>
 
             
@@ -291,7 +293,7 @@ dataset after averaging over a larger area.</p>
 <td><p>Evaluate the node for each of the coordinates in the group.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_coordinates</span></code>()</p></td>
-<td><p>Get the available native coordinates for the Node.</p></td>
+<td><p>Get the available coordinates for the Node.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_url</span></code>(url)</p></td>
 <td><p>Create podpac Node from a WMS/WCS request.</p></td>
@@ -299,11 +301,11 @@ dataset after averaging over a larger area.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cache</span></code>(key[, coordinates])</p></td>
 <td><p>Get cached data for this node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.ReprojectedSource.get_data" title="podpac.data.ReprojectedSource.get_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data</span></code></a>(coordinates, coordinates_index)</p></td>
-<td><p>This method must be defined by the data source implementing the DataSource class.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.ReprojectedSource.get_coordinates" title="podpac.data.ReprojectedSource.get_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_coordinates</span></code></a>()</p></td>
+<td><p>Returns a Coordinates object that describes the coordinates of the data source.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.ReprojectedSource.get_native_coordinates" title="podpac.data.ReprojectedSource.get_native_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_native_coordinates</span></code></a>()</p></td>
-<td><p>Returns a Coordinates object that describes the native coordinates of the data source.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.ReprojectedSource.get_data" title="podpac.data.ReprojectedSource.get_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data</span></code></a>(coordinates, coordinates_index)</p></td>
+<td><p>This method must be defined by the data source implementing the DataSource class.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_cache</span></code>(key[, coordinates])</p></td>
 <td><p>Check for cached data for this node.</p></td>
@@ -323,6 +325,12 @@ dataset after averaging over a larger area.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code>(path)</p></td>
 <td><p>Write node to file.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_coordinates</span></code>(coordinates[, force])</p></td>
+<td><p>Set the coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_is_defined</span></code>(name)</p></td>
+<td><p></p></td>
+</tr>
 </tbody>
 </table>
 <p class="rubric">Attributes</p>
@@ -332,11 +340,17 @@ dataset after averaging over a larger area.</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_definition</span></code></p></td>
-<td><p>Base node definition for DataSource nodes.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">attrs</span></code></p></td>
+<td><p>List of node attributes</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.ReprojectedSource.base_ref" title="podpac.data.ReprojectedSource.base_ref"><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_ref</span></code></a></p></td>
-<td><p>Summary</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">boundary</span></code></p></td>
+<td><p>An instance of a Python dict.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_coordinates</span></code></p></td>
+<td><p>A boolean (True, False) trait.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_ctrl</span></code></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
@@ -344,23 +358,29 @@ dataset after averaging over a larger area.</p>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_output</span></code></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_update</span></code></p></td>
-<td><p>A boolean (True, False) trait.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">coordinate_index_type</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">coordinate_index_type</span></code></p></td>
 <td><p>An enum whose value must be in a given sequence.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">coordinates</span></code></p></td>
+<td><p>{coordinates}</p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></p></td>
-<td><p>Full node definition.</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
 <td><p>A trait which allows any value.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.ReprojectedSource.eval_source" title="podpac.data.ReprojectedSource.eval_source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval_source</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">force_eval</span></code></p></td>
+<td><p>A boolean (True, False) trait.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash</span></code></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation</span></code></p></td>
-<td><p>A trait type representing a Union type.</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation_class</span></code></p></td>
 <td><p>Get the interpolation class currently set for this data source.</p></td>
@@ -369,7 +389,7 @@ dataset after averaging over a larger area.</p>
 <td><p>Return the interpolators selected for the previous node evaluation interpolation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
-<td><p>definition for this node in json format</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></p></td>
 <td><p></p></td>
@@ -377,17 +397,11 @@ dataset after averaging over a larger area.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nan_vals</span></code></p></td>
 <td><p>An instance of a Python list.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">native_coordinates</span></code></p></td>
-<td><p>A trait whose value must be an instance of a specified class.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
 <td><p>A trait for unicode strings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
 <td><p>An instance of a Python list.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></p></td>
-<td><p>Deprecated.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.ReprojectedSource.reprojected_coordinates" title="podpac.data.ReprojectedSource.reprojected_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reprojected_coordinates</span></code></a></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
@@ -396,7 +410,7 @@ dataset after averaging over a larger area.</p>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.ReprojectedSource.source_interpolation" title="podpac.data.ReprojectedSource.source_interpolation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_interpolation</span></code></a></p></td>
-<td><p>A trait type representing a Union type.</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
@@ -419,15 +433,35 @@ dataset after averaging over a larger area.</p>
 <dl class="method">
 <dt id="podpac.data.ReprojectedSource.base_ref">
 <em class="property">property </em><code class="sig-name descname">base_ref</code><a class="headerlink" href="#podpac.data.ReprojectedSource.base_ref" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary</p>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="podpac.data.ReprojectedSource.eval_source">
+<em class="property">property </em><code class="sig-name descname">eval_source</code><a class="headerlink" href="#podpac.data.ReprojectedSource.eval_source" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="podpac.data.ReprojectedSource.get_coordinates">
+<code class="sig-name descname">get_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/data/reprojection.html#ReprojectedSource.get_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.ReprojectedSource.get_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Coordinates object that describes the coordinates of the data source.</p>
+<p>In most cases, this method is defined by the data source implementing the DataSource class.
+If method is not implemented by the data source, it will try to return <code class="docutils literal notranslate"><span class="pre">self.coordinates</span></code>
+if <code class="docutils literal notranslate"><span class="pre">self.coordinates</span></code> is not None.</p>
+<p>Otherwise, this method will raise a NotImplementedError.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Description</p>
+<dd class="field-odd"><p>The coordinates describing the data source array.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>TYPE</p>
+<dd class="field-even"><p><a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a></p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Need to pay attention to:
+- the order of the dimensions
+- the stacking of the dimension
+- the type of coordinates</p>
+<p>Coordinates should be non-nan and non-repeating for best compatibility</p>
 </dd></dl>
 
 <dl class="method">
@@ -468,30 +502,6 @@ at the requested source coordinates.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="podpac.data.ReprojectedSource.get_native_coordinates">
-<code class="sig-name descname">get_native_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/data/reprojection.html#ReprojectedSource.get_native_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.ReprojectedSource.get_native_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a Coordinates object that describes the native coordinates of the data source.</p>
-<p>In most cases, this method is defined by the data source implementing the DataSource class.
-If method is not implemented by the data source, it will try to return <code class="docutils literal notranslate"><span class="pre">self.native_coordinates</span></code>
-if <code class="docutils literal notranslate"><span class="pre">self.native_coordinates</span></code> is not None.</p>
-<p>Otherwise, this method will raise a NotImplementedError.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The coordinates describing the data source array.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a></p>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<p>Need to pay attention to:
-- the order of the dimensions
-- the stacking of the dimension
-- the type of coordinates</p>
-<p>Coordinates should be non-nan and non-repeating for best compatibility</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt>
 <code class="sig-name descname">reprojected_coordinates</code></dt>
@@ -508,8 +518,7 @@ if <code class="docutils literal notranslate"><span class="pre">self.native_coor
 <dl class="attribute">
 <dt>
 <code class="sig-name descname">source_interpolation</code></dt>
-<dd><p>A trait type representing a Union type.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
