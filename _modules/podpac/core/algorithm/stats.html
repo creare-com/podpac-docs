@@ -121,7 +121,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../roadmap.html">Development Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html#breaking-changes">Breaking changes</a></li>
 </ul>
 
             
@@ -194,7 +193,6 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">mul</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -202,18 +200,14 @@
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">string_types</span>
 
-<span class="c1"># Internal dependencies</span>
 <span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span>
-<span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="kn">import</span> <span class="n">UnaryAlgorithm</span><span class="p">,</span> <span class="n">Algorithm</span>
+<span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="kn">import</span> <span class="n">UnaryAlgorithm</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">NodeTrait</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span><span class="p">,</span> <span class="n">node_eval</span>
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-
-<span class="c1"># Set up logging</span>
-<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">Reduce</span><span class="p">(</span><span class="n">UnaryAlgorithm</span><span class="p">):</span>
@@ -236,6 +230,21 @@
         <span class="k">if</span> <span class="s2">&quot;dims&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dims&quot;</span><span class="p">],</span> <span class="n">string_types</span><span class="p">):</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dims&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dims&quot;</span><span class="p">]]</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Reduce</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_first_init</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_dims</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Translates requested reduction dimensions.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        out : UnitsDataArray</span>
+<span class="sd">            The output array</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of dimensions after reduction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">dims_axes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Finds the indices for the dimensions that will be reduced. This is passed to numpy. </span>
@@ -1017,8 +1026,6 @@
 <span class="c1"># Time-Grouped Reduce</span>
 <span class="c1"># =============================================================================</span>
 
-<span class="n">_REDUCE_FUNCTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;any&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;prod&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="s2">&quot;var&quot;</span><span class="p">,</span> <span class="s2">&quot;custom&quot;</span><span class="p">]</span>
-
 
 <div class="viewcode-block" id="GroupReduce"><a class="viewcode-back" href="../../../../api/podpac.algorithm.GroupReduce.html#podpac.algorithm.GroupReduce">[docs]</a><span class="k">class</span> <span class="nc">GroupReduce</span><span class="p">(</span><span class="n">UnaryAlgorithm</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1036,19 +1043,48 @@
 <span class="sd">        Source node</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;groupby&quot;</span><span class="p">,</span> <span class="s2">&quot;reduce_fn&quot;</span><span class="p">]</span>
-    <span class="n">coordinates_source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">coordinates_source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># see https://github.com/pydata/xarray/blob/eeb109d9181c84dfb93356c5f14045d839ee64cb/xarray/core/accessors.py#L61</span>
-    <span class="n">groupby</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">([</span><span class="s2">&quot;dayofyear&quot;</span><span class="p">,</span> <span class="s2">&quot;weekofyear&quot;</span><span class="p">,</span> <span class="s2">&quot;season&quot;</span><span class="p">,</span> <span class="s2">&quot;month&quot;</span><span class="p">],</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">(</span><span class="n">_REDUCE_FUNCTIONS</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">custom_reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">groupby</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">([</span><span class="s2">&quot;dayofyear&quot;</span><span class="p">])</span>  <span class="c1"># could add season, month, etc</span>
+
+    <span class="n">reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;any&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;prod&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="s2">&quot;var&quot;</span><span class="p">,</span> <span class="s2">&quot;custom&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">custom_reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">()</span>
 
     <span class="n">_source_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;coordinates_source&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_default_coordinates_source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
+
+    <span class="k">def</span> <span class="nf">_get_source_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested_coordinates</span><span class="p">):</span>
+        <span class="c1"># get available time coordinates</span>
+        <span class="c1"># TODO do these two checks during node initialization</span>
+        <span class="n">available_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates_source</span><span class="o">.</span><span class="n">find_coordinates</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_coordinates</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot evaluate this node; too many available coordinates&quot;</span><span class="p">)</span>
+        <span class="n">avail_coords</span> <span class="o">=</span> <span class="n">available_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">avail_coords</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;GroupReduce coordinates source node must be time-dependent&quot;</span><span class="p">)</span>
+
+        <span class="c1"># intersect grouped time coordinates using groupby DatetimeAccessor</span>
+        <span class="n">avail_time</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">avail_coords</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
+        <span class="n">eval_time</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">requested_coordinates</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">avail_time</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">)</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">eval_time</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">)</span>
+        <span class="n">native_time_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+
+        <span class="c1"># use requested spatial coordinates and filtered available times</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span>
+            <span class="n">time</span><span class="o">=</span><span class="n">avail_time</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">native_time_mask</span><span class="p">],</span>
+            <span class="n">lat</span><span class="o">=</span><span class="n">requested_coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">],</span>
+            <span class="n">lon</span><span class="o">=</span><span class="n">requested_coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">],</span>
+            <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">coords</span>
 
 <div class="viewcode-block" id="GroupReduce.eval"><a class="viewcode-back" href="../../../../api/podpac.algorithm.GroupReduce.html#podpac.algorithm.GroupReduce.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
     <span class="nd">@node_eval</span>
@@ -1072,7 +1108,12 @@
 <span class="sd">            If source it not time-depended (required by this node).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source_coordinates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_source_coordinates</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+
+        <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source_coordinates</span><span class="p">)</span>
 
         <span class="c1"># group</span>
         <span class="n">grouped</span> <span class="o">=</span> <span class="n">source_output</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;time.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">)</span>
@@ -1084,26 +1125,15 @@
             <span class="c1"># standard, e.g. grouped.median(&#39;time&#39;)</span>
             <span class="n">out</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">grouped</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_fn</span><span class="p">)(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
 
-        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">:</span> <span class="s2">&quot;time&quot;</span><span class="p">})</span>
-        <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">merge_dims</span><span class="p">(</span>
-                <span class="p">[</span><span class="n">coordinates</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">),</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">out</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]],</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])]</span>
-            <span class="p">)</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">out</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">out</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span>
-
-        <span class="c1">## map</span>
-        <span class="c1"># eval_time = xr.DataArray(coordinates.coords[&quot;time&quot;])</span>
-        <span class="c1"># E = getattr(eval_time.dt, self.groupby)</span>
-        <span class="c1"># out = out.sel(**{self.groupby: E}).rename({self.groupby: &quot;time&quot;})</span>
-        <span class="c1"># output[:] = out.transpose(*output.dims).data</span>
+        <span class="c1"># map</span>
+        <span class="n">eval_time</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">eval_time</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">:</span> <span class="n">E</span><span class="p">})</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">:</span> <span class="s2">&quot;time&quot;</span><span class="p">})</span>
+        <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
 
         <span class="k">return</span> <span class="n">output</span></div>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">base_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GroupReduce.base_ref"><a class="viewcode-back" href="../../../../api/podpac.algorithm.GroupReduce.html#podpac.algorithm.GroupReduce.base_ref">[docs]</a>    <span class="k">def</span> <span class="nf">base_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Default node reference/name in node definitions</span>
 <span class="sd">        </span>
@@ -1112,101 +1142,7 @@
 <span class="sd">        str</span>
 <span class="sd">            Default node reference/name in node definitions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">base_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_fn</span><span class="p">)</span></div>
-
-
-<span class="k">class</span> <span class="nc">ResampleReduce</span><span class="p">(</span><span class="n">UnaryAlgorithm</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Resample a time-dependent source node using a statistical operation to achieve the result.</span>
-<span class="sd">    </span>
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    custom_reduce_fn : function</span>
-<span class="sd">        required if reduce_fn is &#39;custom&#39;.</span>
-<span class="sd">    resampleby : str</span>
-<span class="sd">        datetime sub-accessor. Currently &#39;dayofyear&#39; is the enabled option.</span>
-<span class="sd">    reduce_fn : str</span>
-<span class="sd">        builtin xarray groupby reduce function, or &#39;custom&#39;.</span>
-<span class="sd">    source : podpac.Node</span>
-<span class="sd">        Source node</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;resampleby&quot;</span><span class="p">,</span> <span class="s2">&quot;reduce_fn&quot;</span><span class="p">]</span>
-    <span class="n">coordinates_source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="c1"># see https://github.com/pydata/xarray/blob/eeb109d9181c84dfb93356c5f14045d839ee64cb/xarray/core/accessors.py#L61</span>
-    <span class="n">resample</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># could add season, month, etc</span>
-    <span class="n">reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">(</span><span class="n">_REDUCE_FUNCTIONS</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">custom_reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="n">_source_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
-
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;coordinates_source&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_default_coordinates_source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
-
-    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="nd">@node_eval</span>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates. </span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        coordinates : podpac.Coordinates</span>
-<span class="sd">            {requested_coordinates}</span>
-<span class="sd">        output : podpac.UnitsDataArray, optional</span>
-<span class="sd">            {eval_output}</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        {eval_return}</span>
-<span class="sd">        </span>
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        ValueError</span>
-<span class="sd">            If source it not time-depended (required by this node).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-
-        <span class="c1"># group</span>
-        <span class="n">grouped</span> <span class="o">=</span> <span class="n">source_output</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resample</span><span class="p">)</span>
-
-        <span class="c1"># reduce</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_fn</span> <span class="o">==</span> <span class="s2">&quot;custom&quot;</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">custom_reduce_fn</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># standard, e.g. grouped.median(&#39;time&#39;)</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">grouped</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_fn</span><span class="p">)()</span>
-
-        <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">merge_dims</span><span class="p">(</span>
-                <span class="p">[</span><span class="n">coordinates</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">),</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">out</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]],</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])]</span>
-            <span class="p">)</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">out</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">out</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span>
-
-        <span class="c1">## map</span>
-        <span class="c1"># eval_time = xr.DataArray(coordinates.coords[&quot;time&quot;])</span>
-        <span class="c1"># E = getattr(eval_time.dt, self.groupby)</span>
-        <span class="c1"># out = out.sel(**{self.groupby: E}).rename({self.groupby: &quot;time&quot;})</span>
-        <span class="c1"># output[:] = out.transpose(*output.dims).data</span>
-
-        <span class="k">return</span> <span class="n">output</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">base_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Default node reference/name in node definitions</span>
-<span class="sd">        </span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Default node reference/name in node definitions</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">base_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">resample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_fn</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">base_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_fn</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="DayOfYear"><a class="viewcode-back" href="../../../../api/podpac.algorithm.DayOfYear.html#podpac.algorithm.DayOfYear">[docs]</a><span class="k">class</span> <span class="nc">DayOfYear</span><span class="p">(</span><span class="n">GroupReduce</span><span class="p">):</span>
@@ -1224,148 +1160,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">groupby</span> <span class="o">=</span> <span class="s2">&quot;dayofyear&quot;</span></div>
-
-
-<span class="k">class</span> <span class="nc">DayOfYearWindow</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This applies a function over a moving window around day-of-year in the requested coordinates. </span>
-<span class="sd">    It includes the ability to rescale the input/outputs. Note if, the input coordinates include multiple years, the</span>
-<span class="sd">    moving window will include all of the data inside the day-of-year window. </span>
-<span class="sd">    </span>
-<span class="sd">    Users need to implement the &#39;function&#39; method. </span>
-<span class="sd">    </span>
-<span class="sd">    Attributes</span>
-<span class="sd">    -----------</span>
-<span class="sd">    source: podpac.Node</span>
-<span class="sd">        The source node from which the statistics will be computed</span>
-<span class="sd">    window: int, optional</span>
-<span class="sd">        Default is 0. The size of the window over which to compute the distrubtion. This is always centered about the   </span>
-<span class="sd">        day-of-year. The total number of days is always an odd number. For example, window=2 and window=3 will compute  </span>
-<span class="sd">        the beta distribution for [x-1, x, x + 1] and report it as the result for x, where x is a day of the year.</span>
-<span class="sd">    scale_max: podpac.Node, optional</span>
-<span class="sd">        Default is None. A source dataset that can be used to scale the maximum value of the source function so that it </span>
-<span class="sd">        will fall between [0, 1]. If None, uses self.scale_float[0]. </span>
-<span class="sd">    scale_min: podpac.Node, optional</span>
-<span class="sd">        Default is None. A source dataset that can be used to scale the minimum value of the source function so that it </span>
-<span class="sd">        will fall between [0, 1]. If None, uses self.scale_float[1].</span>
-<span class="sd">    scale_float: list, optional</span>
-<span class="sd">        Default is []. Floating point numbers used to scale the max [0] and min [1] of the source so that it falls </span>
-<span class="sd">        between [0, 1]. If scale_max or scale_min are defined, this property is ignored. If these are defined, the data </span>
-<span class="sd">        will be rescaled only if rescale=True below. </span>
-<span class="sd">        If None and scale_max/scale_min are not defined, the data is not scaled in any way.</span>
-<span class="sd">    rescale: bool, optional</span>
-<span class="sd">        Rescales the output data after being scaled from scale_float or scale_min/max</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Node</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">window</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">scale_max</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">scale_min</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">scale_float</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">rescale</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
-        <span class="n">win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">//</span> <span class="mi">2</span>
-        <span class="n">source</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span>
-
-        <span class="c1"># Scale the source to range [0, 1], required for the beta distribution</span>
-        <span class="k">if</span> <span class="s2">&quot;scale_max&quot;</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
-            <span class="n">scale_max</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;scale_max&quot;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_float</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_float</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">scale_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_float</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">scale_max</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="k">if</span> <span class="s2">&quot;scale_min&quot;</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
-            <span class="n">scale_min</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;scale_min&quot;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_float</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_float</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">scale_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_float</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">scale_min</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;scale_min: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">scale_max: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">scale_min</span><span class="p">,</span> <span class="n">scale_max</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">scale_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">scale_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">source</span> <span class="o">=</span> <span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">-</span> <span class="n">scale_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">scale_max</span> <span class="o">-</span> <span class="n">scale_min</span><span class="p">)</span>
-            <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">):</span>
-                <span class="n">source</span><span class="o">.</span><span class="n">data</span><span class="p">[(</span><span class="n">source</span><span class="o">.</span><span class="n">data</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">data</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
-        <span class="c1"># Make the output coordinates with day-of-year as time</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">})</span>
-        <span class="n">dsdoy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">dayofyear</span><span class="p">))</span>
-        <span class="n">latlon_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
-        <span class="n">time_coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">dsdoy</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">merge_dims</span><span class="p">([</span><span class="n">latlon_coords</span><span class="p">,</span> <span class="n">time_coords</span><span class="p">])</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
-
-        <span class="c1"># if all-nan input, no need to calculate</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">source</span><span class="p">)):</span>
-            <span class="k">return</span> <span class="n">output</span>
-
-        <span class="c1"># convert source time coords to day-of-year as well</span>
-        <span class="n">sdoy</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">dayofyear</span>
-
-        <span class="c1"># loop over each day of year and compute window</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">doy</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dsdoy</span><span class="p">):</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Working on doy </span><span class="si">{doy}</span><span class="s2"> (</span><span class="si">{i}</span><span class="s2">/</span><span class="si">{ld}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">doy</span><span class="o">=</span><span class="n">doy</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ld</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">dsdoy</span><span class="p">)))</span>
-
-            <span class="c1"># If either the start or end runs over the year, we need to do an OR on the bool index</span>
-            <span class="c1"># -----&gt;s....&lt;=e------   .in -out</span>
-            <span class="c1"># ..&lt;=e-----------&gt;s..</span>
-            <span class="n">do_or</span> <span class="o">=</span> <span class="kc">False</span>
-
-            <span class="n">start</span> <span class="o">=</span> <span class="n">doy</span> <span class="o">-</span> <span class="n">win</span>
-            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">start</span> <span class="o">+=</span> <span class="mi">365</span>
-                <span class="n">do_or</span> <span class="o">=</span> <span class="kc">True</span>
-
-            <span class="n">end</span> <span class="o">=</span> <span class="n">doy</span> <span class="o">+</span> <span class="n">win</span>
-            <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="mi">365</span><span class="p">:</span>
-                <span class="n">end</span> <span class="o">-=</span> <span class="mi">365</span>
-                <span class="n">do_or</span> <span class="o">=</span> <span class="kc">True</span>
-
-            <span class="k">if</span> <span class="n">do_or</span><span class="p">:</span>
-                <span class="n">I</span> <span class="o">=</span> <span class="p">(</span><span class="n">sdoy</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">sdoy</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">I</span> <span class="o">=</span> <span class="p">(</span><span class="n">sdoy</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">sdoy</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">)</span>
-
-            <span class="c1"># Scipy&#39;s beta function doesn&#39;s support multi-dimensional arrays, so we have to loop over lat/lon/alt</span>
-            <span class="n">lat_f</span> <span class="o">=</span> <span class="n">lon_f</span> <span class="o">=</span> <span class="n">alt_f</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
-            <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;alt&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-                <span class="n">lat_f</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
-            <span class="k">if</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-                <span class="n">lon_f</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
-            <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-                <span class="n">alt_f</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="s2">&quot;alt&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
-
-            <span class="k">for</span> <span class="n">alt</span> <span class="ow">in</span> <span class="n">alt_f</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">lat</span> <span class="ow">in</span> <span class="n">lat_f</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">lon</span> <span class="ow">in</span> <span class="n">lon_f</span><span class="p">:</span>
-                        <span class="c1"># _log.debug(f&#39;lat, lon, alt = {lat}, {lon}, {alt})</span>
-                        <span class="n">loc_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="p">[</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">alt</span><span class="p">])</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
-
-                        <span class="n">data</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">I</span><span class="p">,</span> <span class="o">**</span><span class="n">loc_dict</span><span class="p">)</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
-                        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
-                            <span class="k">continue</span>
-
-                        <span class="c1"># Fit function to the particular point</span>
-                        <span class="n">output</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">loc_dict</span><span class="p">][{</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">}]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">loc_dict</span><span class="p">][{</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">}])</span>
-
-        <span class="c1"># Rescale the outputs</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rescale</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rescale_outputs</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">scale_max</span><span class="p">,</span> <span class="n">scale_min</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">output</span>
-
-    <span class="k">def</span> <span class="nf">function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s2">&quot;Child classes need to implement this function. It is applied over the data and needs&quot;</span>
-            <span class="s2">&quot; to populate the output.&quot;</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">rescale_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">scale_max</span><span class="p">,</span> <span class="n">scale_min</span><span class="p">):</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="n">output</span> <span class="o">*</span> <span class="p">(</span><span class="n">scale_max</span> <span class="o">-</span> <span class="n">scale_min</span><span class="p">))</span> <span class="o">+</span> <span class="n">scale_min</span>
-        <span class="k">return</span> <span class="n">output</span>
 </pre></div>
 
            </div>

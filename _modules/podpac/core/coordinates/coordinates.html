@@ -121,7 +121,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../roadmap.html">Development Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html#breaking-changes">Breaking changes</a></li>
 </ul>
 
             
@@ -214,13 +213,11 @@
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">OrderedDictTrait</span><span class="p">,</span> <span class="n">_get_query_params_from_url</span><span class="p">,</span> <span class="n">_get_param</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.base_coordinates</span> <span class="kn">import</span> <span class="n">BaseCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="kn">import</span> <span class="n">Coordinates1d</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates.dependent_coordinates</span> <span class="kn">import</span> <span class="n">ArrayCoordinatesNd</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.array_coordinates1d</span> <span class="kn">import</span> <span class="n">ArrayCoordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.uniform_coordinates1d</span> <span class="kn">import</span> <span class="n">UniformCoordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.stacked_coordinates</span> <span class="kn">import</span> <span class="n">StackedCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.dependent_coordinates</span> <span class="kn">import</span> <span class="n">DependentCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.rotated_coordinates</span> <span class="kn">import</span> <span class="n">RotatedCoordinates</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates.cfunctions</span> <span class="kn">import</span> <span class="n">clinspace</span>
 
 <span class="c1"># Optional dependencies</span>
 <span class="kn">from</span> <span class="nn">lazy_import</span> <span class="kn">import</span> <span class="n">lazy_module</span><span class="p">,</span> <span class="n">lazy_class</span>
@@ -263,11 +260,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">crs_desc</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">_coords</span> <span class="o">=</span> <span class="n">OrderedDictTrait</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">),</span> <span class="n">default_value</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">())</span>
 
-<div class="viewcode-block" id="Coordinates.__init__"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs_desc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Coordinates.__init__"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create multidimensional coordinates.</span>
 
@@ -286,11 +282,9 @@
 <span class="sd">             * &#39;lat&#39;, &#39;lon&#39;, &#39;alt&#39;, or &#39;time&#39; for unstacked coordinates</span>
 <span class="sd">             * dimension names joined by an underscore for stacked coordinates</span>
 <span class="sd">        crs : str, optional</span>
-<span class="sd">            Coordinate reference system. Supports PROJ4 and WKT.</span>
-<span class="sd">        crs_desc : str, optional</span>
-<span class="sd">            Abbreviated display description for the crs.</span>
-<span class="sd">        validate_crs : bool, optional</span>
-<span class="sd">            Use False to skip crs validation. Default True.</span>
+<span class="sd">            Coordinate reference system. Supports any PROJ4 or PROJ6 compliant string (https://proj.org).</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">)):</span>
@@ -331,27 +325,18 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">c</span> <span class="o">=</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
 
-            <span class="c1"># propagate name</span>
+            <span class="c1"># propagate properties and name</span>
             <span class="n">c</span><span class="o">.</span><span class="n">_set_name</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">_set_ctype</span><span class="p">(</span><span class="n">ctype</span><span class="p">)</span>
 
             <span class="c1"># set coords</span>
             <span class="n">dcoords</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_coords&quot;</span><span class="p">,</span> <span class="n">dcoords</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># validate</span>
-            <span class="k">if</span> <span class="n">validate_crs</span><span class="p">:</span>
-                <span class="c1"># raises pyproj.CRSError if invalid</span>
-                <span class="n">CRS</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
-
-                <span class="c1"># make sure CRS defines vertical units</span>
-                <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">CRS</span><span class="o">.</span><span class="n">is_vertical</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Altitude dimension is defined, but CRS does not contain vertical unit&quot;</span><span class="p">)</span>
-
-            <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;crs&quot;</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span>
-
-        <span class="nb">super</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">crs_desc</span><span class="o">=</span><span class="n">crs_desc</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;crs&quot;</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;_coords&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -374,6 +359,21 @@
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;crs&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_default_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEFAULT_CRS&quot;</span><span class="p">]</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;crs&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_validate_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+        <span class="n">CRS</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>  <span class="c1"># raises pyproj.CRSError if invalid</span>
+
+        <span class="c1"># make sure CRS defines vertical units</span>
+        <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">CRS</span><span class="o">.</span><span class="n">is_vertical</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Altitude dimension is defined, but CRS does not contain vertical unit&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="s2">&quot;crs&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_observe_crs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="n">crs</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;new&quot;</span><span class="p">]</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Alternate constructors</span>
@@ -404,7 +404,7 @@
         <span class="k">return</span> <span class="n">coords</span>
 
 <div class="viewcode-block" id="Coordinates.grid"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.grid">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">grid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">grid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a grid of coordinates.</span>
 
@@ -435,6 +435,8 @@
 <span class="sd">            argument is optional, and the dims will match the order of the provided keyword arguments.</span>
 <span class="sd">        crs : str, optional</span>
 <span class="sd">            Coordinate reference system. Supports any PROJ4 or PROJ6 compliant string (https://proj.org).</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -447,10 +449,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">coords</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_coords_from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">dims</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.points"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.points">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a list of multidimensional coordinates.</span>
 
@@ -484,6 +486,8 @@
 <span class="sd">            argument is optional, and the dims will match the order of the provided keyword arguments.</span>
 <span class="sd">        crs : str, optional</span>
 <span class="sd">            Coordinate reference system. Supports any PROJ4 or PROJ6 compliant string (https://proj.org/).</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -497,10 +501,10 @@
 
         <span class="n">coords</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_coords_from_dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">dims</span><span class="p">)</span>
         <span class="n">stacked</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">([</span><span class="n">stacked</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">([</span><span class="n">stacked</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.from_xarray"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_xarray">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_xarray</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_xarray</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create podpac Coordinates from xarray coords.</span>
 
@@ -510,6 +514,8 @@
 <span class="sd">            xarray coords</span>
 <span class="sd">        crs : str, optional</span>
 <span class="sd">            Coordinate reference system. Supports any PROJ4 or PROJ6 compliant string (https://proj.org/).</span>
+<span class="sd">        ctype : str, optional</span>
+<span class="sd">            Default coordinates type. One of &#39;point&#39;, &#39;midpoint&#39;, &#39;left&#39;, &#39;right&#39;.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -532,7 +538,7 @@
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span>
             <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="n">ctype</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.from_json"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_json">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
@@ -556,6 +562,7 @@
 <span class="sd">                },</span>
 <span class="sd">                {</span>
 <span class="sd">                    &quot;name&quot;: &quot;time&quot;,</span>
+<span class="sd">                    &quot;ctype&quot;: &quot;left&quot;</span>
 <span class="sd">                    &quot;values&quot;: [</span>
 <span class="sd">                        &quot;2018-01-01&quot;,</span>
 <span class="sd">                        &quot;2018-01-03&quot;,</span>
@@ -780,9 +787,7 @@
                     <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
-            <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span>
-                <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">indices</span><span class="p">)],</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
-            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">indices</span><span class="p">)],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
 
@@ -948,6 +953,11 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">}</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">area_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:dict: Dictionary of (low, high) coordinates area_bounds in each unstacked dimension&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">area_bounds</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :xarray.core.coordinates.DataArrayCoordinates: xarray coords, a dictionary-like container of coordinate arrays.</span>
@@ -960,9 +970,10 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">CRS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+        <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span>
+        <span class="k">return</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
 
-    <span class="c1"># TODO: add a convenience property for displaying altitude units for the CRS</span>
+    <span class="c1"># TODO: add a convience property for displaying altitude units for the CRS</span>
     <span class="c1"># @property</span>
     <span class="c1"># def alt_units(self):</span>
     <span class="c1">#     CRS = self.CRS</span>
@@ -1051,9 +1062,9 @@
         <span class="c1"># Do the uniform coordinates case</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">],</span> <span class="n">UniformCoordinates1d</span><span class="p">)</span>
             <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
-            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span>
-            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">],</span> <span class="n">UniformCoordinates1d</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">):</span>
                 <span class="n">first</span><span class="p">,</span> <span class="n">second</span> <span class="o">=</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span>
@@ -1082,22 +1093,6 @@
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Methods</span>
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
-
-<div class="viewcode-block" id="Coordinates.get_area_bounds"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.get_area_bounds">[docs]</a>    <span class="k">def</span> <span class="nf">get_area_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">boundary</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get coordinate area bounds, including segment information, for each unstacked dimension.</span>
-
-<span class="sd">        Arguments</span>
-<span class="sd">        ---------</span>
-<span class="sd">        boundary : dict</span>
-<span class="sd">            dictionary of boundary offsets for each unstacked dimension. Non-segment dimensions can be omitted.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        area_bounds : dict</span>
-<span class="sd">            Dictionary of (low, high) coordinates area_bounds in each unstacked dimension</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">get_area_bounds</span><span class="p">(</span><span class="n">boundary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">}</span></div>
 
 <div class="viewcode-block" id="Coordinates.drop"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.drop">[docs]</a>    <span class="k">def</span> <span class="nf">drop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">ignore_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1134,9 +1129,7 @@
             <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ignore_missing</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Dimension &#39;</span><span class="si">%s</span><span class="s2">&#39; not found in Coordinates with dims </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">],</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
 
     <span class="c1"># do we ever need this?</span>
 <div class="viewcode-block" id="Coordinates.udrop"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.udrop">[docs]</a>    <span class="k">def</span> <span class="nf">udrop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">ignore_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -1150,15 +1143,15 @@
 <span class="sd">            In [2]: c</span>
 <span class="sd">            Out[2]:</span>
 <span class="sd">            Coordinates</span>
-<span class="sd">                lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[0.0, 1.0], N[2]</span>
-<span class="sd">                lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[10.0, 20.0], N[2]</span>
-<span class="sd">                time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-01], N[1]</span>
+<span class="sd">                lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[0.0, 1.0], N[2], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[10.0, 20.0], N[2], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-01], N[1], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">            In [3]: c.udrop(&#39;lat&#39;)</span>
 <span class="sd">            Out[3]:</span>
 <span class="sd">            Coordinates</span>
-<span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[10.0, 20.0], N[2]</span>
-<span class="sd">                time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-01], N[1]</span>
+<span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[10.0, 20.0], N[2], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                time: ArrayCoordinates1d(time): Bounds[2018-01-01, 2018-01-01], N[1], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1203,7 +1196,7 @@
                 <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">stacked</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stacked</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.intersect"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.intersect">[docs]</a>    <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1286,22 +1279,22 @@
 <span class="sd">            In [2]: c.select({&#39;lat&#39;: [1.5, 3.5]})</span>
 <span class="sd">            Out[2]:</span>
 <span class="sd">            Coordinates</span>
-<span class="sd">                    lat: ArrayCoordinates1d(lat): Bounds[2.0, 3.0], N[2]</span>
-<span class="sd">                    lon: ArrayCoordinates1d(lon): Bounds[10.0, 40.0], N[4]</span>
+<span class="sd">                    lat: ArrayCoordinates1d(lat): Bounds[2.0, 3.0], N[2], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                    lon: ArrayCoordinates1d(lon): Bounds[10.0, 40.0], N[4], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">            In [3]: c.select({&#39;lat&#39;: [1.5, 3.5], &#39;lon&#39;: [25, 45]})</span>
 <span class="sd">            Out[3]:</span>
 <span class="sd">            Coordinates</span>
-<span class="sd">                    lat: ArrayCoordinates1d(lat): Bounds[2.0, 3.0], N[2]</span>
-<span class="sd">                    lon: ArrayCoordinates1d(lon): Bounds[30.0, 40.0], N[2]</span>
+<span class="sd">                    lat: ArrayCoordinates1d(lat): Bounds[2.0, 3.0], N[2], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                    lon: ArrayCoordinates1d(lon): Bounds[30.0, 40.0], N[2], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">        The *outer* selection returns the minimal set of coordinates that contain the bounds::</span>
 
 <span class="sd">            In [4]: c.select({&#39;lat&#39;:[1.5, 3.5]}, outer=True)</span>
 <span class="sd">            Out[4]:</span>
 <span class="sd">            Coordinates</span>
-<span class="sd">                    lat: ArrayCoordinates1d(lat): Bounds[1.0, 3.0], N[3]</span>
-<span class="sd">                    lon: ArrayCoordinates1d(lon): Bounds[10.0, 40.0], N[4]</span>
+<span class="sd">                    lat: ArrayCoordinates1d(lat): Bounds[1.0, 3.0], N[3], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                    lon: ArrayCoordinates1d(lon): Bounds[10.0, 40.0], N[4], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1325,13 +1318,13 @@
 
     <span class="k">def</span> <span class="nf">_make_selected_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selections</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">return_indices</span><span class="p">:</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">],</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
             <span class="c1"># unbundle DepedentCoordinates indices</span>
             <span class="n">I</span> <span class="o">=</span> <span class="p">[</span><span class="n">I</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">DependentCoordinates</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">I</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">]</span>
             <span class="n">I</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">I</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">l</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">coords</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">I</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">selections</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">selections</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Coordinates.unique"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.unique">[docs]</a>    <span class="k">def</span> <span class="nf">unique</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1370,7 +1363,7 @@
 <span class="sd">        xr.DataArray.unstack</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="bp">self</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">],</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="bp">self</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinates.iterchunks"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.iterchunks">[docs]</a>    <span class="k">def</span> <span class="nf">iterchunks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">return_slices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1393,9 +1386,7 @@
 
         <span class="n">l</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">slice</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)]</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">shape</span><span class="p">)]</span>
         <span class="k">for</span> <span class="n">slices</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">l</span><span class="p">):</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span>
-                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="n">dim</span><span class="p">][</span><span class="n">slc</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">slc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">slices</span><span class="p">)],</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span>
-            <span class="p">)</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">[</span><span class="n">dim</span><span class="p">][</span><span class="n">slc</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">slc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">slices</span><span class="p">)],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">return_slices</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">coords</span><span class="p">,</span> <span class="n">slices</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1451,9 +1442,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="p">))</span>
             <span class="k">return</span> <span class="bp">self</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Coordinates.transform"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crs</span><span class="p">):</span>
+<div class="viewcode-block" id="Coordinates.transform"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transform coordinate dimensions (`lat`, `lon`, `alt`) into a different coordinate reference system.</span>
 <span class="sd">        Uses PROJ syntax for coordinate reference systems and units.</span>
@@ -1475,8 +1466,8 @@
 <span class="sd">            c.transform(&#39;EPSG:2193&#39;)</span>
 
 <span class="sd">            &gt;&gt; Coordinates</span>
-<span class="sd">                lat: ArrayCoordinates1d(lat): Bounds[-9881992.849134896, 29995929.885877542], N[21]</span>
-<span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[1928928.7360588573, 4187156.434405213], N[21]</span>
+<span class="sd">                lat: ArrayCoordinates1d(lat): Bounds[-9881992.849134896, 29995929.885877542], N[21], ctype[&#39;point&#39;]</span>
+<span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[1928928.7360588573, 4187156.434405213], N[21], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">        Transform stacked coordinates::</span>
 
@@ -1484,8 +1475,8 @@
 <span class="sd">            c.transform(&#39;EPSG:2193&#39;)</span>
 
 <span class="sd">            &gt;&gt; Coordinates</span>
-<span class="sd">                lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[-9881992.849134896, 29995929.885877542], N[21]</span>
-<span class="sd">                lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[1928928.7360588573, 4187156.434405213], N[21]</span>
+<span class="sd">                lat_lon[lat]: ArrayCoordinates1d(lat): Bounds[-9881992.849134896, 29995929.885877542], N[21], ctype[&#39;point&#39;]</span>
+<span class="sd">                lat_lon[lon]: ArrayCoordinates1d(lon): Bounds[1928928.7360588573, 4187156.434405213], N[21], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">        Transform coordinates using a PROJ4 string::</span>
 
@@ -1493,13 +1484,14 @@
 <span class="sd">            c.transform(&#39;+proj=merc +lat_ts=56.5 +ellps=GRS80&#39;)</span>
 
 <span class="sd">            &gt;&gt; Coordinates</span>
-<span class="sd">                lat: ArrayCoordinates1d(lat): Bounds[-1847545.541169525, -615848.513723175], N[21]</span>
-<span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[-614897.0725896168, 614897.0725896184], N[21]</span>
+<span class="sd">                lat: ArrayCoordinates1d(lat): Bounds[-1847545.541169525, -615848.513723175], N[21], ctype[&#39;midpoint&#39;]</span>
+<span class="sd">                lon: ArrayCoordinates1d(lon): Bounds[-614897.0725896168, 614897.0725896184], N[21], ctype[&#39;midpoint&#39;]</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        crs : str</span>
+<span class="sd">        crs : str, optional</span>
 <span class="sd">            PROJ4 compatible coordinate reference system string.</span>
+<span class="sd">            Defaults to the current `crs`</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1511,49 +1503,48 @@
 <span class="sd">        ValueError</span>
 <span class="sd">            Coordinates must have both lat and lon dimensions if either is defined</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;transform requires crs argument&quot;</span><span class="p">)</span>
+
+        <span class="n">input_crs</span> <span class="o">=</span> <span class="n">crs</span>
+
+        <span class="c1"># use self.crs by default</span>
+        <span class="k">if</span> <span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span>
+
         <span class="n">from_crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CRS</span>
         <span class="n">to_crs</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
+
+        <span class="c1"># make sure to CRS defines vertical units</span>
+        <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">to_crs</span><span class="o">.</span><span class="n">is_vertical</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Altitude dimension is defined, but CRS to transform does not contain vertical unit&quot;</span><span class="p">)</span>
 
         <span class="c1"># no transform needed</span>
         <span class="k">if</span> <span class="n">from_crs</span> <span class="o">==</span> <span class="n">to_crs</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-        <span class="c1"># make sure the CRS defines vertical units</span>
-        <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">to_crs</span><span class="o">.</span><span class="n">is_vertical</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Altitude dimension is defined, but CRS to transform does not contain vertical unit&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot transform lat coordinates without lon coordinates&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot transform lon coordinates without lon coordinates&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot transform coordinates with nonadjacent lat and lon, transpose first&quot;</span><span class="p">)</span>
-
-        <span class="n">transformer</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Transformer</span><span class="o">.</span><span class="n">from_proj</span><span class="p">(</span><span class="n">from_crs</span><span class="p">,</span> <span class="n">to_crs</span><span class="p">,</span> <span class="n">always_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="c1"># Collect the individual coordinates</span>
         <span class="n">cs</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
 
-        <span class="k">if</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="c1"># try to do a simplified transform (resulting in unstacked lat-lon coordinates)</span>
-            <span class="n">tc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simplified_transform</span><span class="p">(</span><span class="n">crs</span><span class="p">,</span> <span class="n">transformer</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">tc</span><span class="p">:</span>
-                <span class="n">cs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">cs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-
-            <span class="c1"># otherwise convert lat-lon to dependent coordinates</span>
-            <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># if lat-lon transform is required, check dims and convert unstacked lat-lon coordinates if necessary</span>
+        <span class="n">from_spatial</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+        <span class="n">to_spatial</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">from_spatial</span> <span class="o">!=</span> <span class="n">to_spatial</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
                 <span class="n">ilat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span>
                 <span class="n">ilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">ilat</span> <span class="o">==</span> <span class="n">ilon</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span>
                 <span class="k">elif</span> <span class="n">ilon</span> <span class="o">==</span> <span class="n">ilat</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot transform coordinates with nonadjacent lat and lon, transpose first&quot;</span><span class="p">)</span>
 
                 <span class="n">c</span> <span class="o">=</span> <span class="n">DependentCoordinates</span><span class="p">(</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">c1</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">c2</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">c1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c2</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">c1</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">c2</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">),</span>
+                    <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="n">c1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">c2</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+                    <span class="n">ctypes</span><span class="o">=</span><span class="p">[</span><span class="n">c1</span><span class="o">.</span><span class="n">ctype</span><span class="p">,</span> <span class="n">c2</span><span class="o">.</span><span class="n">ctype</span><span class="p">],</span>
+                    <span class="n">segment_lengths</span><span class="o">=</span><span class="p">[</span><span class="n">c1</span><span class="o">.</span><span class="n">segment_lengths</span><span class="p">,</span> <span class="n">c2</span><span class="o">.</span><span class="n">segment_lengths</span><span class="p">],</span>
                 <span class="p">)</span>
 
                 <span class="c1"># replace &#39;lat&#39; and &#39;lon&#39; entries with single &#39;lat,lon&#39; entry</span>
@@ -1562,56 +1553,16 @@
                 <span class="n">cs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
                 <span class="n">cs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
 
+            <span class="k">elif</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot transform lat coordinates without lon coordinates&quot;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot transform lon coordinates without lat coordinates&quot;</span><span class="p">)</span>
+
         <span class="c1"># transform</span>
-        <span class="n">ts</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cs</span><span class="p">:</span>
-            <span class="n">tc</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">_transform</span><span class="p">(</span><span class="n">transformer</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tc</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">ts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">tc</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">ts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tc</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
-
-    <span class="k">def</span> <span class="nf">_simplified_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crs</span><span class="p">,</span> <span class="n">transformer</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Transform coordinates to simple Coordinates1d (instead of DependentCoordinates) if possible &quot;&quot;&quot;</span>
-
-        <span class="c1"># check if we can simplify the coordinates by transforming a downsampled grid</span>
-        <span class="n">sample</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]]</span>
-        <span class="n">temp_coords</span> <span class="o">=</span> <span class="n">DependentCoordinates</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">sample</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">])</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">temp_coords</span><span class="o">.</span><span class="n">_transform</span><span class="p">(</span><span class="n">transformer</span><span class="p">)</span>
-
-        <span class="c1"># if we get DependentCoordinates from the transform, they are not independent</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">DependentCoordinates</span><span class="p">):</span>
-            <span class="k">return</span>
-
-        <span class="c1"># Great, we CAN simplify the transformed coordinates.</span>
-        <span class="c1"># If they are uniform already, we just need to expand to the full size</span>
-        <span class="c1"># If the are non-uniform, we have to compute the full transformed array</span>
-
-        <span class="c1"># lat</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">UniformCoordinates1d</span><span class="p">):</span>
-            <span class="n">t_lat</span> <span class="o">=</span> <span class="n">clinspace</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># compute the non-uniform coordinates (and simplify to uniform if they are *now* uniform)</span>
-            <span class="n">temp_coords</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">(</span>
-                <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">mean</span><span class="p">())],</span>
-                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lat_lon&quot;</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">t_lat</span> <span class="o">=</span> <span class="n">temp_coords</span><span class="o">.</span><span class="n">_transform</span><span class="p">(</span><span class="n">transformer</span><span class="p">)[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">simplify</span><span class="p">()</span>
-
-        <span class="c1"># lon</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">UniformCoordinates1d</span><span class="p">):</span>
-            <span class="n">t_lon</span> <span class="o">=</span> <span class="n">clinspace</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># compute the non-uniform coordinates (and simplify to uniform if they are *now* uniform)</span>
-            <span class="n">temp_coords</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">(</span>
-                <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">mean</span><span class="p">())],</span>
-                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lon_lat&quot;</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">t_lon</span> <span class="o">=</span> <span class="n">temp_coords</span><span class="o">.</span><span class="n">_transform</span><span class="p">(</span><span class="n">transformer</span><span class="p">)[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">simplify</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="n">t_lat</span><span class="p">,</span> <span class="n">t_lon</span>
+        <span class="n">transformer</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Transformer</span><span class="o">.</span><span class="n">from_proj</span><span class="p">(</span><span class="n">from_crs</span><span class="p">,</span> <span class="n">to_crs</span><span class="p">,</span> <span class="n">always_xy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">_transform</span><span class="p">(</span><span class="n">transformer</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">input_crs</span><span class="p">)</span></div>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Operators/Magic Methods</span>
@@ -1619,9 +1570,7 @@
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rep</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs_desc</span><span class="p">:</span>
-            <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot; (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs_desc</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
             <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot; (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">):</span>
@@ -1661,7 +1610,7 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot merge &#39;</span><span class="si">%s</span><span class="s2">&#39; with Coordinates&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([],</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([])</span>
 
     <span class="c1"># check crs</span>
     <span class="n">crs</span> <span class="o">=</span> <span class="n">coords_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">crs</span>
@@ -1670,7 +1619,7 @@
 
     <span class="c1"># merge</span>
     <span class="n">coords</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">for</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">coords_list</span><span class="p">],</span> <span class="p">[])</span>
-    <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="concat"><a class="viewcode-back" href="../../../../api/podpac.coordinates.concat.html#podpac.concat">[docs]</a><span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="n">coords_list</span><span class="p">):</span>
@@ -1698,7 +1647,7 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot concat &#39;</span><span class="si">%s</span><span class="s2">&#39; with Coordinates&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">coords_list</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([],</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([])</span>
 
     <span class="c1"># check crs</span>
     <span class="n">crs</span> <span class="o">=</span> <span class="n">coords_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">crs</span>
@@ -1720,7 +1669,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">s</span><span class="o">.</span><span class="n">coordinates</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span>
 
-    <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">dims</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">dims</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">crs</span><span class="o">=</span><span class="n">crs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="union"><a class="viewcode-back" href="../../../../api/podpac.coordinates.union.html#podpac.union">[docs]</a><span class="k">def</span> <span class="nf">union</span><span class="p">(</span><span class="n">coords_list</span><span class="p">):</span>

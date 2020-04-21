@@ -120,6 +120,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api.html#coordinates">Coordinates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#data-sources">Data Sources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#interpolators">Interpolators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#pipelines">Pipelines</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#algorithm-nodes">Algorithm Nodes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#compositor-nodes">Compositor Nodes</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#datalib">Datalib</a><ul class="current">
@@ -145,7 +146,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../roadmap.html">Development Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../changelog.html#breaking-changes">Breaking changes</a></li>
 </ul>
 
             
@@ -217,7 +217,7 @@
 <dl class="class">
 <dt id="podpac.datalib.SMAPBestAvailable">
 <em class="property">class </em><code class="sig-prename descclassname">podpac.datalib.</code><code class="sig-name descname">SMAPBestAvailable</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/datalib/smap.html#SMAPBestAvailable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.SMAPBestAvailable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.core.compositor.ordered_compositor.OrderedCompositor</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.core.compositor.OrderedCompositor</span></code></p>
 <p>Compositor of SMAP-Sentinel and the Level 4 SMAP Analysis Update soil moisture</p>
 <p class="rubric">Alternative Constructors</p>
 <table class="longtable docutils align-default">
@@ -257,13 +257,19 @@
 <td><p>Evaluate the node for each of the coordinates in the group.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_coordinates</span></code>()</p></td>
-<td><p>Get the available coordinates for the Node.</p></td>
+<td><p>Get the available native coordinates for the Node.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_url</span></code>(url)</p></td>
 <td><p>Create podpac Node from a WMS/WCS request.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cache</span></code>(key[, coordinates])</p></td>
 <td><p>Get cached data for this node.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.datalib.SMAPBestAvailable.get_shared_coordinates" title="podpac.datalib.SMAPBestAvailable.get_shared_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_shared_coordinates</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_source_coordinates</span></code>()</p></td>
+<td><p>Returns the coordinates describing each source.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_cache</span></code>(key[, coordinates])</p></td>
 <td><p>Check for cached data for this node.</p></td>
@@ -287,10 +293,7 @@
 <td><p>Write node to file.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">select_sources</span></code>(coordinates)</p></td>
-<td><p>Select and prepare sources based on requested coordinates.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_is_defined</span></code>(name)</p></td>
-<td><p></p></td>
+<td><p>Downselect compositor sources based on requested coordinates.</p></td>
 </tr>
 </tbody>
 </table>
@@ -301,58 +304,73 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">attrs</span></code></p></td>
-<td><p>List of node attributes</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_definition</span></code></p></td>
+<td><p>Base node defintion for Compositor nodes.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">auto_outputs</span></code></p></td>
-<td><p>A boolean (True, False) trait.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_ref</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_ref</span></code></p></td>
 <td><p>Default reference/name in node definitions</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_ctrl</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_ctrl</span></code></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_native_coordinates</span></code></p></td>
+<td><p>A boolean (True, False) trait.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_output</span></code></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
-<td><p>A trait which allows any value.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">force_eval</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_update</span></code></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></p></td>
+<td><p>Full node definition.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
+<td><p>A trait which allows any value.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash</span></code></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation</span></code></p></td>
+<td><p>A trait type representing a Union type.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_source_coordinates_complete</span></code></p></td>
+<td><p>A boolean (True, False) trait.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
+<td><p>definition for this node in json format</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
 <td><p>A trait for unicode strings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
 <td><p>An instance of a Python list.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_coordinates</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></p></td>
+<td><p>Deprecated.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">shared_coordinates</span></code></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.datalib.SMAPBestAvailable.sources" title="podpac.datalib.SMAPBestAvailable.sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_coordinates</span></code></p></td>
+<td><p>A trait whose value must be an instance of a specified class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span></code></p></td>
+<td><p>A coercing numpy array trait.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.datalib.SMAPBestAvailable.sources_default" title="podpac.datalib.SMAPBestAvailable.sources_default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources_default</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">strict_source_outputs</span></code></p></td>
+<td><p>A boolean (True, False) trait.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></p></td>
 <td><p>A trait for unicode strings.</p></td>
 </tr>
 </tbody>
@@ -368,8 +386,13 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="podpac.datalib.SMAPBestAvailable.sources">
-<em class="property">property </em><code class="sig-name descname">sources</code><a class="headerlink" href="#podpac.datalib.SMAPBestAvailable.sources" title="Permalink to this definition">¶</a></dt>
+<dt id="podpac.datalib.SMAPBestAvailable.get_shared_coordinates">
+<code class="sig-name descname">get_shared_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/datalib/smap.html#SMAPBestAvailable.get_shared_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.datalib.SMAPBestAvailable.get_shared_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.datalib.SMAPBestAvailable.sources_default">
+<code class="sig-name descname">sources_default</code><a class="headerlink" href="#podpac.datalib.SMAPBestAvailable.sources_default" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

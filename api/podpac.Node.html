@@ -128,6 +128,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api.html#coordinates">Coordinates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#data-sources">Data Sources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#interpolators">Interpolators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#pipelines">Pipelines</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#algorithm-nodes">Algorithm Nodes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#compositor-nodes">Compositor Nodes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#datalib">Datalib</a></li>
@@ -143,7 +144,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../docs.html">Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../roadmap.html">Development Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../changelog.html#breaking-changes">Breaking changes</a></li>
 </ul>
 
             
@@ -220,10 +220,7 @@
 <dl class="attribute">
 <dt id="podpac.Node.cache_output">
 <code class="sig-name descname">cache_output</code><a class="headerlink" href="#podpac.Node.cache_output" title="Permalink to this definition">¶</a></dt>
-<dd><p>Should the node’s output be cached? If not provided or None, uses default based on settings
-(CACHE_NODE_OUTPUT_DEFAULT for general Nodes, and CACHE_DATASOURCE_OUTPUT_DEFAULT  for DataSource nodes).
-If True, outputs will be cached and retrieved from cache. If False, outputs will not be cached OR retrieved from cache (even if
-they exist in cache).</p>
+<dd><p>Should the node’s output be cached? If not provided or None, uses default based on settings.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>bool</p>
@@ -232,10 +229,9 @@ they exist in cache).</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="podpac.Node.force_eval">
-<code class="sig-name descname">force_eval</code><a class="headerlink" href="#podpac.Node.force_eval" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default is False. Should the node’s cached output be updated from the source data? If True it ignores the cache
-when computing outputs but puts results into the cache (thereby updating the cache)</p>
+<dt id="podpac.Node.cache_update">
+<code class="sig-name descname">cache_update</code><a class="headerlink" href="#podpac.Node.cache_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default is False. Should the node’s cached output be updated from the source data?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>bool</p>
@@ -355,7 +351,7 @@ future.</p>
 <td><p>Evaluate the node for each of the coordinates in the group.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.find_coordinates" title="podpac.Node.find_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_coordinates</span></code></a>()</p></td>
-<td><p>Get all available coordinates for the Node.</p></td>
+<td><p>Get all available native coordinates for the Node.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.from_url" title="podpac.Node.from_url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_url</span></code></a>(url)</p></td>
 <td><p>Create podpac Node from a WMS/WCS request.</p></td>
@@ -381,9 +377,6 @@ future.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.save" title="podpac.Node.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(path)</p></td>
 <td><p>Write node to file.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.trait_is_defined" title="podpac.Node.trait_is_defined"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_is_defined</span></code></a>(name)</p></td>
-<td><p></p></td>
-</tr>
 </tbody>
 </table>
 <p class="rubric">Attributes</p>
@@ -393,8 +386,8 @@ future.</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.attrs" title="podpac.Node.attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attrs</span></code></a></p></td>
-<td><p>List of node attributes</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.base_definition" title="podpac.Node.base_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_definition</span></code></a></p></td>
+<td><p>Base node definition.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.base_ref" title="podpac.Node.base_ref"><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_ref</span></code></a></p></td>
 <td><p>Default reference/name in node definitions</p></td>
@@ -405,20 +398,20 @@ future.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.cache_output" title="podpac.Node.cache_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_output</span></code></a></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.definition" title="podpac.Node.definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.dtype" title="podpac.Node.dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></a></p></td>
-<td><p>A trait which allows any value.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.force_eval" title="podpac.Node.force_eval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">force_eval</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.cache_update" title="podpac.Node.cache_update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_update</span></code></a></p></td>
 <td><p>A boolean (True, False) trait.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.definition" title="podpac.Node.definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></a></p></td>
+<td><p>Full node definition.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.dtype" title="podpac.Node.dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></a></p></td>
+<td><p>A trait which allows any value.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.hash" title="podpac.Node.hash"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash</span></code></a></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.json" title="podpac.Node.json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></a></p></td>
-<td><p></p></td>
+<td><p>definition for this node in json format</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.json_pretty" title="podpac.Node.json_pretty"><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></a></p></td>
 <td><p></p></td>
@@ -429,10 +422,13 @@ future.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.outputs" title="podpac.Node.outputs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></a></p></td>
 <td><p>An instance of a Python list.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.style" title="podpac.Node.style"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.pipeline" title="podpac.Node.pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></a></p></td>
+<td><p>Deprecated.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.style" title="podpac.Node.style"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></a></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.Node.units" title="podpac.Node.units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.Node.units" title="podpac.Node.units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></a></p></td>
 <td><p>A trait for unicode strings.</p></td>
 </tr>
 </tbody>
@@ -448,9 +444,19 @@ future.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="podpac.Node.attrs">
-<em class="property">property </em><code class="sig-name descname">attrs</code><a class="headerlink" href="#podpac.Node.attrs" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of node attributes</p>
+<dt id="podpac.Node.base_definition">
+<em class="property">property </em><code class="sig-name descname">base_definition</code><a class="headerlink" href="#podpac.Node.base_definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base node definition.</p>
+<p>This property is implemented in the primary base nodes (DataSource, Algorithm, and Compositor). Node
+subclasses with additional attrs will need to extend this property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>{definition_return}</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -478,6 +484,12 @@ future.</p>
 <dl class="attribute">
 <dt>
 <code class="sig-name descname">cache_output</code></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">cache_update</code></dt>
 <dd><p>A boolean (True, False) trait.</p>
 </dd></dl>
 
@@ -514,7 +526,16 @@ data: uses the fillval as the input array</p>
 <dl class="method">
 <dt id="podpac.Node.definition">
 <em class="property">property </em><code class="sig-name descname">definition</code><a class="headerlink" href="#podpac.Node.definition" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Full node definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary-formatted node definition.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>OrderedDict</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="attribute">
 <dt>
@@ -565,7 +586,7 @@ coordinates, and coordinate reference system.</p></li>
 <dl class="method">
 <dt id="podpac.Node.find_coordinates">
 <code class="sig-name descname">find_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/node.html#Node.find_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.find_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get all available coordinates for the Node. Implemented in child classes.</p>
+<dd><p>Get all available native coordinates for the Node. Implemented in child classes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><strong>coord_list</strong> – list of available coordinates (Coordinates objects)</p>
@@ -574,12 +595,6 @@ coordinates, and coordinate reference system.</p></li>
 <dd class="field-even"><p>list</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="attribute">
-<dt>
-<code class="sig-name descname">force_eval</code></dt>
-<dd><p>A boolean (True, False) trait.</p>
 </dd></dl>
 
 <dl class="method">
@@ -723,7 +738,16 @@ e.g by setting LAYER/COVERAGE value to s3://my-bucket-name/pipeline_definition.j
 <dl class="method">
 <dt id="podpac.Node.json">
 <em class="property">property </em><code class="sig-name descname">json</code><a class="headerlink" href="#podpac.Node.json" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>definition for this node in json format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>JSON-formatted node definition.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="podpac.Node.json_pretty">
@@ -767,8 +791,14 @@ e.g by setting LAYER/COVERAGE value to s3://my-bucket-name/pipeline_definition.j
 </dd></dl>
 
 <dl class="method">
+<dt id="podpac.Node.pipeline">
+<em class="property">property </em><code class="sig-name descname">pipeline</code><a class="headerlink" href="#podpac.Node.pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deprecated. See Node.definition and Node.from_definition.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="podpac.Node.put_cache">
-<code class="sig-name descname">put_cache</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">key</em>, <em class="sig-param">coordinates=None</em>, <em class="sig-param">overwrite=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/node.html#Node.put_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.put_cache" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">put_cache</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">key</em>, <em class="sig-param">coordinates=None</em>, <em class="sig-param">overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/node.html#Node.put_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.put_cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cache data for this node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -776,7 +806,7 @@ e.g by setting LAYER/COVERAGE value to s3://my-bucket-name/pipeline_definition.j
 <li><p><strong>data</strong> (<em>any</em>) – The data to cache.</p></li>
 <li><p><strong>key</strong> (<em>str</em>) – Unique key for the data, e.g. ‘output’</p></li>
 <li><p><strong>coordinates</strong> (<a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><em>podpac.Coordinates</em></a><em>, </em><em>optional</em>) – Coordinates that the cached data depends on. Omit for coordinate-independent data.</p></li>
-<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Overwrite existing data, default True.</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em><em>, </em><em>optional</em>) – Overwrite existing data, default False</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
@@ -787,7 +817,7 @@ e.g by setting LAYER/COVERAGE value to s3://my-bucket-name/pipeline_definition.j
 
 <dl class="method">
 <dt id="podpac.Node.rem_cache">
-<code class="sig-name descname">rem_cache</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">coordinates=None</em>, <em class="sig-param">mode='all'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/node.html#Node.rem_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.rem_cache" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">rem_cache</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">coordinates=None</em>, <em class="sig-param">mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/node.html#Node.rem_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.rem_cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear cached data for this node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -795,7 +825,7 @@ e.g by setting LAYER/COVERAGE value to s3://my-bucket-name/pipeline_definition.j
 <li><p><strong>key</strong> (<em>str</em>) – Delete cached objects with this key. If <cite>‘*’</cite>, cached data is deleted for all keys.</p></li>
 <li><p><strong>coordinates</strong> (<a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><em>podpac.Coordinates</em></a><em>, </em><em>str</em><em>, </em><em>optional</em>) – Default is None. Delete cached objects for these coordinates. If <cite>‘*’</cite>, cached data is deleted for all
 coordinates, including coordinate-independent data. If None, will only affect coordinate-independent data.</p></li>
-<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify which cache stores are affected. Default ‘all’.</p></li>
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify which cache stores are affected.</p></li>
 </ul>
 </dd>
 </dl>
@@ -830,11 +860,6 @@ coordinates, including coordinate-independent data. If None, will only affect co
 <p>The value can also be an instance of a subclass of the specified class.</p>
 <p>Subclasses can declare default classes by overriding the klass attribute</p>
 </dd></dl>
-
-<dl class="method">
-<dt id="podpac.Node.trait_is_defined">
-<code class="sig-name descname">trait_is_defined</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/node.html#Node.trait_is_defined"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.Node.trait_is_defined" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="attribute">
 <dt>
