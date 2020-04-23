@@ -263,11 +263,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">crs_desc</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">_coords</span> <span class="o">=</span> <span class="n">OrderedDictTrait</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">),</span> <span class="n">default_value</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">())</span>
 
-<div class="viewcode-block" id="Coordinates.__init__"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs_desc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Coordinates.__init__"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create multidimensional coordinates.</span>
 
@@ -287,8 +286,6 @@
 <span class="sd">             * dimension names joined by an underscore for stacked coordinates</span>
 <span class="sd">        crs : str, optional</span>
 <span class="sd">            Coordinate reference system. Supports PROJ4 and WKT.</span>
-<span class="sd">        crs_desc : str, optional</span>
-<span class="sd">            Abbreviated display description for the crs.</span>
 <span class="sd">        validate_crs : bool, optional</span>
 <span class="sd">            Use False to skip crs validation. Default True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -351,7 +348,7 @@
 
             <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;crs&quot;</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span>
 
-        <span class="nb">super</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">crs_desc</span><span class="o">=</span><span class="n">crs_desc</span><span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;_coords&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -841,6 +838,7 @@
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="c1"># properties</span>
+        <span class="c1"># TODO check transform instead</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">CRS</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">CRS</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
@@ -997,11 +995,8 @@
 
         <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">d</span><span class="p">[</span><span class="s2">&quot;coords&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">full_definition</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">d</span><span class="p">[</span>
-            <span class="s2">&quot;crs&quot;</span>
-        <span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">CRS</span><span class="o">.</span><span class="n">to_wkt</span><span class="p">()</span>
-        <span class="p">)</span>  <span class="c1"># use &quot;wkt&quot; which is suggested as best format: https://proj.org/faq.html#what-is-the-best-format-for-describing-coordinate-reference-systems</span>
+        <span class="c1"># &quot;wkt&quot; is suggested as best format: https://proj.org/faq.html#what-is-the-best-format-for-describing-coordinate-reference-systems</span>
+        <span class="n">d</span><span class="p">[</span><span class="s2">&quot;crs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CRS</span><span class="o">.</span><span class="n">to_wkt</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">d</span>
 
     <span class="nd">@property</span>
@@ -1619,9 +1614,7 @@
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rep</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs_desc</span><span class="p">:</span>
-            <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot; (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs_desc</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
             <span class="n">rep</span> <span class="o">+=</span> <span class="s2">&quot; (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">):</span>
