@@ -316,7 +316,7 @@
                 <span class="k">continue</span>
 
             <span class="n">s_start</span> <span class="o">=</span> <span class="o">-</span><span class="n">s</span> <span class="o">//</span> <span class="mi">2</span>
-            <span class="n">s_end</span> <span class="o">=</span> <span class="n">s</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">((</span><span class="n">s</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">s_end</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">s</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">((</span><span class="n">s</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
             <span class="c1"># The 1e-07 is for floating point error because if endpoint is slightly</span>
             <span class="c1"># in front of step * N then the endpoint is excluded</span>
             <span class="n">exp_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -336,6 +336,19 @@
 
         <span class="c1"># evaluate source using expanded coordinates, convolve, and then slice out original coordinates</span>
         <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expanded_coordinates</span><span class="p">)</span>
+
+        <span class="c1"># The source may not contain all of the same dimensions as the requested coordinates, which means</span>
+        <span class="c1"># The kernel could be too big. So, let&#39;s detect this and fix the problem.</span>
+        <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">expanded_coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">extra_dims</span><span class="p">:</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">)</span>
+
+            <span class="n">extra_dims_ind</span> <span class="o">=</span> <span class="p">[</span><span class="n">expanded_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">extra_dims</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">extra_dims_ind</span><span class="p">:</span>
+                <span class="n">full_kernel</span> <span class="o">=</span> <span class="n">full_kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">ind</span><span class="p">)</span>
+                <span class="n">exp_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">exp_slice</span><span class="p">)</span>
+                <span class="n">exp_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+                <span class="n">exp_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">exp_list</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">source</span><span class="p">)):</span>
             <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;direct&quot;</span>
