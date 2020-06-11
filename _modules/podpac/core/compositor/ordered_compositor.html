@@ -188,7 +188,7 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="c1"># Internal imports</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">NodeException</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">UnitsDataArray</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.compositor.compositor</span> <span class="kn">import</span> <span class="n">COMMON_COMPOSITOR_DOC</span><span class="p">,</span> <span class="n">BaseCompositor</span>
@@ -236,7 +236,15 @@
         <span class="n">mask</span> <span class="o">=</span> <span class="n">UnitsDataArray</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">data_arrays</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span>
+                        <span class="s2">&quot;Cannot evaluate compositor with requested dims </span><span class="si">%s</span><span class="s2">. &quot;</span>
+                        <span class="s2">&quot;The compositor source dims are </span><span class="si">%s</span><span class="s2">. &quot;</span>
+                        <span class="s2">&quot;Specify the compositor &#39;dims&#39; attribute to ignore extra requested dims.&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+                    <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_composite</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]:</span>
