@@ -620,6 +620,23 @@
 
 
 <span class="k">def</span> <span class="nf">divide_timedelta</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">divisor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Divide a timedelta by a numerical divisor. This is a helper function for divide_delta.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    delta : np.timedelta64</span>
+<span class="sd">        The base delta.</span>
+<span class="sd">    divisor : number</span>
+<span class="sd">        The divisor</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : np.timedelta64</span>
+<span class="sd">        The result, converted to higher resolution if necessary.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">result</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">/</span> <span class="n">divisor</span>
     <span class="k">if</span> <span class="n">divisor</span> <span class="o">*</span> <span class="n">result</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">==</span> <span class="n">delta</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">result</span>
@@ -632,10 +649,27 @@
 
 
 <span class="k">def</span> <span class="nf">timedelta_divisible</span><span class="p">(</span><span class="n">numerator</span><span class="p">,</span> <span class="n">divisor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Check if a numpy timedelta64 is evenly divisible by another.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    numerator : numpy.timedelta64</span>
+<span class="sd">        numerator</span>
+<span class="sd">    divisor : numpy.timedelta64</span>
+<span class="sd">        divisor</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    divisible : bool</span>
+<span class="sd">        if the numerator is evenly divisible by the divisor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># NOTE: numerator % divisor works in some versions of numpy, but not all</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">numerator</span> <span class="o">/</span> <span class="n">divisor</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="c1"># e.g. months and days are not comparible</span>
         <span class="k">return</span> <span class="kc">False</span>
 
 
