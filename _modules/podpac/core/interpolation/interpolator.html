@@ -482,6 +482,7 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">src_idx</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># There is no closest neighbor within the tolerance</span>
                         <span class="k">continue</span>
+
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">src_idx</span> <span class="o">=</span> <span class="n">idx</span>
 
@@ -489,13 +490,27 @@
                     <span class="n">func</span><span class="p">,</span>
                     <span class="n">keep_dims</span><span class="p">,</span>
                     <span class="n">udims</span><span class="p">,</span>
-                    <span class="n">source_coordinates</span><span class="p">,</span>
+                    <span class="n">source_coordinates</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">dim</span><span class="p">),</span>
                     <span class="n">source_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">src_idx</span><span class="p">],</span>
-                    <span class="n">eval_coordinates</span><span class="p">,</span>
+                    <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">dim</span><span class="p">),</span>
                     <span class="n">output_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
                     <span class="o">**</span><span class="n">kwargs</span>
                 <span class="p">)</span>
+
         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO does this allow undesired extrapolation?</span>
+            <span class="c1"># short circuit if the source data and requested coordinates are of size 1</span>
+            <span class="k">if</span> <span class="n">source_data</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">output_data</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">output_data</span>
+
+            <span class="c1"># short circuit if source_coordinates contains eval_coordinates</span>
+            <span class="k">if</span> <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">):</span>
+                <span class="c1"># select/transpose, and copy</span>
+                <span class="n">output_coords</span> <span class="o">=</span> <span class="n">output_data</span><span class="o">.</span><span class="n">coords</span>
+                <span class="n">output_data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output_coords</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">output_data</span>
+
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">output_data</span>
