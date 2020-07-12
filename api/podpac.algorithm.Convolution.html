@@ -41,7 +41,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="podpac.algorithm.SpatialConvolution" href="podpac.algorithm.SpatialConvolution.html" />
+    <link rel="next" title="podpac.compositor.OrderedCompositor" href="podpac.compositor.OrderedCompositor.html" />
     <link rel="prev" title="podpac.algorithm.SelectCoordinates" href="podpac.algorithm.SelectCoordinates.html" /> 
 </head>
 
@@ -143,8 +143,6 @@
 <li class="toctree-l3"><a class="reference internal" href="podpac.algorithm.ExpandCoordinates.html">podpac.algorithm.ExpandCoordinates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="podpac.algorithm.SelectCoordinates.html">podpac.algorithm.SelectCoordinates</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">podpac.algorithm.Convolution</a></li>
-<li class="toctree-l3"><a class="reference internal" href="podpac.algorithm.SpatialConvolution.html">podpac.algorithm.SpatialConvolution</a></li>
-<li class="toctree-l3"><a class="reference internal" href="podpac.algorithm.TimeConvolution.html">podpac.algorithm.TimeConvolution</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#compositor-nodes">Compositor Nodes</a></li>
@@ -250,21 +248,23 @@
 <dl class="attribute">
 <dt id="podpac.algorithm.Convolution.kernel">
 <code class="sig-name descname">kernel</code><a class="headerlink" href="#podpac.algorithm.Convolution.kernel" title="Permalink to this definition">¶</a></dt>
-<dd><p>The convolution kernel</p>
+<dd><p>The convolution kernel. This kernel must have the same number of dimensions as the source data outputs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>np.ndarray</p>
+<dd class="field-odd"><p>np.ndarray, optional</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="podpac.algorithm.Convolution.kernel_ndim">
-<code class="sig-name descname">kernel_ndim</code><a class="headerlink" href="#podpac.algorithm.Convolution.kernel_ndim" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of dimensions of the kernel</p>
+<dt id="podpac.algorithm.Convolution.kernel_dims">
+<code class="sig-name descname">kernel_dims</code><a class="headerlink" href="#podpac.algorithm.Convolution.kernel_dims" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the dimensions for the kernel axes. The dimensions in this list must match the
+coordinates in the source, or contain additional dimensions, and the order does not need to match.
+Any extra dimensions are summed out.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>int</p>
+<dd class="field-odd"><p>list, optional</p>
 </dd>
 </dl>
 </dd></dl>
@@ -272,7 +272,8 @@
 <dl class="attribute">
 <dt id="podpac.algorithm.Convolution.kernel_type">
 <code class="sig-name descname">kernel_type</code><a class="headerlink" href="#podpac.algorithm.Convolution.kernel_type" title="Permalink to this definition">¶</a></dt>
-<dd><p>If kernel is not defined, kernel_type will create a kernel based on the inputs.
+<dd><p>If kernel is not defined, kernel_type will create a kernel based on the inputs, and it will have the
+same number of axes as kernel_ndim.
 The format for the created  kernels is ‘&lt;kernel_type&gt;, &lt;kernel_size&gt;, &lt;kernel_params&gt;’.
 Any kernel defined in <cite>scipy.signal</cite> as well as <cite>mean</cite> can be used. For example:
 kernel_type = ‘mean, 8’ or kernel_type = ‘gaussian,16,8’ are both valid.
@@ -393,19 +394,22 @@ Note: These kernels are automatically normalized such that kernel.sum() == 1</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.algorithm.Convolution.kernel" title="podpac.algorithm.Convolution.kernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kernel</span></code></a></p></td>
 <td><p>A coercing numpy array trait.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
-<td><p>A trait for unicode strings.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.algorithm.Convolution.kernel_dims" title="podpac.algorithm.Convolution.kernel_dims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kernel_dims</span></code></a></p></td>
 <td><p>An instance of a Python list.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.algorithm.Convolution.source" title="podpac.algorithm.Convolution.source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
+<td><p>A trait for unicode strings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
+<td><p>An instance of a Python list.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.algorithm.Convolution.source" title="podpac.algorithm.Convolution.source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></p></td>
 <td><p>A trait whose value must be an instance of a specified class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></p></td>
 <td><p>A trait for unicode strings.</p></td>
 </tr>
 </tbody>
@@ -448,6 +452,12 @@ coordinates, and coordinate reference system.</p></li>
 <dd><p>A coercing numpy array trait.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">kernel_dims</code></dt>
+<dd><p>An instance of a Python list.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -460,7 +470,7 @@ coordinates, and coordinate reference system.</p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="podpac.algorithm.SpatialConvolution.html" class="btn btn-neutral float-right" title="podpac.algorithm.SpatialConvolution" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="podpac.compositor.OrderedCompositor.html" class="btn btn-neutral float-right" title="podpac.compositor.OrderedCompositor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="podpac.algorithm.SelectCoordinates.html" class="btn btn-neutral float-left" title="podpac.algorithm.SelectCoordinates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

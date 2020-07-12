@@ -252,12 +252,15 @@
 <span class="sd">    ----------</span>
 <span class="sd">    source : podpac.Node</span>
 <span class="sd">        Source node on which convolution will be performed. </span>
-<span class="sd">    kernel : np.ndarray</span>
-<span class="sd">        The convolution kernel</span>
-<span class="sd">    kernel_ndim : int</span>
-<span class="sd">        Number of dimensions of the kernel</span>
+<span class="sd">    kernel : np.ndarray, optional</span>
+<span class="sd">        The convolution kernel. This kernel must have the same number of dimensions as the source data outputs</span>
+<span class="sd">    kernel_dims : list, optional</span>
+<span class="sd">        A list of the dimensions for the kernel axes. The dimensions in this list must match the </span>
+<span class="sd">        coordinates in the source, or contain additional dimensions, and the order does not need to match.</span>
+<span class="sd">        Any extra dimensions are summed out. </span>
 <span class="sd">    kernel_type : str, optional</span>
-<span class="sd">        If kernel is not defined, kernel_type will create a kernel based on the inputs. </span>
+<span class="sd">        If kernel is not defined, kernel_type will create a kernel based on the inputs, and it will have the</span>
+<span class="sd">        same number of axes as kernel_ndim.</span>
 <span class="sd">        The format for the created  kernels is &#39;&lt;kernel_type&gt;, &lt;kernel_size&gt;, &lt;kernel_params&gt;&#39;.</span>
 <span class="sd">        Any kernel defined in `scipy.signal` as well as `mean` can be used. For example:</span>
 <span class="sd">        kernel_type = &#39;mean, 8&#39; or kernel_type = &#39;gaussian,16,8&#39; are both valid. </span>
@@ -265,21 +268,29 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">kernel</span> <span class="o">=</span> <span class="n">ArrayTrait</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">kernel_dims</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_ndim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">kernel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">kernel_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Convolution expected &#39;kernel&#39; or &#39;kernel_type&#39;, not both&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_ndim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kernel_dims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Convolution expected &#39;kernel_dims&#39; to be specified when giving a &#39;kernel&#39; array&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">kernel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kernel_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Convolution expected &#39;kernel&#39; or &#39;kernel_type&#39;, not both&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">kernel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">kernel_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Convolution requires &#39;kernel&#39; array or &#39;kernel_type&#39; string&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">kernel_ndim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Convolution requires &#39;kernel_ndim&#39; when supplying a &#39;kernel_type&#39; string&quot;</span><span class="p">)</span>
+            <span class="n">kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_kernel</span><span class="p">(</span><span class="n">kernel_type</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">kernel_dims</span><span class="p">))</span>
 
-            <span class="n">kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_kernel</span><span class="p">(</span><span class="n">kernel_type</span><span class="p">,</span> <span class="n">kernel_ndim</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kernel_dims</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;The kernel_dims should contain the same number of dimensions as the number of axes in &#39;kernel&#39;, but len(kernel_dims) </span><span class="si">{}</span><span class="s2"> != len(kernel.shape) </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">kernel_dims</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;kernel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;kernel_dims&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kernel_dims</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Convolution</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_first_init</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Convolution.eval"><a class="viewcode-back" href="../../../../api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
@@ -298,21 +309,20 @@
 <span class="sd">        -------</span>
 <span class="sd">        {eval_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># This should be aligned with coordinates&#39; dimension order</span>
         <span class="c1"># The size of this kernel is used to figure out the expanded size</span>
         <span class="n">full_kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_full_kernel</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">full_kernel</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Cannot evaluate coordinates, kernel and coordinates ndims mismatch (</span><span class="si">%d</span><span class="s2"> != </span><span class="si">%d</span><span class="s2">)&quot;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="n">full_kernel</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
-            <span class="p">)</span>
-
         <span class="c1"># expand the coordinates</span>
+        <span class="c1"># The next line effectively drops extra coordinates, so we have to add those later in case the</span>
+        <span class="c1"># source is some sort of reduction Node.</span>
+        <span class="n">kernel_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">kd</span> <span class="k">for</span> <span class="n">kd</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">kd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_dims</span><span class="p">]</span>
+        <span class="n">missing_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">kd</span> <span class="k">for</span> <span class="n">kd</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">kd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_dims</span><span class="p">]</span>
+
         <span class="n">exp_coords</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">exp_slice</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">full_kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">kernel_dims</span><span class="p">:</span>
             <span class="n">coord</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">full_kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">dim</span><span class="p">)]</span>
             <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">):</span>
                 <span class="n">exp_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
                 <span class="n">exp_slice</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
@@ -331,6 +341,12 @@
                 <span class="p">)</span>
             <span class="p">)</span>
             <span class="n">exp_slice</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="o">-</span><span class="n">s_start</span><span class="p">,</span> <span class="o">-</span><span class="n">s_end</span><span class="p">))</span>
+
+        <span class="c1"># Add missing dims back in -- this is needed in case the source is a reduce node.</span>
+        <span class="n">exp_coords</span> <span class="o">+=</span> <span class="p">[</span><span class="n">coordinates</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">missing_dims</span><span class="p">]</span>
+        <span class="c1"># exp_slice += [slice(None) for d in missing_dims]</span>
+
+        <span class="c1"># Create expanded coordinates</span>
         <span class="n">exp_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">exp_slice</span><span class="p">)</span>
         <span class="n">expanded_coordinates</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">exp_coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
@@ -340,29 +356,41 @@
         <span class="c1"># evaluate source using expanded coordinates, convolve, and then slice out original coordinates</span>
         <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expanded_coordinates</span><span class="p">)</span>
 
-        <span class="c1"># The source may not contain all of the same dimensions as the requested coordinates, which means</span>
-        <span class="c1"># The kernel could be too big. So, let&#39;s detect this and fix the problem.</span>
-        <span class="n">extra_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">expanded_coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">extra_dims</span><span class="p">:</span>
-            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">extra_dims</span><span class="p">)</span>
+        <span class="c1"># Check dimensions</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kernel_dims</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">d</span> <span class="o">!=</span> <span class="s2">&quot;output&quot;</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Kernel dims must contain all of the dimensions in source but not all of </span><span class="si">{}</span><span class="s2"> is in kernel_dims=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">kernel_dims</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
 
-            <span class="n">extra_dims_ind</span> <span class="o">=</span> <span class="p">[</span><span class="n">expanded_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">extra_dims</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">extra_dims_ind</span><span class="p">:</span>
-                <span class="n">full_kernel</span> <span class="o">=</span> <span class="n">full_kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">ind</span><span class="p">)</span>
-                <span class="n">exp_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">exp_slice</span><span class="p">)</span>
-                <span class="n">exp_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
-                <span class="n">exp_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">exp_list</span><span class="p">)</span>
+        <span class="n">full_kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_full_kernel</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="n">kernel_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_dims</span>
+        <span class="n">sum_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">kernel_dims</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
+        <span class="c1"># Sum out the extra dims</span>
+        <span class="n">full_kernel</span> <span class="o">=</span> <span class="n">full_kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="nb">tuple</span><span class="p">([</span><span class="n">kernel_dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sum_dims</span><span class="p">]))</span>
+        <span class="n">kernel_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">kernel_dims</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
+
+        <span class="c1"># Put the kernel axes in the correct order</span>
+        <span class="c1"># The (if d in kernel_dims) takes care of &quot;output&quot;, which can be optionally present</span>
+        <span class="n">full_kernel</span> <span class="o">=</span> <span class="n">full_kernel</span><span class="o">.</span><span class="n">transpose</span><span class="p">([</span><span class="n">kernel_dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="ow">in</span> <span class="n">kernel_dims</span><span class="p">)])</span>
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">source</span><span class="p">)):</span>
             <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;direct&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span>
 
-        <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;output&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">kernel_dims</span><span class="p">):</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">full_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># source with multiple outputs</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">full_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">source</span><span class="p">])</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">),</span> <span class="n">full_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">]</span>
+                <span class="p">],</span>
+                <span class="n">axis</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">exp_slice</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -392,72 +420,6 @@
         <span class="sd">&quot;&quot;&quot;{full_kernel}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span></div>
-
-
-<div class="viewcode-block" id="TimeConvolution"><a class="viewcode-back" href="../../../../api/podpac.algorithm.TimeConvolution.html#podpac.algorithm.TimeConvolution">[docs]</a><span class="k">class</span> <span class="nc">TimeConvolution</span><span class="p">(</span><span class="n">Convolution</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Compute a temporal convolution over a source node.</span>
-<span class="sd">    </span>
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    kernel_ndim : int</span>
-<span class="sd">        Value is 1. Should not be modified.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">kernel</span> <span class="o">=</span> <span class="n">ArrayTrait</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">TimeConvolution</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_first_init</span><span class="p">(</span>
-            <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="n">kernel_type</span><span class="p">,</span> <span class="n">kernel_ndim</span><span class="o">=</span><span class="n">kernel_ndim</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_get_full_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;{full_kernel}</span>
-<span class="sd">        </span>
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        ValueError</span>
-<span class="sd">            If source data doesn&#39;t have time dimension.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot compute time convolution with time-independent coordinates&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span>
-
-        <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">]])</span>
-        <span class="n">kernel</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">))</span>
-        <span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">kernel</span><span class="o">.</span><span class="n">data</span></div>
-
-
-<div class="viewcode-block" id="SpatialConvolution"><a class="viewcode-back" href="../../../../api/podpac.algorithm.SpatialConvolution.html#podpac.algorithm.SpatialConvolution">[docs]</a><span class="k">class</span> <span class="nc">SpatialConvolution</span><span class="p">(</span><span class="n">Convolution</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Compute a lat-lon convolution over a source node.</span>
-<span class="sd">    </span>
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    kernel_ndim : int</span>
-<span class="sd">        Value is 2. Should not be modified.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">kernel</span> <span class="o">=</span> <span class="n">ArrayTrait</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kernel_ndim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">SpatialConvolution</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_first_init</span><span class="p">(</span>
-            <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">kernel_type</span><span class="o">=</span><span class="n">kernel_type</span><span class="p">,</span> <span class="n">kernel_ndim</span><span class="o">=</span><span class="n">kernel_ndim</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_get_full_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;{full_kernel}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="ow">or</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot compute spatial convolution with coordinate dims </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span>
-
-        <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">kernel</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">))</span>
-        <span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">kernel</span><span class="o">.</span><span class="n">data</span></div>
 </pre></div>
 
            </div>

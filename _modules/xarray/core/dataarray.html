@@ -189,7 +189,6 @@
   <h1>Source code for xarray.core.dataarray</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Number</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">TYPE_CHECKING</span><span class="p">,</span>
@@ -243,7 +242,7 @@
 <span class="kn">from</span> <span class="nn">.formatting</span> <span class="kn">import</span> <span class="n">format_item</span>
 <span class="kn">from</span> <span class="nn">.indexes</span> <span class="kn">import</span> <span class="n">Indexes</span><span class="p">,</span> <span class="n">default_indexes</span><span class="p">,</span> <span class="n">propagate_indexes</span>
 <span class="kn">from</span> <span class="nn">.indexing</span> <span class="kn">import</span> <span class="n">is_fancy_indexer</span>
-<span class="kn">from</span> <span class="nn">.merge</span> <span class="kn">import</span> <span class="n">PANDAS_TYPES</span><span class="p">,</span> <span class="n">_extract_indexes_from_coords</span>
+<span class="kn">from</span> <span class="nn">.merge</span> <span class="kn">import</span> <span class="n">PANDAS_TYPES</span><span class="p">,</span> <span class="n">MergeError</span><span class="p">,</span> <span class="n">_extract_indexes_from_coords</span>
 <span class="kn">from</span> <span class="nn">.options</span> <span class="kn">import</span> <span class="n">OPTIONS</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">Default</span><span class="p">,</span> <span class="n">ReprObject</span><span class="p">,</span> <span class="n">_check_inplace</span><span class="p">,</span> <span class="n">_default</span><span class="p">,</span> <span class="n">either_dict_or_kwargs</span>
 <span class="kn">from</span> <span class="nn">.variable</span> <span class="kn">import</span> <span class="p">(</span>
@@ -450,7 +449,7 @@
     <span class="n">_resample_cls</span> <span class="o">=</span> <span class="n">resample</span><span class="o">.</span><span class="n">DataArrayResample</span>
     <span class="n">_weighted_cls</span> <span class="o">=</span> <span class="n">weighted</span><span class="o">.</span><span class="n">DataArrayWeighted</span>
 
-    <span class="n">dt</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">CombinedDatetimelikeAccessor</span><span class="p">)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">UncachedAccessor</span><span class="p">(</span><span class="n">CombinedDatetimelikeAccessor</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -664,7 +663,13 @@
         <span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">_construct_direct</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">coord_names</span><span class="p">,</span> <span class="n">indexes</span><span class="o">=</span><span class="n">indexes</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dataset</span>
 
-    <span class="k">def</span> <span class="nf">to_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="n">Hashable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Hashable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">to_dataset</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dim</span><span class="p">:</span> <span class="n">Hashable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="n">Hashable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">promote_attrs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Convert a DataArray to a Dataset.</span>
 
 <span class="sd">        Parameters</span>
@@ -676,6 +681,8 @@
 <span class="sd">        name : hashable, optional</span>
 <span class="sd">            Name to substitute for this array&#39;s name. Only valid if ``dim`` is</span>
 <span class="sd">            not provided.</span>
+<span class="sd">        promote_attrs : bool, default False</span>
+<span class="sd">            Set to True to shallow copy attrs of DataArray to returned Dataset.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -689,9 +696,14 @@
         <span class="k">if</span> <span class="n">dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot supply both dim and name arguments&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_dataset_split</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_dataset_split</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_dataset_whole</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_dataset_whole</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">promote_attrs</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Hashable</span><span class="p">]:</span>
@@ -1106,7 +1118,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="n">deep</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
         <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="n">deep</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-        <span class="n">indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexes</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexes</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">indexes</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="n">deep</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexes</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">indexes</span><span class="o">=</span><span class="n">indexes</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
@@ -1180,25 +1195,51 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">indexers</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">drop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">missing_dims</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raise&quot;</span><span class="p">,</span>
         <span class="o">**</span><span class="n">indexers_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a new DataArray whose data is given by integer indexing</span>
 <span class="sd">        along the specified dimension(s).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        indexers : dict, optional</span>
+<span class="sd">            A dict with keys matching dimensions and values given</span>
+<span class="sd">            by integers, slice objects or arrays.</span>
+<span class="sd">            indexer can be a integer, slice, array-like or DataArray.</span>
+<span class="sd">            If DataArrays are passed as indexers, xarray-style indexing will be</span>
+<span class="sd">            carried out. See :ref:`indexing` for the details.</span>
+<span class="sd">            One of indexers or indexers_kwargs must be provided.</span>
+<span class="sd">        drop : bool, optional</span>
+<span class="sd">            If ``drop=True``, drop coordinates variables indexed by integers</span>
+<span class="sd">            instead of making them scalar.</span>
+<span class="sd">        missing_dims : {&quot;raise&quot;, &quot;warn&quot;, &quot;ignore&quot;}, default &quot;raise&quot;</span>
+<span class="sd">            What to do if dimensions that should be selected from are not present in the</span>
+<span class="sd">            DataArray:</span>
+<span class="sd">            - &quot;exception&quot;: raise an exception</span>
+<span class="sd">            - &quot;warning&quot;: raise a warning, and ignore the missing dimensions</span>
+<span class="sd">            - &quot;ignore&quot;: ignore the missing dimensions</span>
+<span class="sd">        **indexers_kwargs : {dim: indexer, ...}, optional</span>
+<span class="sd">            The keyword arguments form of ``indexers``.</span>
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
 <span class="sd">        Dataset.isel</span>
 <span class="sd">        DataArray.sel</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">indexers</span> <span class="o">=</span> <span class="n">either_dict_or_kwargs</span><span class="p">(</span><span class="n">indexers</span><span class="p">,</span> <span class="n">indexers_kwargs</span><span class="p">,</span> <span class="s2">&quot;isel&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_fancy_indexer</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">indexers</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-            <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">_isel_fancy</span><span class="p">(</span><span class="n">indexers</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="n">drop</span><span class="p">)</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">_isel_fancy</span><span class="p">(</span>
+                <span class="n">indexers</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="n">drop</span><span class="p">,</span> <span class="n">missing_dims</span><span class="o">=</span><span class="n">missing_dims</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
         <span class="c1"># Much faster algorithm for when all indexers are ints, slices, one-dimensional</span>
         <span class="c1"># lists, or zero or one-dimensional np.ndarray&#39;s</span>
 
-        <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">indexers</span><span class="p">)</span>
+        <span class="n">variable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">indexers</span><span class="p">,</span> <span class="n">missing_dims</span><span class="o">=</span><span class="n">missing_dims</span><span class="p">)</span>
 
         <span class="n">coords</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">coord_name</span><span class="p">,</span> <span class="n">coord_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1224,6 +1265,19 @@
         <span class="sd">&quot;&quot;&quot;Return a new DataArray whose data is given by selecting index</span>
 <span class="sd">        labels along the specified dimension(s).</span>
 
+<span class="sd">        In contrast to `DataArray.isel`, indexers for this method should use</span>
+<span class="sd">        labels instead of integers.</span>
+
+<span class="sd">        Under the hood, this method is powered by using pandas&#39;s powerful Index</span>
+<span class="sd">        objects. This makes label based indexing essentially just as fast as</span>
+<span class="sd">        using integer indexing.</span>
+
+<span class="sd">        It also means this method uses pandas&#39;s (well documented) logic for</span>
+<span class="sd">        indexing. This means you can use string shortcuts for datetime indexes</span>
+<span class="sd">        (e.g., &#39;2000-01&#39; to select all values in January 2000). It also means</span>
+<span class="sd">        that slices are treated as inclusive of both the start and stop values,</span>
+<span class="sd">        unlike normal Python indexing.</span>
+
 <span class="sd">        .. warning::</span>
 
 <span class="sd">          Do not try to assign values when using any of the indexing methods</span>
@@ -1235,6 +1289,45 @@
 
 <span class="sd">          Assigning values with the chained indexing using ``.sel`` or</span>
 <span class="sd">          ``.isel`` fails silently.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        indexers : dict, optional</span>
+<span class="sd">            A dict with keys matching dimensions and values given</span>
+<span class="sd">            by scalars, slices or arrays of tick labels. For dimensions with</span>
+<span class="sd">            multi-index, the indexer may also be a dict-like object with keys</span>
+<span class="sd">            matching index level names.</span>
+<span class="sd">            If DataArrays are passed as indexers, xarray-style indexing will be</span>
+<span class="sd">            carried out. See :ref:`indexing` for the details.</span>
+<span class="sd">            One of indexers or indexers_kwargs must be provided.</span>
+<span class="sd">        method : {None, &#39;nearest&#39;, &#39;pad&#39;/&#39;ffill&#39;, &#39;backfill&#39;/&#39;bfill&#39;}, optional</span>
+<span class="sd">            Method to use for inexact matches:</span>
+
+<span class="sd">            * None (default): only exact matches</span>
+<span class="sd">            * pad / ffill: propagate last valid index value forward</span>
+<span class="sd">            * backfill / bfill: propagate next valid index value backward</span>
+<span class="sd">            * nearest: use nearest valid index value</span>
+<span class="sd">        tolerance : optional</span>
+<span class="sd">            Maximum distance between original and new labels for inexact</span>
+<span class="sd">            matches. The values of the index at the matching locations must</span>
+<span class="sd">            satisfy the equation ``abs(index[indexer] - target) &lt;= tolerance``.</span>
+<span class="sd">        drop : bool, optional</span>
+<span class="sd">            If ``drop=True``, drop coordinates variables in `indexers` instead</span>
+<span class="sd">            of making them scalar.</span>
+<span class="sd">        **indexers_kwargs : {dim: indexer, ...}, optional</span>
+<span class="sd">            The keyword arguments form of ``indexers``.</span>
+<span class="sd">            One of indexers or indexers_kwargs must be provided.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        obj : DataArray</span>
+<span class="sd">            A new DataArray with the same contents as this DataArray, except the</span>
+<span class="sd">            data and each dimension is indexed by the appropriate indexers.</span>
+<span class="sd">            If indexer DataArrays have coordinates that do not conflict with</span>
+<span class="sd">            this object, then these coordinates will be attached.</span>
+<span class="sd">            In general, each array&#39;s data will be a view of the array&#39;s data</span>
+<span class="sd">            in this DataArray, unless vectorized indexing was triggered by using</span>
+<span class="sd">            an array indexer, in which case the data will be a copy.</span>
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
@@ -1513,7 +1606,9 @@
 <span class="sd">            first. If True, x has to be an array of monotonically increasing</span>
 <span class="sd">            values.</span>
 <span class="sd">        kwargs: dictionary</span>
-<span class="sd">            Additional keyword passed to scipy&#39;s interpolator.</span>
+<span class="sd">            Additional keyword arguments passed to scipy&#39;s interpolator. Valid</span>
+<span class="sd">            options and their behavior depend on if 1-dimensional or</span>
+<span class="sd">            multi-dimensional interpolation is used.</span>
 <span class="sd">        ``**coords_kwargs`` : {dim: coordinate, ...}, optional</span>
 <span class="sd">            The keyword arguments form of ``coords``.</span>
 <span class="sd">            One of coords or coords_kwargs must be provided.</span>
@@ -2055,12 +2150,12 @@
         <span class="c1"># pull variables out of datarray</span>
         <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
-            <span class="n">data_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sel</span><span class="p">({</span><span class="n">variable_dim</span><span class="p">:</span> <span class="n">k</span><span class="p">})</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">data_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sel</span><span class="p">({</span><span class="n">variable_dim</span><span class="p">:</span> <span class="n">k</span><span class="p">},</span> <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># unstacked dataset</span>
         <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">data_dict</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">dims</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">transpose_coords</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">dims</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">transpose_coords</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a new DataArray object with transposed dimensions.</span>
 
 <span class="sd">        Parameters</span>
@@ -2068,7 +2163,7 @@
 <span class="sd">        *dims : hashable, optional</span>
 <span class="sd">            By default, reverse the dimensions. Otherwise, reorder the</span>
 <span class="sd">            dimensions to this order.</span>
-<span class="sd">        transpose_coords : boolean, optional</span>
+<span class="sd">        transpose_coords : boolean, default True</span>
 <span class="sd">            If True, also transpose the coordinates of this DataArray.</span>
 
 <span class="sd">        Returns</span>
@@ -2097,15 +2192,6 @@
                 <span class="n">coords</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">coord_dims</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">transpose_coords</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">):</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="s2">&quot;This DataArray contains multi-dimensional &quot;</span>
-                    <span class="s2">&quot;coordinates. In the future, these coordinates &quot;</span>
-                    <span class="s2">&quot;will be transposed as well unless you specify &quot;</span>
-                    <span class="s2">&quot;transpose_coords=False.&quot;</span><span class="p">,</span>
-                    <span class="ne">FutureWarning</span><span class="p">,</span>
-                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">variable</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -2245,6 +2331,7 @@
         <span class="n">max_gap</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
             <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span>
         <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">keep_attrs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Fill in NaNs by interpolating according to different methods.</span>
@@ -2299,6 +2386,10 @@
 <span class="sd">                  * x        (x) int64 0 1 2 3 4 5 6 7 8</span>
 
 <span class="sd">            The gap lengths are 3-0 = 3; 6-3 = 3; and 8-6 = 2 respectively</span>
+<span class="sd">        keep_attrs : bool, default True</span>
+<span class="sd">            If True, the dataarray&#39;s attributes (`attrs`) will be copied from</span>
+<span class="sd">            the original object to the new one.  If False, the new</span>
+<span class="sd">            object will be returned without attributes.</span>
 <span class="sd">        kwargs : dict, optional</span>
 <span class="sd">            parameters passed verbatim to the underlying interpolation function</span>
 
@@ -2321,6 +2412,7 @@
             <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span>
             <span class="n">use_coordinate</span><span class="o">=</span><span class="n">use_coordinate</span><span class="p">,</span>
             <span class="n">max_gap</span><span class="o">=</span><span class="n">max_gap</span><span class="p">,</span>
+            <span class="n">keep_attrs</span><span class="o">=</span><span class="n">keep_attrs</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -2810,8 +2902,15 @@
             <span class="c1"># don&#39;t support automatic alignment with in-place arithmetic.</span>
             <span class="n">other_coords</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;coords&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="n">other_variable</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;variable&quot;</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
-            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">_merge_inplace</span><span class="p">(</span><span class="n">other_coords</span><span class="p">):</span>
-                <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="n">other_variable</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">_merge_inplace</span><span class="p">(</span><span class="n">other_coords</span><span class="p">):</span>
+                    <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="n">other_variable</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">MergeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MergeError</span><span class="p">(</span>
+                    <span class="s2">&quot;Automatic alignment is not supported for in-place operations.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;Consider aligning the indices manually or using a not-in-place operation.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;See https://github.com/pydata/xarray/issues/3910 for more explanations.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
             <span class="k">return</span> <span class="bp">self</span>
 
         <span class="k">return</span> <span class="n">func</span>
@@ -2819,24 +2918,7 @@
     <span class="k">def</span> <span class="nf">_copy_attrs_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;DataArray&quot;</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">Variable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">attrs</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_PlotMethods</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Access plotting functions for DataArray&#39;s</span>
-
-<span class="sd">        &gt;&gt;&gt; d = xr.DataArray([[1, 2], [3, 4]])</span>
-
-<span class="sd">        For convenience just call this directly</span>
-
-<span class="sd">        &gt;&gt;&gt; d.plot()</span>
-
-<span class="sd">        Or use it as a namespace to use xarray.plot functions as</span>
-<span class="sd">        DataArray methods</span>
-
-<span class="sd">        &gt;&gt;&gt; d.plot.imshow()  # equivalent to xarray.plot.imshow(d)</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">_PlotMethods</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="n">plot</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">UncachedAccessor</span><span class="p">(</span><span class="n">_PlotMethods</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_title_for_slice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">truncate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2872,7 +2954,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        dim : hashable, optional</span>
+<span class="sd">        dim : hashable</span>
 <span class="sd">            Dimension over which to calculate the finite difference.</span>
 <span class="sd">        n : int, optional</span>
 <span class="sd">            The number of times values are differenced.</span>
@@ -3399,57 +3481,169 @@
         <span class="n">func</span><span class="p">:</span> <span class="s2">&quot;Callable[..., T_DSorDA]&quot;</span><span class="p">,</span>
         <span class="n">args</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
         <span class="n">kwargs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">template</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;DataArray&quot;</span><span class="p">,</span> <span class="s2">&quot;Dataset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;T_DSorDA&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Apply a function to each chunk of this DataArray. This method is experimental</span>
-<span class="sd">        and its signature may change.</span>
+<span class="sd">        Apply a function to each block of this DataArray.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            This method is experimental and its signature may change.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        func: callable</span>
-<span class="sd">            User-provided function that accepts a DataArray as its first parameter. The</span>
-<span class="sd">            function will receive a subset of this DataArray, corresponding to one chunk</span>
-<span class="sd">            along each chunked dimension. ``func`` will be executed as</span>
-<span class="sd">            ``func(obj_subset, *args, **kwargs)``.</span>
-
-<span class="sd">            The function will be first run on mocked-up data, that looks like this array</span>
-<span class="sd">            but has sizes 0, to determine properties of the returned object such as</span>
-<span class="sd">            dtype, variable names, new dimensions and new indexes (if any).</span>
+<span class="sd">            User-provided function that accepts a DataArray as its first</span>
+<span class="sd">            parameter. The function will receive a subset or &#39;block&#39; of this DataArray (see below),</span>
+<span class="sd">            corresponding to one chunk along each chunked dimension. ``func`` will be</span>
+<span class="sd">            executed as ``func(subset_dataarray, *subset_args, **kwargs)``.</span>
 
 <span class="sd">            This function must return either a single DataArray or a single Dataset.</span>
 
-<span class="sd">            This function cannot change size of existing dimensions, or add new chunked</span>
-<span class="sd">            dimensions.</span>
+<span class="sd">            This function cannot add a new chunked dimension.</span>
+
+<span class="sd">        obj: DataArray, Dataset</span>
+<span class="sd">            Passed to the function as its first argument, one block at a time.</span>
 <span class="sd">        args: Sequence</span>
-<span class="sd">            Passed verbatim to func after unpacking, after the sliced DataArray. xarray</span>
-<span class="sd">            objects, if any, will not be split by chunks. Passing dask collections is</span>
-<span class="sd">            not allowed.</span>
+<span class="sd">            Passed to func after unpacking and subsetting any xarray objects by blocks.</span>
+<span class="sd">            xarray objects in args must be aligned with obj, otherwise an error is raised.</span>
 <span class="sd">        kwargs: Mapping</span>
 <span class="sd">            Passed verbatim to func after unpacking. xarray objects, if any, will not be</span>
-<span class="sd">            split by chunks. Passing dask collections is not allowed.</span>
+<span class="sd">            subset to blocks. Passing dask collections in kwargs is not allowed.</span>
+<span class="sd">        template: (optional) DataArray, Dataset</span>
+<span class="sd">            xarray object representing the final result after compute is called. If not provided,</span>
+<span class="sd">            the function will be first run on mocked-up data, that looks like ``obj`` but</span>
+<span class="sd">            has sizes 0, to determine properties of the returned object such as dtype,</span>
+<span class="sd">            variable names, attributes, new dimensions and new indexes (if any).</span>
+<span class="sd">            ``template`` must be provided if the function changes the size of existing dimensions.</span>
+<span class="sd">            When provided, ``attrs`` on variables in `template` are copied over to the result. Any</span>
+<span class="sd">            ``attrs`` set by ``func`` will be ignored.</span>
+
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        A single DataArray or Dataset with dask backend, reassembled from the outputs of</span>
-<span class="sd">        the function.</span>
+<span class="sd">        A single DataArray or Dataset with dask backend, reassembled from the outputs of the</span>
+<span class="sd">        function.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        This method is designed for when one needs to manipulate a whole xarray object</span>
-<span class="sd">        within each chunk. In the more common case where one can work on numpy arrays,</span>
-<span class="sd">        it is recommended to use apply_ufunc.</span>
+<span class="sd">        This function is designed for when ``func`` needs to manipulate a whole xarray object</span>
+<span class="sd">        subset to each block. In the more common case where ``func`` can work on numpy arrays, it is</span>
+<span class="sd">        recommended to use ``apply_ufunc``.</span>
 
-<span class="sd">        If none of the variables in this DataArray is backed by dask, calling this</span>
-<span class="sd">        method is equivalent to calling ``func(self, *args, **kwargs)``.</span>
+<span class="sd">        If none of the variables in ``obj`` is backed by dask arrays, calling this function is</span>
+<span class="sd">        equivalent to calling ``func(obj, *args, **kwargs)``.</span>
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
-<span class="sd">        dask.array.map_blocks, xarray.apply_ufunc, xarray.map_blocks,</span>
-<span class="sd">        xarray.Dataset.map_blocks</span>
+<span class="sd">        dask.array.map_blocks, xarray.apply_ufunc, xarray.Dataset.map_blocks,</span>
+<span class="sd">        xarray.DataArray.map_blocks</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        Calculate an anomaly from climatology using ``.groupby()``. Using</span>
+<span class="sd">        ``xr.map_blocks()`` allows for parallel operations with knowledge of ``xarray``,</span>
+<span class="sd">        its indices, and its methods like ``.groupby()``.</span>
+
+<span class="sd">        &gt;&gt;&gt; def calculate_anomaly(da, groupby_type=&quot;time.month&quot;):</span>
+<span class="sd">        ...     gb = da.groupby(groupby_type)</span>
+<span class="sd">        ...     clim = gb.mean(dim=&quot;time&quot;)</span>
+<span class="sd">        ...     return gb - clim</span>
+<span class="sd">        &gt;&gt;&gt; time = xr.cftime_range(&quot;1990-01&quot;, &quot;1992-01&quot;, freq=&quot;M&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; np.random.seed(123)</span>
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray(</span>
+<span class="sd">        ...     np.random.rand(len(time)), dims=&quot;time&quot;, coords=[time]</span>
+<span class="sd">        ... ).chunk()</span>
+<span class="sd">        &gt;&gt;&gt; array.map_blocks(calculate_anomaly, template=array).compute()</span>
+<span class="sd">        &lt;xarray.DataArray (time: 24)&gt;</span>
+<span class="sd">        array([ 0.12894847,  0.11323072, -0.0855964 , -0.09334032,  0.26848862,</span>
+<span class="sd">                0.12382735,  0.22460641,  0.07650108, -0.07673453, -0.22865714,</span>
+<span class="sd">               -0.19063865,  0.0590131 , -0.12894847, -0.11323072,  0.0855964 ,</span>
+<span class="sd">                0.09334032, -0.26848862, -0.12382735, -0.22460641, -0.07650108,</span>
+<span class="sd">                0.07673453,  0.22865714,  0.19063865, -0.0590131 ])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * time     (time) object 1990-01-31 00:00:00 ... 1991-12-31 00:00:00</span>
+
+<span class="sd">        Note that one must explicitly use ``args=[]`` and ``kwargs={}`` to pass arguments</span>
+<span class="sd">        to the function being applied in ``xr.map_blocks()``:</span>
+
+<span class="sd">        &gt;&gt;&gt; array.map_blocks(</span>
+<span class="sd">        ...     calculate_anomaly, kwargs={&quot;groupby_type&quot;: &quot;time.year&quot;}, template=array,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &lt;xarray.DataArray (time: 24)&gt;</span>
+<span class="sd">        array([ 0.15361741, -0.25671244, -0.31600032,  0.008463  ,  0.1766172 ,</span>
+<span class="sd">               -0.11974531,  0.43791243,  0.14197797, -0.06191987, -0.15073425,</span>
+<span class="sd">               -0.19967375,  0.18619794, -0.05100474, -0.42989909, -0.09153273,</span>
+<span class="sd">                0.24841842, -0.30708526, -0.31412523,  0.04197439,  0.0422506 ,</span>
+<span class="sd">                0.14482397,  0.35985481,  0.23487834,  0.12144652])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">            * time     (time) object 1990-01-31 00:00:00 ... 1991-12-31 00:00:00</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.parallel</span> <span class="kn">import</span> <span class="n">map_blocks</span>
 
-        <span class="k">return</span> <span class="n">map_blocks</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">map_blocks</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">template</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">polyfit</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dim</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span>
+        <span class="n">deg</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">skipna</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rcond</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">w</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Least squares polynomial fit.</span>
+
+<span class="sd">        This replicates the behaviour of `numpy.polyfit` but differs by skipping</span>
+<span class="sd">        invalid values when `skipna = True`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dim : hashable</span>
+<span class="sd">            Coordinate along which to fit the polynomials.</span>
+<span class="sd">        deg : int</span>
+<span class="sd">            Degree of the fitting polynomial.</span>
+<span class="sd">        skipna : bool, optional</span>
+<span class="sd">            If True, removes all invalid values before fitting each 1D slices of the array.</span>
+<span class="sd">            Default is True if data is stored in a dask.array or if there is any</span>
+<span class="sd">            invalid values, False otherwise.</span>
+<span class="sd">        rcond : float, optional</span>
+<span class="sd">            Relative condition number to the fit.</span>
+<span class="sd">        w : Union[Hashable, Any], optional</span>
+<span class="sd">            Weights to apply to the y-coordinate of the sample points.</span>
+<span class="sd">            Can be an array-like object or the name of a coordinate in the dataset.</span>
+<span class="sd">        full : bool, optional</span>
+<span class="sd">            Whether to return the residuals, matrix rank and singular values in addition</span>
+<span class="sd">            to the coefficients.</span>
+<span class="sd">        cov : Union[bool, str], optional</span>
+<span class="sd">            Whether to return to the covariance matrix in addition to the coefficients.</span>
+<span class="sd">            The matrix is not scaled if `cov=&#39;unscaled&#39;`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        polyfit_results : Dataset</span>
+<span class="sd">            A single dataset which contains:</span>
+
+<span class="sd">            polyfit_coefficients</span>
+<span class="sd">                The coefficients of the best fit.</span>
+<span class="sd">            polyfit_residuals</span>
+<span class="sd">                The residuals of the least-square computation (only included if `full=True`)</span>
+<span class="sd">            [dim]_matrix_rank</span>
+<span class="sd">                The effective rank of the scaled Vandermonde coefficient matrix (only included if `full=True`)</span>
+<span class="sd">            [dim]_singular_value</span>
+<span class="sd">                The singular values of the scaled Vandermonde coefficient matrix (only included if `full=True`)</span>
+<span class="sd">            polyfit_covariance</span>
+<span class="sd">                The covariance matrix of the polynomial coefficient estimates (only included if `full=False` and `cov=True`)</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.polyfit</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_temp_dataset</span><span class="p">()</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span>
+            <span class="n">dim</span><span class="p">,</span> <span class="n">deg</span><span class="p">,</span> <span class="n">skipna</span><span class="o">=</span><span class="n">skipna</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="n">rcond</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="n">full</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">cov</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">pad</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -3572,17 +3766,18 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 6, 7], coords=[(&quot;x&quot;, [0,1,2])])</span>
-<span class="sd">        &gt;&gt;&gt; arr.pad(x=(1,2), constant_values=0)</span>
+<span class="sd">        &gt;&gt;&gt; arr = xr.DataArray([5, 6, 7], coords=[(&quot;x&quot;, [0, 1, 2])])</span>
+<span class="sd">        &gt;&gt;&gt; arr.pad(x=(1, 2), constant_values=0)</span>
 <span class="sd">        &lt;xarray.DataArray (x: 6)&gt;</span>
 <span class="sd">        array([0, 5, 6, 7, 0, 0])</span>
 <span class="sd">        Coordinates:</span>
 <span class="sd">          * x        (x) float64 nan 0.0 1.0 2.0 nan nan</span>
 
-<span class="sd">        &gt;&gt;&gt; da = xr.DataArray([[0,1,2,3], [10,11,12,13]],</span>
-<span class="sd">                              dims=[&quot;x&quot;, &quot;y&quot;],</span>
-<span class="sd">                              coords={&quot;x&quot;: [0,1], &quot;y&quot;: [10, 20 ,30, 40], &quot;z&quot;: (&quot;x&quot;, [100, 200])}</span>
-<span class="sd">            )</span>
+<span class="sd">        &gt;&gt;&gt; da = xr.DataArray(</span>
+<span class="sd">        ...     [[0, 1, 2, 3], [10, 11, 12, 13]],</span>
+<span class="sd">        ...     dims=[&quot;x&quot;, &quot;y&quot;],</span>
+<span class="sd">        ...     coords={&quot;x&quot;: [0, 1], &quot;y&quot;: [10, 20, 30, 40], &quot;z&quot;: (&quot;x&quot;, [100, 200])},</span>
+<span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; da.pad(x=1)</span>
 <span class="sd">        &lt;xarray.DataArray (x: 4, y: 4)&gt;</span>
 <span class="sd">        array([[nan, nan, nan, nan],</span>
@@ -3619,9 +3814,406 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_from_temp_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">idxmin</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dim</span><span class="p">:</span> <span class="n">Hashable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">skipna</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">fill_value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">NA</span><span class="p">,</span>
+        <span class="n">keep_attrs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the coordinate label of the minimum value along a dimension.</span>
+
+<span class="sd">        Returns a new `DataArray` named after the dimension with the values of</span>
+<span class="sd">        the coordinate labels along that dimension corresponding to minimum</span>
+<span class="sd">        values along that dimension.</span>
+
+<span class="sd">        In comparison to :py:meth:`~DataArray.argmin`, this returns the</span>
+<span class="sd">        coordinate label while :py:meth:`~DataArray.argmin` returns the index.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dim : str, optional</span>
+<span class="sd">            Dimension over which to apply `idxmin`.  This is optional for 1D</span>
+<span class="sd">            arrays, but required for arrays with 2 or more dimensions.</span>
+<span class="sd">        skipna : bool or None, default None</span>
+<span class="sd">            If True, skip missing values (as marked by NaN). By default, only</span>
+<span class="sd">            skips missing values for ``float``, ``complex``, and ``object``</span>
+<span class="sd">            dtypes; other dtypes either do not have a sentinel missing value</span>
+<span class="sd">            (``int``) or ``skipna=True`` has not been implemented</span>
+<span class="sd">            (``datetime64`` or ``timedelta64``).</span>
+<span class="sd">        fill_value : Any, default NaN</span>
+<span class="sd">            Value to be filled in case all of the values along a dimension are</span>
+<span class="sd">            null.  By default this is NaN.  The fill value and result are</span>
+<span class="sd">            automatically converted to a compatible dtype if possible.</span>
+<span class="sd">            Ignored if ``skipna`` is False.</span>
+<span class="sd">        keep_attrs : bool, default False</span>
+<span class="sd">            If True, the attributes (``attrs``) will be copied from the</span>
+<span class="sd">            original object to the new one.  If False (default), the new object</span>
+<span class="sd">            will be returned without attributes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        reduced : DataArray</span>
+<span class="sd">            New `DataArray` object with `idxmin` applied to its data and the</span>
+<span class="sd">            indicated dimension removed.</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Dataset.idxmin, DataArray.idxmax, DataArray.min, DataArray.argmin</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray(</span>
+<span class="sd">        ...     [0, 2, 1, 0, -2], dims=&quot;x&quot;, coords={&quot;x&quot;: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;]}</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; array.min()</span>
+<span class="sd">        &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(-2)</span>
+<span class="sd">        &gt;&gt;&gt; array.argmin()</span>
+<span class="sd">        &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(4)</span>
+<span class="sd">        &gt;&gt;&gt; array.idxmin()</span>
+<span class="sd">        &lt;xarray.DataArray &#39;x&#39; ()&gt;</span>
+<span class="sd">        array(&#39;e&#39;, dtype=&#39;&lt;U1&#39;)</span>
+
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray(</span>
+<span class="sd">        ...     [</span>
+<span class="sd">        ...         [2.0, 1.0, 2.0, 0.0, -2.0],</span>
+<span class="sd">        ...         [-4.0, np.NaN, 2.0, np.NaN, -2.0],</span>
+<span class="sd">        ...         [np.NaN, np.NaN, 1.0, np.NaN, np.NaN],</span>
+<span class="sd">        ...     ],</span>
+<span class="sd">        ...     dims=[&quot;y&quot;, &quot;x&quot;],</span>
+<span class="sd">        ...     coords={&quot;y&quot;: [-1, 0, 1], &quot;x&quot;: np.arange(5.0) ** 2},</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; array.min(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([-2., -4.,  1.])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * y        (y) int64 -1 0 1</span>
+<span class="sd">        &gt;&gt;&gt; array.argmin(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([4, 0, 2])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * y        (y) int64 -1 0 1</span>
+<span class="sd">        &gt;&gt;&gt; array.idxmin(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray &#39;x&#39; (y: 3)&gt;</span>
+<span class="sd">        array([16.,  0.,  4.])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * y        (y) int64 -1 0 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">computation</span><span class="o">.</span><span class="n">_calc_idxminmax</span><span class="p">(</span>
+            <span class="n">array</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span>
+            <span class="n">skipna</span><span class="o">=</span><span class="n">skipna</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span>
+            <span class="n">keep_attrs</span><span class="o">=</span><span class="n">keep_attrs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">idxmax</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dim</span><span class="p">:</span> <span class="n">Hashable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">skipna</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">fill_value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">NA</span><span class="p">,</span>
+        <span class="n">keep_attrs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the coordinate label of the maximum value along a dimension.</span>
+
+<span class="sd">        Returns a new `DataArray` named after the dimension with the values of</span>
+<span class="sd">        the coordinate labels along that dimension corresponding to maximum</span>
+<span class="sd">        values along that dimension.</span>
+
+<span class="sd">        In comparison to :py:meth:`~DataArray.argmax`, this returns the</span>
+<span class="sd">        coordinate label while :py:meth:`~DataArray.argmax` returns the index.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dim : str, optional</span>
+<span class="sd">            Dimension over which to apply `idxmax`.  This is optional for 1D</span>
+<span class="sd">            arrays, but required for arrays with 2 or more dimensions.</span>
+<span class="sd">        skipna : bool or None, default None</span>
+<span class="sd">            If True, skip missing values (as marked by NaN). By default, only</span>
+<span class="sd">            skips missing values for ``float``, ``complex``, and ``object``</span>
+<span class="sd">            dtypes; other dtypes either do not have a sentinel missing value</span>
+<span class="sd">            (``int``) or ``skipna=True`` has not been implemented</span>
+<span class="sd">            (``datetime64`` or ``timedelta64``).</span>
+<span class="sd">        fill_value : Any, default NaN</span>
+<span class="sd">            Value to be filled in case all of the values along a dimension are</span>
+<span class="sd">            null.  By default this is NaN.  The fill value and result are</span>
+<span class="sd">            automatically converted to a compatible dtype if possible.</span>
+<span class="sd">            Ignored if ``skipna`` is False.</span>
+<span class="sd">        keep_attrs : bool, default False</span>
+<span class="sd">            If True, the attributes (``attrs``) will be copied from the</span>
+<span class="sd">            original object to the new one.  If False (default), the new object</span>
+<span class="sd">            will be returned without attributes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        reduced : DataArray</span>
+<span class="sd">            New `DataArray` object with `idxmax` applied to its data and the</span>
+<span class="sd">            indicated dimension removed.</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Dataset.idxmax, DataArray.idxmin, DataArray.max, DataArray.argmax</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray(</span>
+<span class="sd">        ...     [0, 2, 1, 0, -2], dims=&quot;x&quot;, coords={&quot;x&quot;: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;]}</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; array.max()</span>
+<span class="sd">        &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(2)</span>
+<span class="sd">        &gt;&gt;&gt; array.argmax()</span>
+<span class="sd">        &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(1)</span>
+<span class="sd">        &gt;&gt;&gt; array.idxmax()</span>
+<span class="sd">        &lt;xarray.DataArray &#39;x&#39; ()&gt;</span>
+<span class="sd">        array(&#39;b&#39;, dtype=&#39;&lt;U1&#39;)</span>
+
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray(</span>
+<span class="sd">        ...     [</span>
+<span class="sd">        ...         [2.0, 1.0, 2.0, 0.0, -2.0],</span>
+<span class="sd">        ...         [-4.0, np.NaN, 2.0, np.NaN, -2.0],</span>
+<span class="sd">        ...         [np.NaN, np.NaN, 1.0, np.NaN, np.NaN],</span>
+<span class="sd">        ...     ],</span>
+<span class="sd">        ...     dims=[&quot;y&quot;, &quot;x&quot;],</span>
+<span class="sd">        ...     coords={&quot;y&quot;: [-1, 0, 1], &quot;x&quot;: np.arange(5.0) ** 2},</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; array.max(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([2., 2., 1.])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * y        (y) int64 -1 0 1</span>
+<span class="sd">        &gt;&gt;&gt; array.argmax(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([0, 2, 2])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * y        (y) int64 -1 0 1</span>
+<span class="sd">        &gt;&gt;&gt; array.idxmax(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray &#39;x&#39; (y: 3)&gt;</span>
+<span class="sd">        array([0., 4., 4.])</span>
+<span class="sd">        Coordinates:</span>
+<span class="sd">          * y        (y) int64 -1 0 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">computation</span><span class="o">.</span><span class="n">_calc_idxminmax</span><span class="p">(</span>
+            <span class="n">array</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span>
+            <span class="n">skipna</span><span class="o">=</span><span class="n">skipna</span><span class="p">,</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span>
+            <span class="n">keep_attrs</span><span class="o">=</span><span class="n">keep_attrs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">argmin</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dim</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Hashable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">keep_attrs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">skipna</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;DataArray&quot;</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Index or indices of the minimum of the DataArray over one or more dimensions.</span>
+
+<span class="sd">        If a sequence is passed to &#39;dim&#39;, then result returned as dict of DataArrays,</span>
+<span class="sd">        which can be passed directly to isel(). If a single str is passed to &#39;dim&#39; then</span>
+<span class="sd">        returns a DataArray with dtype int.</span>
+
+<span class="sd">        If there are multiple minima, the indices of the first one found will be</span>
+<span class="sd">        returned.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dim : hashable, sequence of hashable or ..., optional</span>
+<span class="sd">            The dimensions over which to find the minimum. By default, finds minimum over</span>
+<span class="sd">            all dimensions - for now returning an int for backward compatibility, but</span>
+<span class="sd">            this is deprecated, in future will return a dict with indices for all</span>
+<span class="sd">            dimensions; to return a dict with all dimensions now, pass &#39;...&#39;.</span>
+<span class="sd">        axis : int, optional</span>
+<span class="sd">            Axis over which to apply `argmin`. Only one of the &#39;dim&#39; and &#39;axis&#39; arguments</span>
+<span class="sd">            can be supplied.</span>
+<span class="sd">        keep_attrs : bool, optional</span>
+<span class="sd">            If True, the attributes (`attrs`) will be copied from the original</span>
+<span class="sd">            object to the new one.  If False (default), the new object will be</span>
+<span class="sd">            returned without attributes.</span>
+<span class="sd">        skipna : bool, optional</span>
+<span class="sd">            If True, skip missing values (as marked by NaN). By default, only</span>
+<span class="sd">            skips missing values for float dtypes; other dtypes either do not</span>
+<span class="sd">            have a sentinel missing value (int) or skipna=True has not been</span>
+<span class="sd">            implemented (object, datetime64 or timedelta64).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        result : DataArray or dict of DataArray</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Variable.argmin, DataArray.idxmin</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray([0, 2, -1, 3], dims=&quot;x&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; array.min()</span>
+<span class="sd">        &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(-1)</span>
+<span class="sd">        &gt;&gt;&gt; array.argmin()</span>
+<span class="sd">        &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(2)</span>
+<span class="sd">        &gt;&gt;&gt; array.argmin(...)</span>
+<span class="sd">        {&#39;x&#39;: &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(2)}</span>
+<span class="sd">        &gt;&gt;&gt; array.isel(array.argmin(...))</span>
+<span class="sd">        array(-1)</span>
+
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray([[[3, 2, 1], [3, 1, 2], [2, 1, 3]],</span>
+<span class="sd">        ...                       [[1, 3, 2], [2, -5, 1], [2, 3, 1]]],</span>
+<span class="sd">        ...                      dims=(&quot;x&quot;, &quot;y&quot;, &quot;z&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; array.min(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3, z: 3)&gt;</span>
+<span class="sd">        array([[ 1,  2,  1],</span>
+<span class="sd">               [ 2, -5,  1],</span>
+<span class="sd">               [ 2,  1,  1]])</span>
+<span class="sd">        Dimensions without coordinates: y, z</span>
+<span class="sd">        &gt;&gt;&gt; array.argmin(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3, z: 3)&gt;</span>
+<span class="sd">        array([[1, 0, 0],</span>
+<span class="sd">               [1, 1, 1],</span>
+<span class="sd">               [0, 0, 1]])</span>
+<span class="sd">        Dimensions without coordinates: y, z</span>
+<span class="sd">        &gt;&gt;&gt; array.argmin(dim=[&quot;x&quot;])</span>
+<span class="sd">        {&#39;x&#39;: &lt;xarray.DataArray (y: 3, z: 3)&gt;</span>
+<span class="sd">        array([[1, 0, 0],</span>
+<span class="sd">               [1, 1, 1],</span>
+<span class="sd">               [0, 0, 1]])</span>
+<span class="sd">        Dimensions without coordinates: y, z}</span>
+<span class="sd">        &gt;&gt;&gt; array.min(dim=(&quot;x&quot;, &quot;z&quot;))</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([ 1, -5,  1])</span>
+<span class="sd">        Dimensions without coordinates: y</span>
+<span class="sd">        &gt;&gt;&gt; array.argmin(dim=[&quot;x&quot;, &quot;z&quot;])</span>
+<span class="sd">        {&#39;x&#39;: &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([0, 1, 0])</span>
+<span class="sd">        Dimensions without coordinates: y, &#39;z&#39;: &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([2, 1, 1])</span>
+<span class="sd">        Dimensions without coordinates: y}</span>
+<span class="sd">        &gt;&gt;&gt; array.isel(array.argmin(dim=[&quot;x&quot;, &quot;z&quot;]))</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([ 1, -5,  1])</span>
+<span class="sd">        Dimensions without coordinates: y</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">keep_attrs</span><span class="p">,</span> <span class="n">skipna</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_maybe_drop_dims</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_maybe_drop_dims</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">argmax</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dim</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Hashable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">keep_attrs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">skipna</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;DataArray&quot;</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="s2">&quot;DataArray&quot;</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Index or indices of the maximum of the DataArray over one or more dimensions.</span>
+
+<span class="sd">        If a sequence is passed to &#39;dim&#39;, then result returned as dict of DataArrays,</span>
+<span class="sd">        which can be passed directly to isel(). If a single str is passed to &#39;dim&#39; then</span>
+<span class="sd">        returns a DataArray with dtype int.</span>
+
+<span class="sd">        If there are multiple maxima, the indices of the first one found will be</span>
+<span class="sd">        returned.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dim : hashable, sequence of hashable or ..., optional</span>
+<span class="sd">            The dimensions over which to find the maximum. By default, finds maximum over</span>
+<span class="sd">            all dimensions - for now returning an int for backward compatibility, but</span>
+<span class="sd">            this is deprecated, in future will return a dict with indices for all</span>
+<span class="sd">            dimensions; to return a dict with all dimensions now, pass &#39;...&#39;.</span>
+<span class="sd">        axis : int, optional</span>
+<span class="sd">            Axis over which to apply `argmin`. Only one of the &#39;dim&#39; and &#39;axis&#39; arguments</span>
+<span class="sd">            can be supplied.</span>
+<span class="sd">        keep_attrs : bool, optional</span>
+<span class="sd">            If True, the attributes (`attrs`) will be copied from the original</span>
+<span class="sd">            object to the new one.  If False (default), the new object will be</span>
+<span class="sd">            returned without attributes.</span>
+<span class="sd">        skipna : bool, optional</span>
+<span class="sd">            If True, skip missing values (as marked by NaN). By default, only</span>
+<span class="sd">            skips missing values for float dtypes; other dtypes either do not</span>
+<span class="sd">            have a sentinel missing value (int) or skipna=True has not been</span>
+<span class="sd">            implemented (object, datetime64 or timedelta64).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        result : DataArray or dict of DataArray</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Variable.argmax, DataArray.idxmax</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray([0, 2, -1, 3], dims=&quot;x&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; array.max()</span>
+<span class="sd">        &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(3)</span>
+<span class="sd">        &gt;&gt;&gt; array.argmax()</span>
+<span class="sd">        &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(3)</span>
+<span class="sd">        &gt;&gt;&gt; array.argmax(...)</span>
+<span class="sd">        {&#39;x&#39;: &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(3)}</span>
+<span class="sd">        &gt;&gt;&gt; array.isel(array.argmax(...))</span>
+<span class="sd">        &lt;xarray.DataArray ()&gt;</span>
+<span class="sd">        array(3)</span>
+
+<span class="sd">        &gt;&gt;&gt; array = xr.DataArray([[[3, 2, 1], [3, 1, 2], [2, 1, 3]],</span>
+<span class="sd">        ...                       [[1, 3, 2], [2, 5, 1], [2, 3, 1]]],</span>
+<span class="sd">        ...                      dims=(&quot;x&quot;, &quot;y&quot;, &quot;z&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; array.max(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3, z: 3)&gt;</span>
+<span class="sd">        array([[3, 3, 2],</span>
+<span class="sd">               [3, 5, 2],</span>
+<span class="sd">               [2, 3, 3]])</span>
+<span class="sd">        Dimensions without coordinates: y, z</span>
+<span class="sd">        &gt;&gt;&gt; array.argmax(dim=&quot;x&quot;)</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3, z: 3)&gt;</span>
+<span class="sd">        array([[0, 1, 1],</span>
+<span class="sd">               [0, 1, 0],</span>
+<span class="sd">               [0, 1, 0]])</span>
+<span class="sd">        Dimensions without coordinates: y, z</span>
+<span class="sd">        &gt;&gt;&gt; array.argmax(dim=[&quot;x&quot;])</span>
+<span class="sd">        {&#39;x&#39;: &lt;xarray.DataArray (y: 3, z: 3)&gt;</span>
+<span class="sd">        array([[0, 1, 1],</span>
+<span class="sd">               [0, 1, 0],</span>
+<span class="sd">               [0, 1, 0]])</span>
+<span class="sd">        Dimensions without coordinates: y, z}</span>
+<span class="sd">        &gt;&gt;&gt; array.max(dim=(&quot;x&quot;, &quot;z&quot;))</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([3, 5, 3])</span>
+<span class="sd">        Dimensions without coordinates: y</span>
+<span class="sd">        &gt;&gt;&gt; array.argmax(dim=[&quot;x&quot;, &quot;z&quot;])</span>
+<span class="sd">        {&#39;x&#39;: &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([0, 1, 0])</span>
+<span class="sd">        Dimensions without coordinates: y, &#39;z&#39;: &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([0, 1, 2])</span>
+<span class="sd">        Dimensions without coordinates: y}</span>
+<span class="sd">        &gt;&gt;&gt; array.isel(array.argmax(dim=[&quot;x&quot;, &quot;z&quot;]))</span>
+<span class="sd">        &lt;xarray.DataArray (y: 3)&gt;</span>
+<span class="sd">        array([3, 5, 3])</span>
+<span class="sd">        Dimensions without coordinates: y</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">keep_attrs</span><span class="p">,</span> <span class="n">skipna</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_maybe_drop_dims</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_maybe_drop_dims</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
     <span class="c1"># this needs to be at the end, or mypy will confuse with `str`</span>
     <span class="c1"># https://mypy.readthedocs.io/en/latest/common_issues.html#dealing-with-conflicting-names</span>
-    <span class="nb">str</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">StringAccessor</span><span class="p">)</span>
+    <span class="nb">str</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">UncachedAccessor</span><span class="p">(</span><span class="n">StringAccessor</span><span class="p">)</span>
 
 
 <span class="c1"># priority most be higher than Variable to properly work with binary ufuncs</span>
