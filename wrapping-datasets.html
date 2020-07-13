@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Python Module Index &mdash; 2.2.0</title>
+  <title>Wrapping Datasets &mdash; 2.2.0</title>
   
 
   
@@ -21,7 +21,7 @@
   
   
   
-    <link rel="canonical" href="https://podpac.orgpy-modindex.html"/>
+    <link rel="canonical" href="https://podpac.orgwrapping-datasets.html"/>
   
 
   
@@ -41,9 +41,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
- 
-
-
+    <link rel="next" title="References" href="references.html" />
+    <link rel="prev" title="podpac.version.VERSION_INFO" href="api/podpac.version.VERSION_INFO.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -117,9 +116,13 @@
 <li class="toctree-l1"><a class="reference internal" href="aws-development.html">AWS Development</a></li>
 </ul>
 <p class="caption"><span class="caption-text">References</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wrapping-datasets.html">Wrapping Datasets</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Wrapping Datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#rules">Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#guide">Guide</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Support</span></p>
 <ul>
@@ -174,10 +177,14 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Python Module Index</li>
+      <li>Wrapping Datasets</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/wrapping-datasets.md.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -189,65 +196,53 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-
-   <h1>Python Module Index</h1>
-
-   <div class="modindex-jumpbox">
-   <a href="#cap-p"><strong>p</strong></a>
-   </div>
-
-   <table class="indextable modindextable">
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-p"><td></td><td>
-       <strong>p</strong></td><td></td></tr>
-     <tr>
-       <td><img src="_static/minus.png" class="toggler"
-              id="toggle-1" style="display: none" alt="-" /></td>
-       <td>
-       <code class="xref">podpac</code></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="api/podpac.style.Style.html#module-podpac.style.Style"><code class="xref">podpac.style.Style</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="api/podpac.utils.cached_property.html#module-podpac.utils.cached_property"><code class="xref">podpac.utils.cached_property</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="api/podpac.utils.clear_cache.html#module-podpac.utils.clear_cache"><code class="xref">podpac.utils.clear_cache</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="api/podpac.utils.create_logfile.html#module-podpac.utils.create_logfile"><code class="xref">podpac.utils.create_logfile</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="api/podpac.utils.DiskCacheMixin.html#module-podpac.utils.DiskCacheMixin"><code class="xref">podpac.utils.DiskCacheMixin</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="api/podpac.utils.NoCacheMixin.html#module-podpac.utils.NoCacheMixin"><code class="xref">podpac.utils.NoCacheMixin</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="api/podpac.utils.NodeTrait.html#module-podpac.utils.NodeTrait"><code class="xref">podpac.utils.NodeTrait</code></a></td><td>
-       <em></em></td></tr>
-   </table>
+  <div class="section" id="wrapping-datasets">
+<h1>Wrapping Datasets<a class="headerlink" href="#wrapping-datasets" title="Permalink to this headline">¶</a></h1>
+<p>Wrapping a new dataset is challenging because you have to understand all of the quirks of the new dataset and deal with the quirks of PODPAC as well. This reference is meant to record a few rules of thumb when wrapping new datasets to help you deal with the latter.</p>
+<div class="section" id="rules">
+<h2>Rules<a class="headerlink" href="#rules" title="Permalink to this headline">¶</a></h2>
+<ol class="simple">
+<li><p>When evaluating a node with a set of coordinates:
+a. The evaluation coordinates must include ALL of the dimensions present in the source dataset
+b. The evaluation coordinates MAY contain additional dimensions NOT present in the source dataset, and the source may ignore these</p></li>
+<li><p>When returning data from a data source node:
+a. The ORDER of the evaluation coordinates MUST be preserved (see <code class="docutils literal notranslate"><span class="pre">UnitsDataArray.part_transpose</span></code>)
+b. Any multi-channel data must be returned using the <code class="docutils literal notranslate"><span class="pre">output</span></code> dimension which is ALWAYS the LAST dimension</p></li>
+<li><p>Nodes should be <strong>lightweight</strong> to instantiate and users should expect <em>fail on eval</em>. Easy checks should be performed on initialization, but anything expensive should be delayed.</p></li>
+</ol>
+</div>
+<div class="section" id="guide">
+<h2>Guide<a class="headerlink" href="#guide" title="Permalink to this headline">¶</a></h2>
+<p>In theory, to wrap a new <code class="docutils literal notranslate"><span class="pre">DataSource</span></code>:</p>
+<ol class="simple">
+<li><p>Create a new class that inherits from <code class="docutils literal notranslate"><span class="pre">podpac.core.data.DataSource</span></code> or a derived class (see the <code class="docutils literal notranslate"><span class="pre">podpac.core.data</span></code> module for generic data readers).</p></li>
+<li><p>Implement a method for opening/accessing the data, or use an existing generic data node and hard-code certain attributes</p></li>
+<li><p>Implement the <code class="docutils literal notranslate"><span class="pre">get_coordinates(self)</span></code> method</p></li>
+<li><p>Implement the <code class="docutils literal notranslate"><span class="pre">get_data(self,</span> <span class="pre">coordinates,</span> <span class="pre">coordinates_index)</span></code> method
+a. <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> is a <code class="docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code> object and it’s in the same coordinate system as the data source (i.e. a subset of what comes out of <code class="docutils literal notranslate"><span class="pre">get_coordinates</span></code>)
+b. <code class="docutils literal notranslate"><span class="pre">coordinates_index</span></code> is a list (or tuple?) of slices or boolean arrays or index arrays to indexes into the output of <code class="docutils literal notranslate"><span class="pre">get_coordinates()</span></code> to produce <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> that come into this function.</p></li>
+</ol>
+<p>In practice, the real trick is implementing a compositor to put multiple tiles together to look like a single <code class="docutils literal notranslate"><span class="pre">DataSource</span></code>. We tend to use the <code class="docutils literal notranslate"><span class="pre">podpac.compositor.OrderedCompositor</span></code> node for this task, but it does not handle interpolation between tiles. Instead, see the <code class="docutils literal notranslate"><span class="pre">podpac.core.compositor.tile_compositor</span></code> module.</p>
+<p>When using compositors, it is prefered the that <code class="docutils literal notranslate"><span class="pre">sources</span></code> attribute is populated at instantiation, but on-the-fly (i.e. at eval) population of sources is also acceptible and sometimes necessary for certain datasources.</p>
+<p>For examples, check the <code class="docutils literal notranslate"><span class="pre">podpac.datalib</span></code> module.</p>
+<p>Happy wrapping!</p>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="references.html" class="btn btn-neutral float-right" title="References" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api/podpac.version.VERSION_INFO.html" class="btn btn-neutral float-left" title="podpac.version.VERSION_INFO" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

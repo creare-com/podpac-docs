@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.data.rasterio_source &mdash; 2.1.0</title>
+  <title>podpac.core.data.rasterio_source &mdash; 2.2.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.1.0
+                2.2.0
               </div>
             
           
@@ -109,12 +109,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../coordinates.html">Coordinates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../cache.html">Cache</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">Supported Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../earthdata.html">NASA Earth Data Login</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../aws-development.html">AWS Development</a></li>
 </ul>
 <p class="caption"><span class="caption-text">References</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../wrapping-datasets.html">Wrapping Datasets</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Support</span></p>
 <ul>
@@ -224,12 +226,25 @@
 <span class="sd">     crs : str, optional</span>
 <span class="sd">        The coordinate reference system. Normally this will come directly from the file, but this allows users to</span>
 <span class="sd">        specify the crs in case this information is missing from the file.</span>
+<span class="sd">    read_as_filename : bool, optional</span>
+<span class="sd">        Default is False. If True, the file will be read using rasterio.open(self.source) instead of being automatically</span>
+<span class="sd">        parsed to handle ftp, s3, in-memory files, etc. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># dataset = tl.Instance(rasterio.DatasetReader).tag(readonly=True)</span>
     <span class="n">band</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CInt</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">driver</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">read_from_source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Rasterio</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dataset</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>  <span class="c1"># This can happen if the dataset has subdatasets</span>
+            <span class="c1"># i.e. user supplied a non-file-looking string like &#39;HDF4_EOS:EOS_GRID:&quot;MOD13Q1.A2013033.h08v05.006.2015256072248.hdf&quot;:MODIS_Grid_16DAY_250m_500m_VI:&quot;250m 16 days NDVI&quot;&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;read_from_source&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;band&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_band_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -249,6 +264,9 @@
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">nodatavals</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Rasterio.open_dataset"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.open_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_from_source</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+
         <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">MemoryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">mf</span><span class="p">:</span>
             <span class="n">mf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
             <span class="k">return</span> <span class="n">mf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="p">)</span></div>
@@ -307,6 +325,14 @@
     <span class="c1"># -------------------------------------------------------------------------</span>
     <span class="c1"># additional methods and properties</span>
     <span class="c1"># -------------------------------------------------------------------------</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">tags</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">subdatasets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">subdatasets</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">band_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
