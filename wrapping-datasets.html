@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Wrapping Datasets &mdash; 2.2.0</title>
+  <title>Wrapping Datasets &mdash; 2.2.1</title>
   
 
   
@@ -69,7 +69,7 @@
             
             
               <div class="version">
-                2.2.0
+                2.2.1
               </div>
             
           
@@ -202,12 +202,18 @@
 <div class="section" id="rules">
 <h2>Rules<a class="headerlink" href="#rules" title="Permalink to this headline">¶</a></h2>
 <ol class="simple">
-<li><p>When evaluating a node with a set of coordinates:
-a. The evaluation coordinates must include ALL of the dimensions present in the source dataset
-b. The evaluation coordinates MAY contain additional dimensions NOT present in the source dataset, and the source may ignore these</p></li>
-<li><p>When returning data from a data source node:
-a. The ORDER of the evaluation coordinates MUST be preserved (see <code class="docutils literal notranslate"><span class="pre">UnitsDataArray.part_transpose</span></code>)
-b. Any multi-channel data must be returned using the <code class="docutils literal notranslate"><span class="pre">output</span></code> dimension which is ALWAYS the LAST dimension</p></li>
+<li><p>When evaluating a node with a set of coordinates:</p>
+<ol class="simple">
+<li><p>The evaluation coordinates must include ALL of the dimensions present in the source dataset</p></li>
+<li><p>The evaluation coordinates MAY contain additional dimensions NOT present in the source dataset, and the source may ignore these</p></li>
+</ol>
+</li>
+<li><p>When returning data from a data source node:</p>
+<ol class="simple">
+<li><p>The ORDER of the evaluation coordinates MUST be preserved (see <code class="docutils literal notranslate"><span class="pre">UnitsDataArray.part_transpose</span></code>)</p></li>
+<li><p>Any multi-channel data must be returned using the <code class="docutils literal notranslate"><span class="pre">output</span></code> dimension which is ALWAYS the LAST dimension</p></li>
+</ol>
+</li>
 <li><p>Nodes should be <strong>lightweight</strong> to instantiate and users should expect <em>fail on eval</em>. Easy checks should be performed on initialization, but anything expensive should be delayed.</p></li>
 </ol>
 </div>
@@ -218,9 +224,12 @@ b. Any multi-channel data must be returned using the <code class="docutils liter
 <li><p>Create a new class that inherits from <code class="docutils literal notranslate"><span class="pre">podpac.core.data.DataSource</span></code> or a derived class (see the <code class="docutils literal notranslate"><span class="pre">podpac.core.data</span></code> module for generic data readers).</p></li>
 <li><p>Implement a method for opening/accessing the data, or use an existing generic data node and hard-code certain attributes</p></li>
 <li><p>Implement the <code class="docutils literal notranslate"><span class="pre">get_coordinates(self)</span></code> method</p></li>
-<li><p>Implement the <code class="docutils literal notranslate"><span class="pre">get_data(self,</span> <span class="pre">coordinates,</span> <span class="pre">coordinates_index)</span></code> method
-a. <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> is a <code class="docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code> object and it’s in the same coordinate system as the data source (i.e. a subset of what comes out of <code class="docutils literal notranslate"><span class="pre">get_coordinates</span></code>)
-b. <code class="docutils literal notranslate"><span class="pre">coordinates_index</span></code> is a list (or tuple?) of slices or boolean arrays or index arrays to indexes into the output of <code class="docutils literal notranslate"><span class="pre">get_coordinates()</span></code> to produce <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> that come into this function.</p></li>
+<li><p>Implement the <code class="docutils literal notranslate"><span class="pre">get_data(self,</span> <span class="pre">coordinates,</span> <span class="pre">coordinates_index)</span></code> method</p>
+<ol class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">coordinates</span></code> is a <code class="docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code> object and it’s in the same coordinate system as the data source (i.e. a subset of what comes out of <code class="docutils literal notranslate"><span class="pre">get_coordinates</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coordinates_index</span></code> is a list (or tuple?) of slices or boolean arrays or index arrays to indexes into the output of <code class="docutils literal notranslate"><span class="pre">get_coordinates()</span></code> to produce <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> that come into this function.</p></li>
+</ol>
+</li>
 </ol>
 <p>In practice, the real trick is implementing a compositor to put multiple tiles together to look like a single <code class="docutils literal notranslate"><span class="pre">DataSource</span></code>. We tend to use the <code class="docutils literal notranslate"><span class="pre">podpac.compositor.OrderedCompositor</span></code> node for this task, but it does not handle interpolation between tiles. Instead, see the <code class="docutils literal notranslate"><span class="pre">podpac.core.compositor.tile_compositor</span></code> module.</p>
 <p>When using compositors, it is prefered the that <code class="docutils literal notranslate"><span class="pre">sources</span></code> attribute is populated at instantiation, but on-the-fly (i.e. at eval) population of sources is also acceptible and sometimes necessary for certain datasources.</p>
