@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.data.PyDAP &mdash; 2.2.1</title>
+  <title>podpac.data.PyDAP &mdash; 2.3.0</title>
   
 
   
@@ -69,7 +69,7 @@
             
             
               <div class="version">
-                2.2.1
+                2.3.0
               </div>
             
           
@@ -298,7 +298,7 @@ determines which variable is returned from the source.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.PyDAP.__init__" title="podpac.data.PyDAP.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(**kwargs)</p></td>
 <td><p>Do not overwrite me</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_output_array</span></code>(coords[, data])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_output_array</span></code>(coords[, data, attrs])</p></td>
 <td><p>Initialize an output data array</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval</span></code>(coordinates[, output])</p></td>
@@ -331,7 +331,7 @@ determines which variable is returned from the source.</p>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code>(path)</p></td>
 <td><p>Create podpac Node from file.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">put_cache</span></code>(data, key[, coordinates, overwrite])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">put_cache</span></code>(data, key[, coordinates, expires, …])</p></td>
 <td><p>Cache data for this node.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rem_cache</span></code>(key[, coordinates, mode])</p></td>
@@ -346,8 +346,17 @@ determines which variable is returned from the source.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_credentials</span></code>([username, password])</p></td>
 <td><p>Shortcut to <code class="xref py py-func docutils literal notranslate"><span class="pre">podpac.authentication.set_crendentials()</span></code> using class member <code class="xref py py-attr docutils literal notranslate"><span class="pre">self.hostname</span></code> for the hostname</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_defaults</span></code>(*names, **metadata)</p></td>
+<td><p>Return a trait’s default value or a dictionary of them</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_has_value</span></code>(name)</p></td>
+<td><p>Returns True if the specified trait has a value.</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_is_defined</span></code>(name)</p></td>
 <td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_values</span></code>(**metadata)</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">dict</span></code> of trait names and their values.</p></td>
 </tr>
 </tbody>
 </table>
@@ -401,7 +410,7 @@ determines which variable is returned from the source.</p>
 <td><p>A boolean (True, False) trait.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash</span></code></p></td>
-<td><p></p></td>
+<td><p>hash for this node, used in caching and to determine equality.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hostname</span></code></p></td>
 <td><p>A trait for unicode strings.</p></td>
@@ -416,10 +425,10 @@ determines which variable is returned from the source.</p>
 <td><p>Return the interpolators selected for the previous node evaluation interpolation.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
-<td><p></p></td>
+<td><p>Definition for this node in JSON format.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></p></td>
-<td><p></p></td>
+<td><p>Definition for this node in JSON format, with indentation suitable for display.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.PyDAP.keys" title="podpac.data.PyDAP.keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys</span></code></a></p></td>
 <td><p></p></td>
@@ -435,6 +444,12 @@ determines which variable is returned from the source.</p>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">password</span></code></p></td>
 <td><p>Returns password stored in settings for accessing <cite>self.hostname</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.PyDAP.server_throttle_retries" title="podpac.data.PyDAP.server_throttle_retries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">server_throttle_retries</span></code></a></p></td>
+<td><p>An int trait.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.PyDAP.server_throttle_sleep_time" title="podpac.data.PyDAP.server_throttle_sleep_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">server_throttle_sleep_time</span></code></a></p></td>
+<td><p>A float trait.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">session</span></code></p></td>
 <td><p></p></td>
@@ -545,6 +560,18 @@ at the requested source coordinates.</p>
 <dt id="podpac.data.PyDAP.keys">
 <em class="property">property </em><code class="sig-name descname">keys</code><a class="headerlink" href="#podpac.data.PyDAP.keys" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.data.PyDAP.server_throttle_retries">
+<code class="sig-name descname">server_throttle_retries</code><a class="headerlink" href="#podpac.data.PyDAP.server_throttle_retries" title="Permalink to this definition">¶</a></dt>
+<dd><p>An int trait.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.data.PyDAP.server_throttle_sleep_time">
+<code class="sig-name descname">server_throttle_sleep_time</code><a class="headerlink" href="#podpac.data.PyDAP.server_throttle_sleep_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>A float trait.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt>

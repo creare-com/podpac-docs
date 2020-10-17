@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.coordinates.uniform_coordinates1d &mdash; 2.2.1</title>
+  <title>podpac.core.coordinates.uniform_coordinates1d &mdash; 2.3.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.2.1
+                2.3.0
               </div>
             
           
@@ -221,7 +221,7 @@
 <span class="sd">    ``datetime64`` and timedelta strings such as ``&#39;1,D&#39;`` to ``timedelta64``.</span>
 
 <span class="sd">    UniformCoordinates1d can also be created by specifying the size instead of the step.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    start : float or datetime64</span>
@@ -396,9 +396,6 @@
     <span class="c1"># Standard methods, array-like</span>
     <span class="c1"># -----------------------------------------------------------------------------------------------------------------</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
-
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="c1"># fallback for non-slices</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
@@ -431,6 +428,25 @@
             <span class="k">return</span> <span class="n">ArrayCoordinates1d</span><span class="p">([],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c1"># overrides the Coordinates1d.__contains__ method with optimizations for uniform coordinates.</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">make_coord_value</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">item</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">item</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">timedelta_divisible</span><span class="p">(</span><span class="n">item</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">item</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">==</span> <span class="mi">0</span>
 
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># Properties</span>
@@ -471,7 +487,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; :type: Coordinates dtype.</span>
+        <span class="sd">&quot;&quot;&quot;:type: Coordinates dtype.</span>
 
 <span class="sd">        ``float`` for numerical coordinates and numpy ``datetime64`` for datetime coordinates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -536,7 +552,7 @@
         <span class="k">return</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="UniformCoordinates1d.simplify"><a class="viewcode-back" href="../../../../api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.simplify">[docs]</a>    <span class="k">def</span> <span class="nf">simplify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Get the simplified/optimized representation of these coordinates.</span>
+        <span class="sd">&quot;&quot;&quot;Get the simplified/optimized representation of these coordinates.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -547,7 +563,7 @@
         <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="UniformCoordinates1d.issubset"><a class="viewcode-back" href="../../../../api/podpac.coordinates.UniformCoordinates1d.html#podpac.coordinates.UniformCoordinates1d.issubset">[docs]</a>    <span class="k">def</span> <span class="nf">issubset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Report whether other coordinates contains these coordinates.</span>
+        <span class="sd">&quot;&quot;&quot;Report whether other coordinates contains these coordinates.</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
@@ -589,7 +605,7 @@
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="c1"># check start and step</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">coordinates</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">other</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>

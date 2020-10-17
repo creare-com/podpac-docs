@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.datalib.smap_egi &mdash; 2.2.1</title>
+  <title>podpac.datalib.smap_egi &mdash; 2.3.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.2.1
+                2.3.0
               </div>
             
           
@@ -206,6 +206,8 @@
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
+<span class="kn">from</span> <span class="nn">podpac.datalib</span> <span class="kn">import</span> <span class="n">nasaCMR</span>
+
 <span class="c1"># Set up logging</span>
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -226,6 +228,7 @@
 <span class="c1"># Internal dependencies</span>
 <span class="kn">from</span> <span class="nn">podpac</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UnitsDataArray</span><span class="p">,</span> <span class="n">cached_property</span>
 <span class="kn">from</span> <span class="nn">podpac.datalib</span> <span class="kn">import</span> <span class="n">EGI</span>
+
 
 <span class="n">SMAP_PRODUCT_DICT</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1">#&#39;shortname&#39;:    [&#39;lat_key&#39;, &#39;lon_key&#39;, &#39;_data_key&#39;, &#39;quality_flag&#39;, &#39;default_verison&#39;]</span>
@@ -265,14 +268,14 @@
         <span class="s2">&quot;/Soil_Moisture_Retrieval_Data_AM/longitude&quot;</span><span class="p">,</span>
         <span class="s2">&quot;/Soil_Moisture_Retrieval_Data_AM/soil_moisture&quot;</span><span class="p">,</span>
         <span class="s2">&quot;/Soil_Moisture_Retrieval_Data_AM/retrieval_qual_flag&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;003&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;004&quot;</span><span class="p">,</span>
     <span class="p">],</span>
     <span class="s2">&quot;SPL3SMP_E_PM&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="s2">&quot;/Soil_Moisture_Retrieval_Data_PM/latitude_pm&quot;</span><span class="p">,</span>
         <span class="s2">&quot;/Soil_Moisture_Retrieval_Data_PM/longitude_pm&quot;</span><span class="p">,</span>
         <span class="s2">&quot;/Soil_Moisture_Retrieval_Data_PM/soil_moisture_pm&quot;</span><span class="p">,</span>
         <span class="s2">&quot;/Soil_Moisture_Retrieval_Data_PM/retrieval_qual_flag_pm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;003&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;004&quot;</span><span class="p">,</span>
     <span class="p">],</span>
 <span class="p">}</span>
 
@@ -335,7 +338,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_product_data</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nasaCMR</span><span class="o">.</span><span class="n">get_collection_entries</span><span class="p">(</span><span class="n">short_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;version_id&quot;</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not automatically retrieve newest product version id from NASA CMR.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_product_data</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coverage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -346,16 +353,16 @@
 
 <div class="viewcode-block" id="SMAP.read_file"><a class="viewcode-back" href="../../../api/podpac.datalib.SMAP.html#podpac.datalib.SMAP.read_file">[docs]</a>    <span class="k">def</span> <span class="nf">read_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filelike</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Interpret individual SMAP file from  EGI zip archive.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        filelike : filelike</span>
 <span class="sd">            Reference to file inside EGI zip archive</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        podpac.UnitsDataArray</span>
-<span class="sd">        </span>
+
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
@@ -420,14 +427,14 @@
 
 <div class="viewcode-block" id="SMAP.append_file"><a class="viewcode-back" href="../../../api/podpac.datalib.SMAP.html#podpac.datalib.SMAP.append_file">[docs]</a>    <span class="k">def</span> <span class="nf">append_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_data</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Append data</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        all_data : podpac.UnitsDataArray</span>
 <span class="sd">            aggregated data</span>
 <span class="sd">        data : podpac.UnitsDataArray</span>
 <span class="sd">            new data to append</span>
-<span class="sd">        </span>
+
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        NotImplementedError</span>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.node &mdash; 2.2.1</title>
+  <title>podpac.core.node &mdash; 2.3.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.2.1
+                2.3.0
               </div>
             
           
@@ -284,10 +284,10 @@
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cache_output: bool</span>
-<span class="sd">        Should the node&#39;s output be cached? If not provided or None, uses default based on settings </span>
-<span class="sd">        (CACHE_NODE_OUTPUT_DEFAULT for general Nodes, and CACHE_DATASOURCE_OUTPUT_DEFAULT  for DataSource nodes). </span>
-<span class="sd">        If True, outputs will be cached and retrieved from cache. If False, outputs will not be cached OR retrieved from cache (even if </span>
-<span class="sd">        they exist in cache). </span>
+<span class="sd">        Should the node&#39;s output be cached? If not provided or None, uses default based on settings</span>
+<span class="sd">        (CACHE_NODE_OUTPUT_DEFAULT for general Nodes, and CACHE_DATASOURCE_OUTPUT_DEFAULT  for DataSource nodes).</span>
+<span class="sd">        If True, outputs will be cached and retrieved from cache. If False, outputs will not be cached OR retrieved from cache (even if</span>
+<span class="sd">        they exist in cache).</span>
 <span class="sd">    force_eval: bool</span>
 <span class="sd">        Default is False. Should the node&#39;s cached output be updated from the source data? If True it ignores the cache</span>
 <span class="sd">        when computing outputs but puts results into the cache (thereby updating the cache)</span>
@@ -413,8 +413,7 @@
         <span class="k">return</span> <span class="n">kwargs</span>
 
 <div class="viewcode-block" id="Node.init"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Overwrite this method if a node needs to do any additional initialization after the standard initialization.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Overwrite this method if a node needs to do any additional initialization after the standard initialization.&quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
     <span class="nd">@property</span>
@@ -488,7 +487,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Node.create_output_array"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.create_output_array">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize an output data array</span>
 
@@ -506,15 +505,20 @@
 <span class="sd">        {arr_return}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;layer_style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span>
-        <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;crs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">crs</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">attrs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="s2">&quot;layer_style&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;layer_style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span>
+        <span class="k">if</span> <span class="s2">&quot;crs&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;crs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">crs</span>
+        <span class="k">if</span> <span class="s2">&quot;units&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">attrs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ureg</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;geotransform&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">geotransform</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
-            <span class="k">pass</span>
+        <span class="k">if</span> <span class="s2">&quot;geotransform&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;geotransform&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">geotransform</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+                <span class="k">pass</span>
 
         <span class="k">return</span> <span class="n">UnitsDataArray</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -666,19 +670,19 @@
         <span class="k">finally</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_definition_guard</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="nd">@cached_property</span>
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Definition for this node in JSON format.&quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">),</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
 
-    <span class="nd">@cached_property</span>
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">json_pretty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Definition for this node in JSON format, with indentation suitable for display.&quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">JSONEncoder</span><span class="p">)</span>
 
-    <span class="nd">@cached_property</span>
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; hash for this node, used in caching and to determine equality. &quot;&quot;&quot;</span>
 
@@ -760,7 +764,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Node.put_cache"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.put_cache">[docs]</a>    <span class="k">def</span> <span class="nf">put_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Node.put_cache"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.put_cache">[docs]</a>    <span class="k">def</span> <span class="nf">put_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expires</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Cache data for this node.</span>
 
@@ -772,6 +776,8 @@
 <span class="sd">            Unique key for the data, e.g. &#39;output&#39;</span>
 <span class="sd">        coordinates : podpac.Coordinates, optional</span>
 <span class="sd">            Coordinates that the cached data depends on. Omit for coordinate-independent data.</span>
+<span class="sd">        expires : float, datetime, timedelta</span>
+<span class="sd">            Expiration date. If a timedelta is supplied, the expiration date will be calculated from the current time.</span>
 <span class="sd">        overwrite : bool, optional</span>
 <span class="sd">            Overwrite existing data, default True.</span>
 
@@ -793,7 +799,7 @@
             <span class="k">raise</span> <span class="n">NodeException</span><span class="p">(</span><span class="s2">&quot;Cached data already exists for key &#39;</span><span class="si">%s</span><span class="s2">&#39; and coordinates </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">))</span>
 
         <span class="k">with</span> <span class="n">thread_manager</span><span class="o">.</span><span class="n">cache_lock</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">expires</span><span class="o">=</span><span class="n">expires</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Node.has_cache"><a class="viewcode-back" href="../../../api/podpac.Node.html#podpac.Node.has_cache">[docs]</a>    <span class="k">def</span> <span class="nf">has_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1002,7 +1008,7 @@
 <span class="sd">        Notes</span>
 <span class="sd">        -------</span>
 <span class="sd">        The request can specify the PODPAC node by four different mechanism:</span>
-<span class="sd">        </span>
+
 <span class="sd">        * Direct node name: PODPAC will look for an appropriate node in podpac.datalib</span>
 <span class="sd">        * JSON definition passed using the &#39;PARAMS&#39; query string: Need to specify the special LAYER/COVERAGE value of</span>
 <span class="sd">          &quot;%PARAMS%&quot;</span>

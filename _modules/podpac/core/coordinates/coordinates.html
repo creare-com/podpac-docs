@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.coordinates.coordinates &mdash; 2.2.1</title>
+  <title>podpac.core.coordinates.coordinates &mdash; 2.3.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.2.1
+                2.3.0
               </div>
             
           
@@ -216,6 +216,7 @@
 <span class="kn">import</span> <span class="nn">podpac</span>
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">OrderedDictTrait</span><span class="p">,</span> <span class="n">_get_query_params_from_url</span><span class="p">,</span> <span class="n">_get_param</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="kn">import</span> <span class="n">has_alt_units</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.base_coordinates</span> <span class="kn">import</span> <span class="n">BaseCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="kn">import</span> <span class="n">Coordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.dependent_coordinates</span> <span class="kn">import</span> <span class="n">ArrayCoordinatesNd</span>
@@ -347,7 +348,7 @@
                 <span class="n">CRS</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
 
                 <span class="c1"># make sure CRS defines vertical units</span>
-                <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">CRS</span><span class="o">.</span><span class="n">is_vertical</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_alt_units</span><span class="p">(</span><span class="n">CRS</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Altitude dimension is defined, but CRS does not contain vertical unit&quot;</span><span class="p">)</span>
 
             <span class="n">crs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;crs&quot;</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span>
@@ -637,9 +638,7 @@
 
 <div class="viewcode-block" id="Coordinates.from_geotransform"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.from_geotransform">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_geotransform</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">geotransform</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates Coordinates from GDAL Geotransform. </span>
-<span class="sd">        </span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Creates Coordinates from GDAL Geotransform.&quot;&quot;&quot;</span>
         <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-15</span>  <span class="c1"># tolerance for deciding when a number is zero</span>
         <span class="c1"># Handle the case of rotated coordinates</span>
         <span class="k">try</span><span class="p">:</span>
@@ -964,17 +963,24 @@
     <span class="k">def</span> <span class="nf">CRS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">CRS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
 
-    <span class="c1"># TODO: add a convenience property for displaying altitude units for the CRS</span>
-    <span class="c1"># @property</span>
-    <span class="c1"># def alt_units(self):</span>
-    <span class="c1">#     CRS = self.CRS</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">alt_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">CRS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CRS</span>
 
-    <span class="c1">#     if CRS.is_vertical:</span>
-    <span class="c1">#         alt_units = &lt;unsure how to get this from CRS&gt;</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         raise ValueError(&quot;CRS does not contain vertical component&quot;)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_alt_units</span><span class="p">(</span><span class="n">CRS</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="c1">#     return alt_units</span>
+        <span class="c1"># try to get vunits</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">CRS</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;vunits&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;vunits&quot;</span><span class="p">]</span>
+
+        <span class="c1"># get from axis info (is this is ever useful)</span>
+        <span class="c1"># for axis in self.CRS.axis_info:</span>
+        <span class="c1">#     if axis.direction == &#39;up&#39;:</span>
+        <span class="c1">#         return axis.unit_name # may need to be converted, e.g. &quot;centimetre&quot; &gt; &quot;cm&quot;</span>
+
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Could not get alt_units from crs &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1532,7 +1538,7 @@
             <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="c1"># make sure the CRS defines vertical units</span>
-        <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">to_crs</span><span class="o">.</span><span class="n">is_vertical</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;alt&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">has_alt_units</span><span class="p">(</span><span class="n">to_crs</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Altitude dimension is defined, but CRS to transform does not contain vertical unit&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">udims</span><span class="p">:</span>
@@ -1627,7 +1633,7 @@
         <span class="k">return</span> <span class="n">t_lat</span><span class="p">,</span> <span class="n">t_lon</span>
 
 <div class="viewcode-block" id="Coordinates.issubset"><a class="viewcode-back" href="../../../../api/podpac.coordinates.Coordinates.html#podpac.Coordinates.issubset">[docs]</a>    <span class="k">def</span> <span class="nf">issubset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Report whether other Coordinates contains these coordinates.</span>
+        <span class="sd">&quot;&quot;&quot;Report whether other Coordinates contains these coordinates.</span>
 
 <span class="sd">        Note that the dimension order and stacking is ignored.</span>
 

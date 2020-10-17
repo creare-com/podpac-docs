@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.coordinates.array_coordinates1d &mdash; 2.2.1</title>
+  <title>podpac.core.coordinates.array_coordinates1d &mdash; 2.3.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.2.1
+                2.3.0
               </div>
             
           
@@ -204,7 +204,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">ArrayTrait</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="kn">import</span> <span class="n">make_coord_array</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="kn">import</span> <span class="n">make_coord_array</span><span class="p">,</span> <span class="n">higher_precision_time_bounds</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="kn">import</span> <span class="n">Coordinates1d</span>
 
 
@@ -223,7 +223,7 @@
 <span class="sd">        Dimension name, one of &#39;lat&#39;, &#39;lon&#39;, &#39;time&#39;, or &#39;alt&#39;.</span>
 <span class="sd">    coordinates : array, read-only</span>
 <span class="sd">        Full array of coordinate values.</span>
-<span class="sd">    </span>
+
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    :class:`Coordinates1d`, :class:`UniformCoordinates1d`</span>
@@ -368,7 +368,7 @@
         <span class="k">return</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ArrayCoordinates1d.simplify"><a class="viewcode-back" href="../../../../api/podpac.coordinates.ArrayCoordinates1d.html#podpac.coordinates.ArrayCoordinates1d.simplify">[docs]</a>    <span class="k">def</span> <span class="nf">simplify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Get the simplified/optimized representation of these coordinates.</span>
+        <span class="sd">&quot;&quot;&quot;Get the simplified/optimized representation of these coordinates.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -386,9 +386,6 @@
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
     <span class="c1"># standard methods, array-like</span>
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
-
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
@@ -475,6 +472,9 @@
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
     <span class="k">def</span> <span class="nf">_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">return_indices</span><span class="p">,</span> <span class="n">outer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="n">higher_precision_time_bounds</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">outer</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">outer</span><span class="p">:</span>
             <span class="n">gt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">&gt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">lt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">&lt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>

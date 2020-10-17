@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.coordinates.stacked_coordinates &mdash; 2.2.1</title>
+  <title>podpac.core.coordinates.stacked_coordinates &mdash; 2.3.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.2.1
+                2.3.0
               </div>
             
           
@@ -204,6 +204,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.coordinates1d</span> <span class="kn">import</span> <span class="n">Coordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.array_coordinates1d</span> <span class="kn">import</span> <span class="n">ArrayCoordinates1d</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.uniform_coordinates1d</span> <span class="kn">import</span> <span class="n">UniformCoordinates1d</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="kn">import</span> <span class="n">make_coord_value</span>
 
 
 <div class="viewcode-block" id="StackedCoordinates"><a class="viewcode-back" href="../../../../api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates">[docs]</a><span class="k">class</span> <span class="nc">StackedCoordinates</span><span class="p">(</span><span class="n">BaseCoordinates</span><span class="p">):</span>
@@ -247,7 +248,7 @@
 <span class="sd">        xarray coordinates (container of coordinate arrays)</span>
 <span class="sd">    coordinates : pandas.MultiIndex</span>
 <span class="sd">        MultiIndex of stacked coordinates values.</span>
-<span class="sd">        </span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_coords</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">trait</span><span class="o">=</span><span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates1d</span><span class="p">),</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -260,7 +261,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        coords : list, :class:`StackedCoordinates`</span>
 <span class="sd">            Coordinate values in a list, or a StackedCoordinates object to copy.</span>
-<span class="sd">        </span>
+
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
 <span class="sd">        clinspace, crange</span>
@@ -428,6 +429,14 @@
 
         <span class="c1"># set (and check) new coords list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;_coords&quot;</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">make_coord_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span>
 
     <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">):</span>
@@ -658,7 +667,7 @@
 <span class="sd">        in_place : boolean, optional</span>
 <span class="sd">            If True, transpose the dimensions in-place.</span>
 <span class="sd">            Otherwise (default), return a new, transposed Coordinates object.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        transposed : :class:`StackedCoordinates`</span>
@@ -682,7 +691,7 @@
             <span class="k">return</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StackedCoordinates.issubset"><a class="viewcode-back" href="../../../../api/podpac.coordinates.StackedCoordinates.html#podpac.coordinates.StackedCoordinates.issubset">[docs]</a>    <span class="k">def</span> <span class="nf">issubset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Report whether other coordinates contains these coordinates.</span>
+        <span class="sd">&quot;&quot;&quot;Report whether other coordinates contains these coordinates.</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>

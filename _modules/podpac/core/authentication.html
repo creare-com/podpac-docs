@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.authentication &mdash; 2.2.1</title>
+  <title>podpac.core.authentication &mdash; 2.3.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.2.1
+                2.3.0
               </div>
             
           
@@ -199,17 +199,20 @@
 
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
-<span class="kn">from</span> <span class="nn">lazy_import</span> <span class="kn">import</span> <span class="n">lazy_module</span>
+<span class="kn">from</span> <span class="nn">lazy_import</span> <span class="kn">import</span> <span class="n">lazy_module</span><span class="p">,</span> <span class="n">lazy_function</span>
 
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
+
+<span class="c1"># Optional dependencies</span>
+<span class="n">pydap_setup_session</span> <span class="o">=</span> <span class="n">lazy_function</span><span class="p">(</span><span class="s2">&quot;pydap.cas.urs.setup_session&quot;</span><span class="p">)</span>
 
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">set_credentials</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Set authentication credentials for a remote URL in the :class:`podpac.settings`.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    hostname : str</span>
@@ -250,12 +253,12 @@
     <span class="k">def</span> <span class="nf">username</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns username stored in settings for accessing `self.hostname`.</span>
 <span class="sd">        The username is stored under key `username@&lt;hostname&gt;`</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">            username stored in settings for accessing `self.hostname`</span>
-<span class="sd">        </span>
+
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
@@ -276,12 +279,12 @@
     <span class="k">def</span> <span class="nf">password</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns password stored in settings for accessing `self.hostname`.</span>
 <span class="sd">        The password is stored under key `password@&lt;hostname&gt;`</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">            password stored in settings for accessing `self.hostname`</span>
-<span class="sd">        </span>
+
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
@@ -302,7 +305,7 @@
     <span class="k">def</span> <span class="nf">session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Requests Session object for making calls to remote `self.hostname`</span>
 <span class="sd">        See https://2.python-requests.org/en/master/api/#sessionapi</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:requests.Session</span>
@@ -312,7 +315,7 @@
 
 <div class="viewcode-block" id="RequestsSessionMixin.set_credentials"><a class="viewcode-back" href="../../../api/podpac.authentication.RequestsSessionMixin.html#podpac.authentication.RequestsSessionMixin.set_credentials">[docs]</a>    <span class="k">def</span> <span class="nf">set_credentials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Shortcut to :func:`podpac.authentication.set_crendentials` using class member :attr:`self.hostname` for the hostname</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        username : str, optional</span>
@@ -328,7 +331,7 @@
 
     <span class="k">def</span> <span class="nf">_create_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Creates a :class:`requests.Session` with username and password defined</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`requests.Session`</span>
@@ -344,6 +347,34 @@
                 <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No auth provided for session&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">s</span></div>
+
+
+<span class="k">class</span> <span class="nc">NASAURSSessionMixin</span><span class="p">(</span><span class="n">RequestsSessionMixin</span><span class="p">):</span>
+    <span class="n">check_url</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span>
+    <span class="n">hostname</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;urs.earthdata.nasa.gov&quot;</span><span class="p">)</span>
+    <span class="n">auth_required</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates an authenticated :class:`requests.Session` with username and password defined</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`requests.Session`</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The session is authenticated against the user-provided self.check_url</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">pydap_setup_session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">check_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">check_url</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auth_required</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">e</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No auth provided for session&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">s</span>
 
 
 <div class="viewcode-block" id="S3Mixin"><a class="viewcode-back" href="../../../api/podpac.authentication.S3Mixin.html#podpac.authentication.S3Mixin">[docs]</a><span class="k">class</span> <span class="nc">S3Mixin</span><span class="p">(</span><span class="n">tl</span><span class="o">.</span><span class="n">HasTraits</span><span class="p">):</span>
