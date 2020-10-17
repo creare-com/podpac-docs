@@ -332,8 +332,8 @@
 <span class="sd">    nan_vals : List, optional</span>
 <span class="sd">        List of values from source data that should be interpreted as &#39;no data&#39; or &#39;nans&#39;</span>
 <span class="sd">    coordinate_index_type : str, optional</span>
-<span class="sd">        Type of index to use for data source. Possible values are ``[&#39;list&#39;, &#39;numpy&#39;, &#39;xarray&#39;, &#39;pandas&#39;]``</span>
-<span class="sd">        Default is &#39;numpy&#39;</span>
+<span class="sd">        Type of index to use for data source. Possible values are ``[&#39;slice&#39;, &#39;numpy&#39;]``</span>
+<span class="sd">        Default is &#39;numpy&#39;, which allows a tuple of integer indices.</span>
 <span class="sd">    cache_coordinates : bool</span>
 <span class="sd">        Whether to cache coordinates using the podpac ``cache_ctrl``. Default False.</span>
 <span class="sd">    cache_output : bool</span>
@@ -350,12 +350,11 @@
     <span class="n">nan_vals</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">boundary</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Dict</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="n">coordinate_index_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;numpy&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">)</span>  <span class="c1"># , &quot;xarray&quot;, &quot;pandas&quot;],</span>
+    <span class="n">coordinate_index_type</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">([</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;numpy&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">)</span>  <span class="c1"># ,&quot;list&quot;, &quot;xarray&quot;, &quot;pandas&quot;],</span>
     <span class="n">cache_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">cache_output</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">()</span>
 
     <span class="c1"># privates</span>
-    <span class="n">_interpolation</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Interpolation</span><span class="p">)</span>
     <span class="n">_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">_original_requested_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -363,12 +362,6 @@
     <span class="n">_requested_source_coordinates_index</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Tuple</span><span class="p">()</span>
     <span class="n">_requested_source_data</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">UnitsDataArray</span><span class="p">)</span>
     <span class="n">_evaluated_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
-
-    <span class="c1"># this adds a more helpful error message if user happens to try an inspect _interpolation before evaluate</span>
-    <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;_interpolation&quot;</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">_default_interpolation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;boundary&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -407,38 +400,6 @@
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">interpolation_class</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get the interpolation class currently set for this data source.</span>
-
-<span class="sd">        The DataSource ``interpolation`` property is used to define the</span>
-<span class="sd">        :class:`podpac.data.Interpolation` class that will handle interpolation for requested coordinates.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        :class:`podpac.data.Interpolation`</span>
-<span class="sd">            Interpolation class defined by DataSource `interpolation` definition</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">interpolators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the interpolators selected for the previous node evaluation interpolation.</span>
-<span class="sd">        If the node has not been evaluated, or if interpolation was not necessary, this will return</span>
-<span class="sd">        an empty OrderedDict</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        OrderedDict</span>
-<span class="sd">            Key are tuple of unstacked dimensions, the value is the interpolator used to interpolate these dimensions</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span><span class="o">.</span><span class="n">_last_interpolator_queue</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span><span class="o">.</span><span class="n">_last_interpolator_queue</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">()</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{coordinates}&quot;&quot;&quot;</span>
 
@@ -458,16 +419,7 @@
     <span class="c1"># Private Methods</span>
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
-    <span class="k">def</span> <span class="nf">_set_interpolation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update _interpolation property&quot;&quot;&quot;</span>
-
-        <span class="c1"># define interpolator with source coordinates dimensions</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">,</span> <span class="n">Interpolation</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span> <span class="o">=</span> <span class="n">Interpolation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rc</span><span class="p">,</span> <span class="n">rci</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Wrapper for `self.get_data` with pre and post processing</span>
 
 <span class="sd">        Returns</span>
@@ -484,7 +436,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># get data from data source at requested source coordinates and requested source coordinates index</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">rci</span><span class="p">)</span>
 
         <span class="c1"># convert data into UnitsDataArray depending on format</span>
         <span class="c1"># TODO: what other processing needs to happen here?</span>
@@ -492,9 +444,9 @@
             <span class="n">udata_array</span> <span class="o">=</span> <span class="n">data</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
             <span class="c1"># TODO: check order of coordinates here</span>
-            <span class="n">udata_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">udata_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="n">udata_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">udata_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Unknown data type passed back from &quot;</span>
@@ -519,7 +471,7 @@
 
 <div class="viewcode-block" id="DataSource.eval"><a class="viewcode-back" href="../../../../api/podpac.data.DataSource.html#podpac.data.DataSource.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="nd">@node_eval</span>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this node using the supplied coordinates.</span>
 
 <span class="sd">        The coordinates are mapped to the requested coordinates, interpolated if necessary, and set to</span>
@@ -538,6 +490,8 @@
 <span class="sd">            Extra dimensions in the requested coordinates are dropped.</span>
 <span class="sd">        output : :class:`podpac.UnitsDataArray`, optional</span>
 <span class="sd">            {eval_output}</span>
+<span class="sd">        selector: callable(coordinates, request_coordinates)</span>
+<span class="sd">            {eval_selector}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -548,7 +502,6 @@
 <span class="sd">        ValueError</span>
 <span class="sd">            Cannot evaluate these coordinates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Evaluating </span><span class="si">{}</span><span class="s2"> data source&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_index_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;numpy&quot;</span><span class="p">]:</span>
@@ -588,8 +541,8 @@
             <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
 
         <span class="c1"># intersect the coordinates with requested coordinates to get coordinates within requested coordinates bounds</span>
-        <span class="c1"># TODO: support coordinate_index_type parameter to define other index types</span>
         <span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span> <span class="o">=</span> <span class="n">rsc</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span> <span class="o">=</span> <span class="n">rsci</span>
 
@@ -603,15 +556,9 @@
                 <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
             <span class="k">return</span> <span class="n">output</span>
 
-        <span class="c1"># reset interpolation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation</span><span class="p">()</span>
-
-        <span class="c1"># interpolate requested coordinates before getting data</span>
-        <span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span><span class="o">.</span><span class="n">select_coordinates</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span><span class="p">,</span> <span class="n">coordinates</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span> <span class="o">=</span> <span class="n">rsc</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span> <span class="o">=</span> <span class="n">rsci</span>
+        <span class="c1"># Use the selector</span>
+        <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">)</span> <span class="o">=</span> <span class="n">selector</span><span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
 
         <span class="c1"># Check the coordinate_index_type</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_index_type</span> <span class="o">==</span> <span class="s2">&quot;slice&quot;</span><span class="p">:</span>  <span class="c1"># Most restrictive</span>
@@ -635,17 +582,22 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_rsci</span><span class="p">)</span>
 
         <span class="c1"># get data from data source</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span>
+        <span class="p">)</span>
 
         <span class="c1"># if not provided, create output using the evaluated coordinates, or</span>
         <span class="c1"># if provided, set the order of coordinates to match the output dims</span>
         <span class="c1"># Note that at this point the coordinates are in the same CRS as the coordinates</span>
-        <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_data</span><span class="p">,</span> <span class="n">UnitsDataArray</span><span class="p">):</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_data</span><span class="o">.</span><span class="n">part_transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evaluated_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">requested_dims</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">output_dims</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_data</span><span class="p">)</span>
             <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evaluated_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">requested_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluated_coordinates</span><span class="o">.</span><span class="n">dims</span>
             <span class="n">output_dims</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span>
@@ -654,30 +606,12 @@
                 <span class="n">requested_dims</span> <span class="o">=</span> <span class="n">requested_dims</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,)</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">requested_dims</span><span class="p">)</span>
 
-            <span class="c1"># check crs compatibility</span>
-            <span class="k">if</span> <span class="n">output</span><span class="o">.</span><span class="n">crs</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluated_coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Output coordinate reference system (</span><span class="si">{}</span><span class="s2">) does not match&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
-                    <span class="o">+</span> <span class="s2">&quot;request Coordinates coordinate reference system (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
-                <span class="p">)</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="o">.</span><span class="n">coords</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_data</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output_dims</span><span class="p">)</span>
 
         <span class="c1"># get indexed boundary</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_boundary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_boundary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates_index</span><span class="p">)</span>
-
-        <span class="c1"># interpolate data into output</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_coordinates</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_data</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span>
-        <span class="p">)</span>
-
-        <span class="c1"># Fill the output that was passed to eval with the new data</span>
-        <span class="k">if</span> <span class="n">requested_dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">requested_dims</span> <span class="o">!=</span> <span class="n">output_dims</span><span class="p">:</span>
-            <span class="n">o</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output_dims</span><span class="p">)</span>
-            <span class="n">o</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output_dims</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
-
-        <span class="c1"># if requested crs is differented than coordinates,</span>
-        <span class="c1"># fabricate a new output with the original coordinates and new values</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluated_coordinates</span><span class="o">.</span><span class="n">crs</span> <span class="o">!=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evaluated_coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">output</span><span class="p">[:]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;boundary_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_source_boundary</span>
 
         <span class="c1"># save output to private for debugging</span>
         <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">]:</span>

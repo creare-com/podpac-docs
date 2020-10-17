@@ -196,10 +196,11 @@
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">COMMON_DATA_DOC</span><span class="p">,</span> <span class="n">DATA_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.file_source</span> <span class="kn">import</span> <span class="n">BaseFileSource</span><span class="p">,</span> <span class="n">FileKeysMixin</span><span class="p">,</span> <span class="n">LoadFileMixin</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolation</span> <span class="kn">import</span> <span class="n">InterpolationMixin</span>
 
 
-<div class="viewcode-block" id="CSV"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">CSV</span><span class="p">(</span><span class="n">FileKeysMixin</span><span class="p">,</span> <span class="n">LoadFileMixin</span><span class="p">,</span> <span class="n">BaseFileSource</span><span class="p">):</span>
+<span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">CSVBase</span><span class="p">(</span><span class="n">FileKeysMixin</span><span class="p">,</span> <span class="n">LoadFileMixin</span><span class="p">,</span> <span class="n">BaseFileSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource from a .csv file.</span>
 
 <span class="sd">    This class assumes that the data has a storage format such as:</span>
@@ -240,7 +241,7 @@
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;data_key&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_default_data_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">CSV</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_default_data_key</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">CSVBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_default_data_key</span><span class="p">()</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;data_key&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_data_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -270,8 +271,8 @@
     <span class="c1"># public api methods</span>
     <span class="c1"># -------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="CSV.open_dataset"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV.open_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">infer_datetime_format</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">dims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -303,20 +304,20 @@
     <span class="k">def</span> <span class="nf">available_data_cols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_col</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_data_keys</span><span class="p">]</span>
 
-<div class="viewcode-block" id="CSV.get_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV.get_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_coordinates}</span>
 
 <span class="sd">        Note: CSV files have StackedCoordinates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">coords</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CSV</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">()</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CSVBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">coords</span>
         <span class="n">stacked</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">stacked</span><span class="p">],</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">coords</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">stacked</span><span class="p">],</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">coords</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CSV.get_data"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}&quot;&quot;&quot;</span>
 
@@ -325,7 +326,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">I</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_col</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">]</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">coordinates_index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">I</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
 
     <span class="c1"># -------------------------------------------------------------------------</span>
     <span class="c1"># helper methods</span>
@@ -339,7 +340,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">key</span>
 
     <span class="k">def</span> <span class="nf">_get_col</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">key</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">key</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CSV"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV">[docs]</a><span class="k">class</span> <span class="nc">CSV</span><span class="p">(</span><span class="n">InterpolationMixin</span><span class="p">,</span> <span class="n">CSVBase</span><span class="p">):</span>
+    <span class="k">pass</span></div>
 </pre></div>
 
            </div>

@@ -208,10 +208,11 @@
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">COMMON_DATA_DOC</span><span class="p">,</span> <span class="n">DATA_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.file_source</span> <span class="kn">import</span> <span class="n">BaseFileSource</span><span class="p">,</span> <span class="n">LoadFileMixin</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolation</span> <span class="kn">import</span> <span class="n">InterpolationMixin</span>
 
 
-<div class="viewcode-block" id="Rasterio"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Rasterio</span><span class="p">(</span><span class="n">LoadFileMixin</span><span class="p">,</span> <span class="n">BaseFileSource</span><span class="p">):</span>
+<span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RasterioBase</span><span class="p">(</span><span class="n">LoadFileMixin</span><span class="p">,</span> <span class="n">BaseFileSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource using rasterio.</span>
 
 <span class="sd">    Attributes</span>
@@ -246,7 +247,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;read_from_source&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Rasterio</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dataset</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">RasterioBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">dataset</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;band&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_band_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -265,19 +266,19 @@
     <span class="k">def</span> <span class="nf">nan_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">nodatavals</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Rasterio.open_dataset"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.open_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_from_source</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">MemoryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">mf</span><span class="p">:</span>
             <span class="n">mf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-            <span class="k">return</span> <span class="n">mf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="n">mf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">driver</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Rasterio.close_dataset"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Closes the file for the datasource&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Rasterio.get_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_coordinates}</span>
 
@@ -301,9 +302,9 @@
             <span class="k">except</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">CRSError</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unexpected rasterio crs &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">from_geotransform</span><span class="p">(</span><span class="n">affine</span><span class="o">.</span><span class="n">to_gdal</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">from_geotransform</span><span class="p">(</span><span class="n">affine</span><span class="o">.</span><span class="n">to_gdal</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">crs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Rasterio.get_data"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}&quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
@@ -320,7 +321,7 @@
 
         <span class="c1"># set raster data to output array</span>
         <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="n">raster_data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">data</span></div>
+        <span class="k">return</span> <span class="n">data</span>
 
     <span class="c1"># -------------------------------------------------------------------------</span>
     <span class="c1"># additional methods and properties</span>
@@ -367,7 +368,7 @@
         <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">band_count</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">band_descriptions</span><span class="p">[</span><span class="n">i</span><span class="p">]}</span>  <span class="c1"># set</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">band_descriptions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">band_count</span><span class="p">)]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
 
-<div class="viewcode-block" id="Rasterio.get_band_numbers"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio.get_band_numbers">[docs]</a>    <span class="k">def</span> <span class="nf">get_band_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_band_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the bands that have a key equal to a specified value.</span>
 
 <span class="sd">        Parameters</span>
@@ -393,7 +394,11 @@
             <span class="n">match</span> <span class="o">=</span> <span class="n">match</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">band_keys</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">==</span> <span class="n">v</span><span class="p">)</span>
         <span class="n">matches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">match</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
 
-        <span class="k">return</span> <span class="n">matches</span></div></div>
+        <span class="k">return</span> <span class="n">matches</span>
+
+
+<div class="viewcode-block" id="Rasterio"><a class="viewcode-back" href="../../../../api/podpac.data.Rasterio.html#podpac.data.Rasterio">[docs]</a><span class="k">class</span> <span class="nc">Rasterio</span><span class="p">(</span><span class="n">InterpolationMixin</span><span class="p">,</span> <span class="n">RasterioBase</span><span class="p">):</span>
+    <span class="k">pass</span></div>
 </pre></div>
 
            </div>

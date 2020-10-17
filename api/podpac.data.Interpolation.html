@@ -225,19 +225,37 @@
 <h1>podpac.data.Interpolation<a class="headerlink" href="#podpac-data-interpolation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="podpac.data.Interpolation">
-<em class="property">class </em><code class="sig-prename descclassname">podpac.data.</code><code class="sig-name descname">Interpolation</code><span class="sig-paren">(</span><em class="sig-param">definition='nearest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/interpolation/interpolation.html#Interpolation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.Interpolation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Create an interpolation class to handle one interpolation method per unstacked dimension.
-Used to interpolate data within a datasource.</p>
+<em class="property">class </em><code class="sig-prename descclassname">podpac.data.</code><code class="sig-name descname">Interpolation</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/interpolation/interpolation.html#Interpolation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.Interpolation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.core.node.Node</span></code></p>
+<p>Base node for any data obtained directly from a single source.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>definition</strong> (<em>str</em><em>, </em><em>tuple</em><em> (</em><em>str</em><em>, </em><em>list of podpac.core.data.interpolator.Interpolator</em><em>)</em><em>, </em><em>dict</em>) – Interpolation definition used to define interpolation methods for each definiton.
-See <a class="reference internal" href="podpac.data.DataSource.html#podpac.data.DataSource.interpolation" title="podpac.data.DataSource.interpolation"><code class="xref py py-attr docutils literal notranslate"><span class="pre">podpac.data.DataSource.interpolation</span></code></a> for more details.</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>InterpolationException</strong> – Raised when definition parameter is improperly formatted</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>Any</em>) – The source node which will be interpolated</p></li>
+<li><p><strong>interpolation</strong> (<em>str</em><em>, </em><em>dict</em><em>, </em><em>optional</em>) – {interpolation_long}</p></li>
+<li><p><strong>cache_output</strong> (<em>bool</em>) – Should the node’s output be cached? If not provided or None, uses default based on
+settings[“CACHE_DATASOURCE_OUTPUT_DEFAULT”]. If True, outputs will be cached and retrieved from cache. If False,
+outputs will not be cached OR retrieved from cache (even if they exist in cache).</p></li>
+</ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Custom DataSource Nodes must implement the <code class="xref py py-meth docutils literal notranslate"><span class="pre">get_data()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">get_coordinates()</span></code> methods.</p>
+<p class="rubric">Alternative Constructors</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_definition</span></code>(definition)</p></td>
+<td><p>Create podpac Node from a dictionary definition.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_json</span></code>(s)</p></td>
+<td><p>Create podpac Node from a JSON definition.</p></td>
+</tr>
+</tbody>
+</table>
 <p class="rubric">Methods</p>
 <table class="longtable docutils align-default">
 <colgroup>
@@ -245,14 +263,56 @@ See <a class="reference internal" href="podpac.data.DataSource.html#podpac.data.
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Interpolation.__init__" title="podpac.data.Interpolation.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([definition])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Interpolation.__init__" title="podpac.data.Interpolation.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(**kwargs)</p></td>
+<td><p>Do not overwrite me</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_output_array</span></code>(coords[, data, attrs])</p></td>
+<td><p>Initialize an output data array</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Interpolation.eval" title="podpac.data.Interpolation.eval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval</span></code></a>(coordinates[, output, selector])</p></td>
+<td><p>Evaluates this node using the supplied coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval_group</span></code>(group)</p></td>
+<td><p>Evaluate the node for each of the coordinates in the group.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Interpolation.find_coordinates" title="podpac.data.Interpolation.find_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_coordinates</span></code></a>()</p></td>
+<td><p>Get the available coordinates for the Node.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_url</span></code>(url)</p></td>
+<td><p>Create podpac Node from a WMS/WCS request.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cache</span></code>(key[, coordinates])</p></td>
+<td><p>Get cached data for this node.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_cache</span></code>(key[, coordinates])</p></td>
+<td><p>Check for cached data for this node.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code>()</p></td>
+<td><p>Overwrite this method if a node needs to do any additional initialization after the standard initialization.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code>(path)</p></td>
+<td><p>Create podpac Node from file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">put_cache</span></code>(data, key[, coordinates, expires, …])</p></td>
+<td><p>Cache data for this node.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rem_cache</span></code>(key[, coordinates, mode])</p></td>
+<td><p>Clear cached data for this node.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code>(path)</p></td>
+<td><p>Write node to file.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_defaults</span></code>(*names, **metadata)</p></td>
+<td><p>Return a trait’s default value or a dictionary of them</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_has_value</span></code>(name)</p></td>
+<td><p>Returns True if the specified trait has a value.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_is_defined</span></code>(name)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.Interpolation.interpolate" title="podpac.data.Interpolation.interpolate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate</span></code></a>(source_coordinates, source_data, …)</p></td>
-<td><p>Interpolate data from requested coordinates to source coordinates</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Interpolation.select_coordinates" title="podpac.data.Interpolation.select_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">select_coordinates</span></code></a>(source_coordinates, …)</p></td>
-<td><p>Select a subset or coordinates if interpolator can downselect.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trait_values</span></code>(**metadata)</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">dict</span></code> of trait names and their values.</p></td>
 </tr>
 </tbody>
 </table>
@@ -263,11 +323,59 @@ See <a class="reference internal" href="podpac.data.DataSource.html#podpac.data.
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Interpolation.config" title="podpac.data.Interpolation.config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">config</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">attrs</span></code></p></td>
+<td><p>List of node attributes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_ref</span></code></p></td>
+<td><p>Default reference/name in node definitions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_ctrl</span></code></p></td>
+<td><p>A trait whose value must be an instance of a specified class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.Interpolation.cache_output" title="podpac.data.Interpolation.cache_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_output</span></code></a></p></td>
+<td><p>A boolean (True, False) trait.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.Interpolation.definition" title="podpac.data.Interpolation.definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></p></td>
+<td><p>A trait which allows any value.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">force_eval</span></code></p></td>
+<td><p>A boolean (True, False) trait.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash</span></code></p></td>
+<td><p>hash for this node, used in caching and to determine equality.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Interpolation.interpolation" title="podpac.data.Interpolation.interpolation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation</span></code></a></p></td>
 <td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.Interpolation.interpolation_class" title="podpac.data.Interpolation.interpolation_class"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation_class</span></code></a></p></td>
+<td><p>Get the interpolation class currently set for this data source.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.Interpolation.interpolators" title="podpac.data.Interpolation.interpolators"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolators</span></code></a></p></td>
+<td><p>Return the interpolators selected for the previous node evaluation interpolation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
+<td><p>Definition for this node in JSON format.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_pretty</span></code></p></td>
+<td><p>Definition for this node in JSON format, with indentation suitable for display.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output</span></code></p></td>
+<td><p>A trait for unicode strings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">outputs</span></code></p></td>
+<td><p>An instance of a Python list.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.Interpolation.source" title="podpac.data.Interpolation.source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></p></td>
+<td><p>A trait whose value must be an instance of a specified class.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></p></td>
+<td><p>A trait for unicode strings.</p></td>
 </tr>
 </tbody>
 </table>
@@ -277,70 +385,103 @@ See <a class="reference internal" href="podpac.data.DataSource.html#podpac.data.
 </dl>
 <dl class="method">
 <dt id="podpac.data.Interpolation.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">definition='nearest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/interpolation/interpolation.html#Interpolation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.Interpolation.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#podpac.data.Interpolation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do not overwrite me</p>
+</dd></dl>
 
 <dl class="attribute">
-<dt id="podpac.data.Interpolation.config">
-<code class="sig-name descname">config</code><em class="property"> = {}</em><a class="headerlink" href="#podpac.data.Interpolation.config" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="podpac.data.Interpolation.definition">
-<code class="sig-name descname">definition</code><em class="property"> = None</em><a class="headerlink" href="#podpac.data.Interpolation.definition" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="podpac.data.Interpolation.cache_output">
+<code class="sig-name descname">cache_output</code><a class="headerlink" href="#podpac.data.Interpolation.cache_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean (True, False) trait.</p>
+</dd></dl>
 
 <dl class="method">
-<dt id="podpac.data.Interpolation.interpolate">
-<code class="sig-name descname">interpolate</code><span class="sig-paren">(</span><em class="sig-param">source_coordinates</em>, <em class="sig-param">source_data</em>, <em class="sig-param">eval_coordinates</em>, <em class="sig-param">output_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/interpolation/interpolation.html#Interpolation.interpolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.Interpolation.interpolate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Interpolate data from requested coordinates to source coordinates</p>
+<dt id="podpac.data.Interpolation.eval">
+<code class="sig-name descname">eval</code><span class="sig-paren">(</span><em class="sig-param">coordinates</em>, <em class="sig-param">output=None</em>, <em class="sig-param">selector=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/interpolation/interpolation.html#Interpolation.eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.Interpolation.eval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates this node using the supplied coordinates.</p>
+<p>The coordinates are mapped to the requested coordinates, interpolated if necessary, and set to
+<cite>_requested_source_coordinates</cite> with associated index <cite>_requested_source_coordinates_index</cite>. The requested
+source coordinates and index are passed to <cite>get_data()</cite> returning the source data at the
+coordinatesset to <cite>_requested_source_data</cite>. Finally <cite>_requested_source_data</cite> is interpolated
+using the <cite>interpolate</cite> method and set to the <cite>output</cite> attribute of the node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>source_coordinates</strong> (<a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a>) – Description</p></li>
-<li><p><strong>source_data</strong> (<em>podpac.core.units.UnitsDataArray</em>) – Description</p></li>
-<li><p><strong>eval_coordinates</strong> (<a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a>) – Description</p></li>
-<li><p><strong>output_data</strong> (<em>podpac.core.units.UnitsDataArray</em>) – Description</p></li>
+<li><p><strong>coordinates</strong> (<a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a>) – <p>{requested_coordinates}</p>
+<p>An exception is raised if the requested coordinates are missing dimensions in the DataSource.
+Extra dimensions in the requested coordinates are dropped.</p>
+</p></li>
+<li><p><strong>output</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.UnitsDataArray</span></code>, optional) – {eval_output}</p></li>
+<li><p><strong>selector</strong> – {eval_selector}</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>returns the new output UnitDataArray of interpolated data</p>
+<dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>podpac.core.units.UnitDataArray</p>
+<dd class="field-odd"><p>{eval_return}</p>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>InterpolationException</strong> – Raises InterpolationException when interpolator definition can’t support all the dimensions
-    of the requested coordinates</p>
+<dd class="field-even"><p><strong>ValueError</strong> – Cannot evaluate these coordinates</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
-<dt id="podpac.data.Interpolation.select_coordinates">
-<code class="sig-name descname">select_coordinates</code><span class="sig-paren">(</span><em class="sig-param">source_coordinates</em>, <em class="sig-param">source_coordinates_index</em>, <em class="sig-param">eval_coordinates</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/interpolation/interpolation.html#Interpolation.select_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.Interpolation.select_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Select a subset or coordinates if interpolator can downselect.</p>
-<p>At this point in the execution process, podpac has selected a subset of source_coordinates that intersects
-with the requested coordinates, dropped extra dimensions from requested coordinates, and confirmed
-source coordinates are not missing any dimensions.</p>
+<dt id="podpac.data.Interpolation.find_coordinates">
+<code class="sig-name descname">find_coordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/interpolation/interpolation.html#Interpolation.find_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.Interpolation.find_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the available coordinates for the Node. For a DataSource, this is just the coordinates.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>source_coordinates</strong> (<a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a>) – Intersected source coordinates</p></li>
-<li><p><strong>source_coordinates_index</strong> (<em>list</em>) – Index of intersected source coordinates. See <a class="reference internal" href="podpac.data.DataSource.html#podpac.data.DataSource" title="podpac.data.DataSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.data.DataSource</span></code></a> for
-more information about valid values for the source_coordinates_index</p></li>
-<li><p><strong>eval_coordinates</strong> (<a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a>) – Requested coordinates to evaluate</p></li>
-</ul>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>coords_list</strong> – singleton list containing the coordinates (Coordinates object)</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Returns tuple with the first element subset of selected coordinates and the second element the indicies
-of the selected coordinates</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(<a class="reference internal" href="podpac.Coordinates.html#podpac.Coordinates" title="podpac.Coordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.Coordinates</span></code></a>, list)</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.data.Interpolation.interpolation">
+<code class="sig-name descname">interpolation</code><a class="headerlink" href="#podpac.data.Interpolation.interpolation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="podpac.data.Interpolation.interpolation_class">
+<em class="property">property </em><code class="sig-name descname">interpolation_class</code><a class="headerlink" href="#podpac.data.Interpolation.interpolation_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the interpolation class currently set for this data source.</p>
+<p>The DataSource <code class="docutils literal notranslate"><span class="pre">interpolation</span></code> property is used to define the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.data.InterpolationManager</span></code> class that will handle interpolation for requested coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>InterpolationManager class defined by DataSource <cite>interpolation</cite> definition</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.data.InterpolationManager</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="podpac.data.Interpolation.interpolators">
+<em class="property">property </em><code class="sig-name descname">interpolators</code><a class="headerlink" href="#podpac.data.Interpolation.interpolators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the interpolators selected for the previous node evaluation interpolation.
+If the node has not been evaluated, or if interpolation was not necessary, this will return
+an empty OrderedDict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Key are tuple of unstacked dimensions, the value is the interpolator used to interpolate these dimensions</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>OrderedDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="podpac.data.Interpolation.source">
+<code class="sig-name descname">source</code><a class="headerlink" href="#podpac.data.Interpolation.source" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

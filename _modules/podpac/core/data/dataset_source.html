@@ -195,10 +195,11 @@
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">cached_property</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">COMMON_DATA_DOC</span><span class="p">,</span> <span class="n">DATA_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.file_source</span> <span class="kn">import</span> <span class="n">BaseFileSource</span><span class="p">,</span> <span class="n">FileKeysMixin</span><span class="p">,</span> <span class="n">LoadFileMixin</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolation</span> <span class="kn">import</span> <span class="n">InterpolationMixin</span>
 
 
-<div class="viewcode-block" id="Dataset"><a class="viewcode-back" href="../../../../api/podpac.data.Dataset.html#podpac.data.Dataset">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">FileKeysMixin</span><span class="p">,</span> <span class="n">LoadFileMixin</span><span class="p">,</span> <span class="n">BaseFileSource</span><span class="p">):</span>
+<span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DatasetBase</span><span class="p">(</span><span class="n">FileKeysMixin</span><span class="p">,</span> <span class="n">LoadFileMixin</span><span class="p">,</span> <span class="n">BaseFileSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource node using xarray.open_dataset.</span>
 
 <span class="sd">    Attributes</span>
@@ -238,12 +239,12 @@
     <span class="c1"># public api properties and methods</span>
     <span class="c1"># -------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="Dataset.open_dataset"><a class="viewcode-back" href="../../../../api/podpac.data.Dataset.html#podpac.data.Dataset.open_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">open_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Dataset.close_dataset"><a class="viewcode-back" href="../../../../api/podpac.data.Dataset.html#podpac.data.Dataset.close_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">Dataset</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">close_dataset</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+    <span class="k">def</span> <span class="nf">close_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DatasetBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">close_dataset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">dims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -255,7 +256,7 @@
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
-<div class="viewcode-block" id="Dataset.get_data"><a class="viewcode-back" href="../../../../api/podpac.data.Dataset.html#podpac.data.Dataset.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}&quot;&quot;&quot;</span>
 
@@ -267,7 +268,11 @@
             <span class="n">tdims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,)</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">tdims</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">coordinates_index</span><span class="p">])</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">coordinates_index</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="Dataset"><a class="viewcode-back" href="../../../../api/podpac.data.Dataset.html#podpac.data.Dataset">[docs]</a><span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">InterpolationMixin</span><span class="p">,</span> <span class="n">DatasetBase</span><span class="p">):</span>
+    <span class="k">pass</span></div>
 </pre></div>
 
            </div>

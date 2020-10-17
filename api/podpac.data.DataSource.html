@@ -255,8 +255,8 @@ Any extra dimensions included but not found in the source coordinates will be ig
 class will be used without modification.</p>
 </p></li>
 <li><p><strong>nan_vals</strong> (<em>List</em><em>, </em><em>optional</em>) – List of values from source data that should be interpreted as ‘no data’ or ‘nans’</p></li>
-<li><p><strong>coordinate_index_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of index to use for data source. Possible values are <code class="docutils literal notranslate"><span class="pre">['list',</span> <span class="pre">'numpy',</span> <span class="pre">'xarray',</span> <span class="pre">'pandas']</span></code>
-Default is ‘numpy’</p></li>
+<li><p><strong>coordinate_index_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of index to use for data source. Possible values are <code class="docutils literal notranslate"><span class="pre">['slice',</span> <span class="pre">'numpy']</span></code>
+Default is ‘numpy’, which allows a tuple of integer indices.</p></li>
 <li><p><strong>cache_coordinates</strong> (<em>bool</em>) – Whether to cache coordinates using the podpac <code class="docutils literal notranslate"><span class="pre">cache_ctrl</span></code>. Default False.</p></li>
 <li><p><strong>cache_output</strong> (<em>bool</em>) – Should the node’s output be cached? If not provided or None, uses default based on
 settings[“CACHE_DATASOURCE_OUTPUT_DEFAULT”]. If True, outputs will be cached and retrieved from cache. If False,
@@ -294,7 +294,7 @@ outputs will not be cached OR retrieved from cache (even if they exist in cache)
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_output_array</span></code>(coords[, data, attrs])</p></td>
 <td><p>Initialize an output data array</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.DataSource.eval" title="podpac.data.DataSource.eval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval</span></code></a>(coordinates[, output])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.DataSource.eval" title="podpac.data.DataSource.eval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval</span></code></a>(coordinates[, output, selector])</p></td>
 <td><p>Evaluates this node using the supplied coordinates.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval_group</span></code>(group)</p></td>
@@ -396,12 +396,6 @@ outputs will not be cached OR retrieved from cache (even if they exist in cache)
 <tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.DataSource.interpolation" title="podpac.data.DataSource.interpolation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#podpac.data.DataSource.interpolation_class" title="podpac.data.DataSource.interpolation_class"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolation_class</span></code></a></p></td>
-<td><p>Get the interpolation class currently set for this data source.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.data.DataSource.interpolators" title="podpac.data.DataSource.interpolators"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolators</span></code></a></p></td>
-<td><p>Return the interpolators selected for the previous node evaluation interpolation.</p></td>
-</tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></p></td>
 <td><p>Definition for this node in JSON format.</p></td>
 </tr>
@@ -477,7 +471,7 @@ you may use a custom validator method.</p>
 
 <dl class="method">
 <dt id="podpac.data.DataSource.eval">
-<code class="sig-name descname">eval</code><span class="sig-paren">(</span><em class="sig-param">coordinates</em>, <em class="sig-param">output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/data/datasource.html#DataSource.eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.DataSource.eval" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">eval</code><span class="sig-paren">(</span><em class="sig-param">coordinates</em>, <em class="sig-param">output=None</em>, <em class="sig-param">selector=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/data/datasource.html#DataSource.eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.data.DataSource.eval" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluates this node using the supplied coordinates.</p>
 <p>The coordinates are mapped to the requested coordinates, interpolated if necessary, and set to
 <cite>_requested_source_coordinates</cite> with associated index <cite>_requested_source_coordinates_index</cite>. The requested
@@ -494,6 +488,9 @@ Extra dimensions in the requested coordinates are dropped.</p>
 <li><p><strong>output</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.UnitsDataArray</span></code>, optional) – Default is None. Optional input array used to store the output data. When supplied, the node will not
 allocate its own memory for the output array. This array needs to have the correct dimensions,
 coordinates, and coordinate reference system.</p></li>
+<li><p><strong>selector</strong> (<em>callable</em><em>(</em><em>coordinates</em><em>, </em><em>request_coordinates</em><em>)</em>) – The selector function is an optimization that enables nodes to only select data needed by an interpolator.
+It returns a new Coordinates object, and an index object that indexes into the <cite>coordinates</cite> parameter
+If not provided, the Coordinates.intersect() method will be used instead.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -596,38 +593,6 @@ at the requested source coordinates.</p>
 <dt id="podpac.data.DataSource.interpolation">
 <code class="sig-name descname">interpolation</code><a class="headerlink" href="#podpac.data.DataSource.interpolation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="method">
-<dt id="podpac.data.DataSource.interpolation_class">
-<em class="property">property </em><code class="sig-name descname">interpolation_class</code><a class="headerlink" href="#podpac.data.DataSource.interpolation_class" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the interpolation class currently set for this data source.</p>
-<p>The DataSource <code class="docutils literal notranslate"><span class="pre">interpolation</span></code> property is used to define the
-<a class="reference internal" href="podpac.data.Interpolation.html#podpac.data.Interpolation" title="podpac.data.Interpolation"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.data.Interpolation</span></code></a> class that will handle interpolation for requested coordinates.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Interpolation class defined by DataSource <cite>interpolation</cite> definition</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="podpac.data.Interpolation.html#podpac.data.Interpolation" title="podpac.data.Interpolation"><code class="xref py py-class docutils literal notranslate"><span class="pre">podpac.data.Interpolation</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="podpac.data.DataSource.interpolators">
-<em class="property">property </em><code class="sig-name descname">interpolators</code><a class="headerlink" href="#podpac.data.DataSource.interpolators" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the interpolators selected for the previous node evaluation interpolation.
-If the node has not been evaluated, or if interpolation was not necessary, this will return
-an empty OrderedDict</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Key are tuple of unstacked dimensions, the value is the interpolator used to interpolate these dimensions</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>OrderedDict</p>
-</dd>
-</dl>
-</dd></dl>
 
 <dl class="attribute">
 <dt id="podpac.data.DataSource.nan_vals">

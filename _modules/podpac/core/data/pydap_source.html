@@ -210,6 +210,8 @@
 <span class="kn">from</span> <span class="nn">podpac.core</span> <span class="kn">import</span> <span class="n">authentication</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">cached_property</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">COMMON_DATA_DOC</span><span class="p">,</span> <span class="n">DataSource</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolation</span> <span class="kn">import</span> <span class="n">InterpolationMixin</span>
+
 
 <span class="c1"># Optional dependencies</span>
 <span class="n">pydap</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;pydap&quot;</span><span class="p">)</span>
@@ -220,8 +222,8 @@
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="PyDAP"><a class="viewcode-back" href="../../../../api/podpac.data.PyDAP.html#podpac.data.PyDAP">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">PyDAP</span><span class="p">(</span><span class="n">authentication</span><span class="o">.</span><span class="n">RequestsSessionMixin</span><span class="p">,</span> <span class="n">DataSource</span><span class="p">):</span>
+<span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">PyDAPBase</span><span class="p">(</span><span class="n">authentication</span><span class="o">.</span><span class="n">RequestsSessionMixin</span><span class="p">,</span> <span class="n">DataSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource from an OpenDAP server feed.</span>
 
 <span class="sd">    Attributes</span>
@@ -255,7 +257,7 @@
         <span class="k">except</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
 
-<div class="viewcode-block" id="PyDAP.get_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.PyDAP.html#podpac.data.PyDAP.get_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_coordinates}</span>
 
@@ -264,7 +266,7 @@
 <span class="sd">        NotImplementedError</span>
 <span class="sd">            PyDAP cannot create coordinates. A child class must implement this method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;PyDAP cannot create coordinates. A child class must implement this method.&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;PyDAP cannot create coordinates. A child class must implement this method.&quot;</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -288,7 +290,7 @@
     <span class="k">def</span> <span class="nf">_open_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">pydap</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
 
-<div class="viewcode-block" id="PyDAP.get_data"><a class="viewcode-back" href="../../../../api/podpac.data.PyDAP.html#podpac.data.PyDAP.get_data">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}&quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
@@ -306,7 +308,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">):</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">d</span></div>
+        <span class="k">return</span> <span class="n">d</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -317,7 +319,11 @@
 <span class="sd">        List</span>
 <span class="sd">            The list of available keys from the OpenDAP dataset. Any of these keys can be set as self.data_key</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="PyDAP"><a class="viewcode-back" href="../../../../api/podpac.data.PyDAP.html#podpac.data.PyDAP">[docs]</a><span class="k">class</span> <span class="nc">PyDAP</span><span class="p">(</span><span class="n">InterpolationMixin</span><span class="p">,</span> <span class="n">PyDAPBase</span><span class="p">):</span>
+    <span class="k">pass</span></div>
 </pre></div>
 
            </div>

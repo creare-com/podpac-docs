@@ -191,12 +191,6 @@
   <h1>Source code for podpac.core.algorithm.signal</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Signal Summary</span>
-
-<span class="sd">NOTE: another option for the convolution kernel input would be to accept an</span>
-<span class="sd">    xarray and add and transpose dimensions as necessary.</span>
-
-<span class="sd">NOTE: At the moment this module is quite brittle... it makes assumptions about</span>
-<span class="sd">    the input node (i.e. alt coordinates would likely break this)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">podpac</span>
@@ -255,7 +249,8 @@
 <span class="sd">    source : podpac.Node</span>
 <span class="sd">        Source node on which convolution will be performed.</span>
 <span class="sd">    kernel : np.ndarray, optional</span>
-<span class="sd">        The convolution kernel. This kernel must have the same number of dimensions as the source data outputs</span>
+<span class="sd">        The convolution kernel. This kernel must include the dimensions of source node outputs. The dimensions for this</span>
+<span class="sd">        array are labelled by `kernel_dims`. Any dimensions not in the soucr nodes outputs will be summed over.</span>
 <span class="sd">    kernel_dims : list, optional</span>
 <span class="sd">        A list of the dimensions for the kernel axes. The dimensions in this list must match the</span>
 <span class="sd">        coordinates in the source, or contain additional dimensions, and the order does not need to match.</span>
@@ -297,7 +292,7 @@
 
 <div class="viewcode-block" id="Convolution.eval"><a class="viewcode-back" href="../../../../api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
     <span class="nd">@node_eval</span>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates.</span>
 
 <span class="sd">        Parameters</span>
@@ -306,6 +301,8 @@
 <span class="sd">            {requested_coordinates}</span>
 <span class="sd">        output : podpac.UnitsDataArray, optional</span>
 <span class="sd">            {eval_output}</span>
+<span class="sd">        selector: callable(coordinates, request_coordinates)</span>
+<span class="sd">            {eval_selector}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>

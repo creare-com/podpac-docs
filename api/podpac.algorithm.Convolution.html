@@ -250,7 +250,8 @@
 <dl class="attribute">
 <dt id="podpac.algorithm.Convolution.kernel">
 <code class="sig-name descname">kernel</code><a class="headerlink" href="#podpac.algorithm.Convolution.kernel" title="Permalink to this definition">¶</a></dt>
-<dd><p>The convolution kernel. This kernel must have the same number of dimensions as the source data outputs</p>
+<dd><p>The convolution kernel. This kernel must include the dimensions of source node outputs. The dimensions for this
+array are labelled by <cite>kernel_dims</cite>. Any dimensions not in the soucr nodes outputs will be summed over.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
 <dd class="field-odd"><p>np.ndarray, optional</p>
@@ -315,7 +316,7 @@ Note: These kernels are automatically normalized such that kernel.sum() == 1</p>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_output_array</span></code>(coords[, data, attrs])</p></td>
 <td><p>Initialize an output data array</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.algorithm.Convolution.eval" title="podpac.algorithm.Convolution.eval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval</span></code></a>(coordinates[, output])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#podpac.algorithm.Convolution.eval" title="podpac.algorithm.Convolution.eval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval</span></code></a>(coordinates[, output, selector])</p></td>
 <td><p>Evaluates this nodes using the supplied coordinates.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval_group</span></code>(group)</p></td>
@@ -437,7 +438,7 @@ Note: These kernels are automatically normalized such that kernel.sum() == 1</p>
 
 <dl class="method">
 <dt id="podpac.algorithm.Convolution.eval">
-<code class="sig-name descname">eval</code><span class="sig-paren">(</span><em class="sig-param">coordinates</em>, <em class="sig-param">output=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/algorithm/signal.html#Convolution.eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.algorithm.Convolution.eval" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">eval</code><span class="sig-paren">(</span><em class="sig-param">coordinates</em>, <em class="sig-param">output=None</em>, <em class="sig-param">selector=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/podpac/core/algorithm/signal.html#Convolution.eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#podpac.algorithm.Convolution.eval" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluates this nodes using the supplied coordinates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -446,6 +447,9 @@ Note: These kernels are automatically normalized such that kernel.sum() == 1</p>
 <li><p><strong>output</strong> (<em>podpac.UnitsDataArray</em><em>, </em><em>optional</em>) – Default is None. Optional input array used to store the output data. When supplied, the node will not
 allocate its own memory for the output array. This array needs to have the correct dimensions,
 coordinates, and coordinate reference system.</p></li>
+<li><p><strong>selector</strong> (<em>callable</em><em>(</em><em>coordinates</em><em>, </em><em>request_coordinates</em><em>)</em>) – The selector function is an optimization that enables nodes to only select data needed by an interpolator.
+It returns a new Coordinates object, and an index object that indexes into the <cite>coordinates</cite> parameter
+If not provided, the Coordinates.intersect() method will be used instead.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
