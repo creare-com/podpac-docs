@@ -226,22 +226,61 @@
 
 
 <div class="viewcode-block" id="Interpolation"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.data.Interpolation">[docs]</a><span class="k">class</span> <span class="nc">Interpolation</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Base node for any data obtained directly from a single source.</span>
+    <span class="sd">&quot;&quot;&quot;Node to used to interpolate from self.source.coordinates to the user-specified, evaluated coordinates.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    source : Any</span>
 <span class="sd">        The source node which will be interpolated</span>
 <span class="sd">    interpolation : str, dict, optional</span>
-<span class="sd">        {interpolation_long}</span>
+<span class="sd">        Interpolation definition for the data source.</span>
+<span class="sd">        By default, the interpolation method is set to ``&#39;nearest&#39;`` for all dimensions.</span>
+
+<span class="sd">         If input is a string, it must match one of the interpolation shortcuts defined in</span>
+<span class="sd">        :attr:`podpac.data.INTERPOLATION_SHORTCUTS`. The interpolation method associated</span>
+<span class="sd">        with this string will be applied to all dimensions at the same time.</span>
+
+<span class="sd">        If input is a dict or list of dict, the dict or dict elements must adhere to the following format:</span>
+
+<span class="sd">        The key ``&#39;method&#39;`` defining the interpolation method name.</span>
+<span class="sd">        If the interpolation method is not one of :attr:`podpac.data.INTERPOLATION_SHORTCUTS`, a</span>
+<span class="sd">        second key ``&#39;interpolators&#39;`` must be defined with a list of</span>
+<span class="sd">        :class:`podpac.interpolators.Interpolator` classes to use in order of uages.</span>
+<span class="sd">        The dictionary may contain an option ``&#39;params&#39;`` key which contains a dict of parameters to pass along to</span>
+<span class="sd">        the :class:`podpac.interpolators.Interpolator` classes associated with the interpolation method.</span>
+
+<span class="sd">        The dict may contain the key ``&#39;dims&#39;`` which specifies dimension names (i.e. ``&#39;time&#39;`` or ``(&#39;lat&#39;, &#39;lon&#39;)`` ).</span>
+<span class="sd">        If the dictionary does not contain a key for all unstacked dimensions of the source coordinates, the</span>
+<span class="sd">        :attr:`podpac.data.INTERPOLATION_DEFAULT` value will be used.</span>
+<span class="sd">        All dimension keys must be unstacked even if the underlying coordinate dimensions are stacked.</span>
+<span class="sd">        Any extra dimensions included but not found in the source coordinates will be ignored.</span>
+
+<span class="sd">        The dict may contain a key ``&#39;params&#39;`` that can be used to configure the :class:`podpac.interpolators.Interpolator` classes associated with the interpolation method.</span>
+
+<span class="sd">        If input is a :class:`podpac.data.Interpolation` class, this Interpolation</span>
+<span class="sd">        class will be used without modification.</span>
 <span class="sd">    cache_output : bool</span>
 <span class="sd">        Should the node&#39;s output be cached? If not provided or None, uses default based on</span>
 <span class="sd">        settings[&quot;CACHE_DATASOURCE_OUTPUT_DEFAULT&quot;]. If True, outputs will be cached and retrieved from cache. If False,</span>
 <span class="sd">        outputs will not be cached OR retrieved from cache (even if they exist in cache).</span>
 
-<span class="sd">    Notes</span>
+<span class="sd">    Examples</span>
 <span class="sd">    -----</span>
-<span class="sd">    Custom DataSource Nodes must implement the :meth:`get_data` and :meth:`get_coordinates` methods.</span>
+<span class="sd">    # To use bilinear interpolation for [lat,lon]  a specific interpolator for [time], and the default for [alt], use:</span>
+<span class="sd">    &gt;&gt;&gt; interp_node = Interpolation(</span>
+<span class="sd">            source=some_node,</span>
+<span class="sd">            interpolation=interpolation = [</span>
+<span class="sd">                {</span>
+<span class="sd">                &#39;method&#39;: &#39;bilinear&#39;,</span>
+<span class="sd">                &#39;dims&#39;: [&#39;lat&#39;, &#39;lon&#39;]</span>
+<span class="sd">                },</span>
+<span class="sd">                {</span>
+<span class="sd">                &#39;method&#39;: [podpac.interpolators.NearestNeighbor],</span>
+<span class="sd">                &#39;dims&#39;: [&#39;time&#39;]</span>
+<span class="sd">                }</span>
+<span class="sd">            ]</span>
+<span class="sd">        )</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -394,7 +433,7 @@
     <span class="k">def</span> <span class="nf">_source_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">selector</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_source_xr</span><span class="p">,</span> <span class="n">UnitsDataArray</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source_xr</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">Node</span><span class="p">):</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">selector</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Interpolation.find_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.Interpolation.html#podpac.data.Interpolation.find_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">find_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
