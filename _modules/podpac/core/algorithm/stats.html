@@ -212,7 +212,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span>
 <span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="kn">import</span> <span class="n">UnaryAlgorithm</span><span class="p">,</span> <span class="n">Algorithm</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">NodeTrait</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span><span class="p">,</span> <span class="n">node_eval</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span>
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -326,7 +326,7 @@
         <span class="n">a</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">n</span><span class="p">:])</span>
         <span class="k">return</span> <span class="n">a</span>
 
-    <span class="k">def</span> <span class="nf">iteroutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">iteroutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">_selector</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generator for the chunks of the output</span>
 
 <span class="sd">        Yields</span>
@@ -336,11 +336,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">chunk_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_chunk_shape</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">iterchunks</span><span class="p">(</span><span class="n">chunk_shape</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">_selector</span><span class="p">)</span>
 
     <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="nd">@node_eval</span>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates.</span>
 
 <span class="sd">        Parameters</span>
@@ -349,7 +348,7 @@
 <span class="sd">            {requested_coordinates}</span>
 <span class="sd">        output : podpac.UnitsDataArray, optional</span>
 <span class="sd">            {eval_output}</span>
-<span class="sd">        selector: callable(coordinates, request_coordinates)</span>
+<span class="sd">        _selector: callable(coordinates, request_coordinates)</span>
 <span class="sd">            {eval_selector}</span>
 
 <span class="sd">        Returns</span>
@@ -370,13 +369,13 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="o">&lt;</span> <span class="n">reduce</span><span class="p">(</span><span class="n">mul</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_chunked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteroutputs</span><span class="p">(</span><span class="n">coordinates</span><span class="p">),</span> <span class="n">output</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_chunked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteroutputs</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">_selector</span><span class="p">),</span> <span class="n">output</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No reduce_chunked method defined, using one-step reduce&quot;</span><span class="p">)</span>
-                <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+                <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">_selector</span><span class="p">)</span>
                 <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">source_output</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+            <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">_selector</span><span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">source_output</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">():</span>
@@ -467,7 +466,7 @@
 
         <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">iteroutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">iteroutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">selector</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generator for the chunks of the output</span>
 
 <span class="sd">        Yields</span>
@@ -478,7 +477,7 @@
 
         <span class="n">chunk_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_chunk_shape</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">slices</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">iterchunks</span><span class="p">(</span><span class="n">chunk_shape</span><span class="p">,</span> <span class="n">return_slices</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span> <span class="n">slices</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">selector</span><span class="p">),</span> <span class="n">slices</span>
 
     <span class="k">def</span> <span class="nf">reduce_chunked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1056,9 +1055,8 @@
     <span class="k">def</span> <span class="nf">_default_coordinates_source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
 
-<div class="viewcode-block" id="GroupReduce.eval"><a class="viewcode-back" href="../../../../api/podpac.algorithm.GroupReduce.html#podpac.algorithm.GroupReduce.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="nd">@node_eval</span>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates.</span>
 
 <span class="sd">        Parameters</span>
@@ -1108,7 +1106,7 @@
         <span class="c1"># out = out.sel(**{self.groupby: E}).rename({self.groupby: &quot;time&quot;})</span>
         <span class="c1"># output[:] = out.transpose(*output.dims).data</span>
 
-        <span class="k">return</span> <span class="n">output</span></div>
+        <span class="k">return</span> <span class="n">output</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">base_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1154,8 +1152,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
 
     <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="nd">@node_eval</span>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates.</span>
 
 <span class="sd">        Parameters</span>
@@ -1164,7 +1161,7 @@
 <span class="sd">            {requested_coordinates}</span>
 <span class="sd">        output : podpac.UnitsDataArray, optional</span>
 <span class="sd">            {eval_output}</span>
-<span class="sd">        selector: callable(coordinates, request_coordinates)</span>
+<span class="sd">        _selector: callable(coordinates, request_coordinates)</span>
 <span class="sd">            {eval_selector}</span>
 
 <span class="sd">        Returns</span>
@@ -1177,7 +1174,7 @@
 <span class="sd">            If source it not time-depended (required by this node).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">_selector</span><span class="p">)</span>
 
         <span class="c1"># group</span>
         <span class="n">grouped</span> <span class="o">=</span> <span class="n">source_output</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resample</span><span class="p">)</span>

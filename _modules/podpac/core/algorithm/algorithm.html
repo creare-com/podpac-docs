@@ -205,7 +205,7 @@
 <span class="c1"># Internal dependencies</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">union</span>
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">UnitsDataArray</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeException</span><span class="p">,</span> <span class="n">node_eval</span><span class="p">,</span> <span class="n">COMMON_NODE_DOC</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeException</span><span class="p">,</span> <span class="n">COMMON_NODE_DOC</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">NodeTrait</span>
 <span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.managers.multi_threading</span> <span class="kn">import</span> <span class="n">thread_manager</span>
@@ -263,9 +263,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-<div class="viewcode-block" id="Algorithm.eval"><a class="viewcode-back" href="../../../../api/podpac.algorithm.Algorithm.html#podpac.algorithm.Algorithm.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="nd">@node_eval</span>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evalutes this nodes using the supplied coordinates.</span>
 
 <span class="sd">        Parameters</span>
@@ -274,7 +273,7 @@
 <span class="sd">            {requested_coordinates}</span>
 <span class="sd">        output : podpac.UnitsDataArray, optional</span>
 <span class="sd">            {eval_output}</span>
-<span class="sd">        selector: callable(coordinates, request_coordinates)</span>
+<span class="sd">        _selector: callable(coordinates, request_coordinates)</span>
 <span class="sd">            {eval_selector}</span>
 
 <span class="sd">        Returns</span>
@@ -296,7 +295,7 @@
         <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;MULTITHREADING&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">n_threads</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># Create a function for each thread to execute asynchronously</span>
             <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">_selector</span><span class="p">)</span>
 
             <span class="c1"># Create pool of size n_threads, note, this may be created from a sub-thread (i.e. not the main thread)</span>
             <span class="n">pool</span> <span class="o">=</span> <span class="n">thread_manager</span><span class="o">.</span><span class="n">get_thread_pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">n_threads</span><span class="p">)</span>
@@ -317,7 +316,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Evaluate nodes in serial</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">inputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+                <span class="n">inputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">_selector</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_multi_threaded</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="c1"># accumulate output coordinates</span>
@@ -348,7 +347,7 @@
         <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">output</span></div></div>
+        <span class="k">return</span> <span class="n">output</span></div>
 
 
 <span class="k">class</span> <span class="nc">UnaryAlgorithm</span><span class="p">(</span><span class="n">BaseAlgorithm</span><span class="p">):</span>

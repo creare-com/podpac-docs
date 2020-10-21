@@ -214,8 +214,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeException</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">node_eval</span>
-<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolation</span> <span class="kn">import</span> <span class="n">Interpolation</span><span class="p">,</span> <span class="n">InterpolationTrait</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolation</span> <span class="kn">import</span> <span class="n">Interpolate</span><span class="p">,</span> <span class="n">InterpolationTrait</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -467,9 +466,8 @@
     <span class="c1"># Methods</span>
     <span class="c1"># ------------------------------------------------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="DataSource.eval"><a class="viewcode-back" href="../../../../api/podpac.data.DataSource.html#podpac.data.DataSource.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-    <span class="nd">@node_eval</span>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this node using the supplied coordinates.</span>
 
 <span class="sd">        The coordinates are mapped to the requested coordinates, interpolated if necessary, and set to</span>
@@ -488,7 +486,7 @@
 <span class="sd">            Extra dimensions in the requested coordinates are dropped.</span>
 <span class="sd">        output : :class:`podpac.UnitsDataArray`, optional</span>
 <span class="sd">            {eval_output}</span>
-<span class="sd">        selector: callable(coordinates, request_coordinates)</span>
+<span class="sd">        _selector: callable(coordinates, request_coordinates)</span>
 <span class="sd">            {eval_selector}</span>
 
 <span class="sd">        Returns</span>
@@ -555,8 +553,8 @@
             <span class="k">return</span> <span class="n">output</span>
 
         <span class="c1"># Use the selector</span>
-        <span class="k">if</span> <span class="n">selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">)</span> <span class="o">=</span> <span class="n">selector</span><span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">)</span> <span class="o">=</span> <span class="n">_selector</span><span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
 
         <span class="c1"># Check the coordinate_index_type</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_index_type</span> <span class="o">==</span> <span class="s2">&quot;slice&quot;</span><span class="p">:</span>  <span class="c1"># Most restrictive</span>
@@ -599,7 +597,7 @@
         <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="n">output</span>
 
-        <span class="k">return</span> <span class="n">output</span></div>
+        <span class="k">return</span> <span class="n">output</span>
 
 <div class="viewcode-block" id="DataSource.find_coordinates"><a class="viewcode-back" href="../../../../api/podpac.data.DataSource.html#podpac.data.DataSource.find_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">find_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

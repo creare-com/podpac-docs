@@ -207,7 +207,7 @@
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span>
 <span class="kn">from</span> <span class="nn">podpac.core.algorithm.algorithm</span> <span class="kn">import</span> <span class="n">UnaryAlgorithm</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">ArrayTrait</span><span class="p">,</span> <span class="n">NodeTrait</span>
-<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span><span class="p">,</span> <span class="n">node_eval</span>
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">COMMON_NODE_DOC</span>
 
 
 <span class="n">COMMON_DOC</span> <span class="o">=</span> <span class="n">COMMON_NODE_DOC</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -290,9 +290,8 @@
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;kernel_dims&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kernel_dims</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Convolution</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_first_init</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Convolution.eval"><a class="viewcode-back" href="../../../../api/podpac.algorithm.Convolution.html#podpac.algorithm.Convolution.eval">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
-    <span class="nd">@node_eval</span>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DOC</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Evaluates this nodes using the supplied coordinates.</span>
 
 <span class="sd">        Parameters</span>
@@ -301,7 +300,7 @@
 <span class="sd">            {requested_coordinates}</span>
 <span class="sd">        output : podpac.UnitsDataArray, optional</span>
 <span class="sd">            {eval_output}</span>
-<span class="sd">        selector: callable(coordinates, request_coordinates)</span>
+<span class="sd">        _selector: callable(coordinates, request_coordinates)</span>
 <span class="sd">            {eval_selector}</span>
 
 <span class="sd">        Returns</span>
@@ -353,7 +352,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_expanded_coordinates</span> <span class="o">=</span> <span class="n">expanded_coordinates</span>
 
         <span class="c1"># evaluate source using expanded coordinates, convolve, and then slice out original coordinates</span>
-        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expanded_coordinates</span><span class="p">)</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expanded_coordinates</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">_selector</span><span class="p">)</span>
 
         <span class="c1"># Check dimensions</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kernel_dims</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">dims</span> <span class="k">if</span> <span class="n">d</span> <span class="o">!=</span> <span class="s2">&quot;output&quot;</span><span class="p">]):</span>
@@ -398,7 +397,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">output</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">result</span>
 
-        <span class="k">return</span> <span class="n">output</span></div>
+        <span class="k">return</span> <span class="n">output</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_make_kernel</span><span class="p">(</span><span class="n">kernel_type</span><span class="p">,</span> <span class="n">ndim</span><span class="p">):</span>
