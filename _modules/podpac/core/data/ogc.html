@@ -195,373 +195,274 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">mul</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
-<span class="kn">from</span> <span class="nn">podpac.core.settings</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">cached_property</span>
-<span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">COMMON_DATA_DOC</span><span class="p">,</span> <span class="n">DataSource</span>
-<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="n">ArrayCoordinates1d</span>
+<span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">DataSource</span>
 <span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolation</span> <span class="kn">import</span> <span class="n">InterpolationMixin</span>
-
+<span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">NodeException</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span>
+<span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="n">ArrayCoordinates1d</span>
 
 <span class="c1"># Optional dependencies</span>
 <span class="kn">from</span> <span class="nn">lazy_import</span> <span class="kn">import</span> <span class="n">lazy_module</span><span class="p">,</span> <span class="n">lazy_class</span>
 
 <span class="n">bs4</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;bs4&quot;</span><span class="p">)</span>
 <span class="n">lxml</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;lxml&quot;</span><span class="p">)</span>  <span class="c1"># used by bs4 so want to check if it&#39;s available</span>
+<span class="n">owslib_wcs</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;owslib.wcs&quot;</span><span class="p">)</span>
 <span class="n">rasterio</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;rasterio&quot;</span><span class="p">)</span>
-<span class="n">requests</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;requests&quot;</span><span class="p">)</span>
-<span class="c1"># esri</span>
-<span class="n">RasterToNumPyArray</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;arcpy.RasterToNumPyArray&quot;</span><span class="p">)</span>
-<span class="n">urllib3</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;urllib3&quot;</span><span class="p">)</span>
-<span class="n">certifi</span> <span class="o">=</span> <span class="n">lazy_module</span><span class="p">(</span><span class="s2">&quot;certifi&quot;</span><span class="p">)</span>
 
 
-<span class="n">WCS_DEFAULT_VERSION</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
-<span class="n">WCS_DEFAULT_CRS</span> <span class="o">=</span> <span class="s2">&quot;EPSG:4326&quot;</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">WCSError</span><span class="p">(</span><span class="n">NodeException</span><span class="p">):</span>
+    <span class="k">pass</span>
 
 
 <span class="k">class</span> <span class="nc">WCSBase</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a DataSource from an OGC-compliant WCS service</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Access data from a WCS source.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-<span class="sd">    crs : &#39;str&#39;</span>
-<span class="sd">        Default is EPSG:4326 (WGS84 Geodic) EPSG number for the coordinate reference system that the data should</span>
-<span class="sd">        be returned in.</span>
-<span class="sd">    layer_name : str</span>
-<span class="sd">        Name of the WCS layer that should be fetched from the server</span>
 <span class="sd">    source : str</span>
-<span class="sd">        URL of the WCS server endpoint</span>
+<span class="sd">        WCS server url</span>
+<span class="sd">    layer : str</span>
+<span class="sd">        layer name (required)</span>
 <span class="sd">    version : str</span>
-<span class="sd">        Default is 1.0.0. WCS version string.</span>
-<span class="sd">    wcs_coordinates : :class:`podpac.Coordinates`</span>
-<span class="sd">        The coordinates of the WCS source</span>
+<span class="sd">        WCS version, passed through to all requests (default &#39;1.0.0&#39;)</span>
+<span class="sd">    format : str</span>
+<span class="sd">        Data format, passed through to the GetCoverage requests (default &#39;geotiff&#39;)</span>
+<span class="sd">    crs : str</span>
+<span class="sd">        coordinate reference system, passed through to the GetCoverage requests (default &#39;EPSG:4326&#39;)</span>
+<span class="sd">    interpolation : str</span>
+<span class="sd">        Interpolation, passed through to the GetCoverage requests. </span>
+<span class="sd">    max_size : int</span>
+<span class="sd">        maximum request size, optional.</span>
+<span class="sd">        If provided, the coordinates will be tiled into multiple requests.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">source</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">layer_name</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">version</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="n">WCS_DEFAULT_VERSION</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="n">WCS_DEFAULT_CRS</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">layer</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="c1"># list of attribute names, used by __repr__ and __str__ to display minimal info about the node</span>
-    <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;interpolation&quot;</span><span class="p">]</span>
+    <span class="nb">format</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">([</span><span class="s2">&quot;geotiff&quot;</span><span class="p">,</span> <span class="s2">&quot;geotiff_byte&quot;</span><span class="p">],</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;geotiff&quot;</span><span class="p">)</span>
+    <span class="n">crs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">)</span>
+    <span class="n">max_size</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Long</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="n">_get_capabilities_qs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="s2">&quot;SERVICE=WCS&amp;REQUEST=DescribeCoverage&amp;&quot;</span> <span class="s2">&quot;VERSION=</span><span class="si">{version}</span><span class="s2">&amp;COVERAGE=</span><span class="si">{layer}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">_get_data_qs</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span>
-        <span class="s2">&quot;SERVICE=WCS&amp;VERSION=</span><span class="si">{version}</span><span class="s2">&amp;REQUEST=GetCoverage&amp;&quot;</span>
-        <span class="s2">&quot;FORMAT=GeoTIFF&amp;COVERAGE=</span><span class="si">{layer}</span><span class="s2">&amp;&quot;</span>
-        <span class="s2">&quot;BBOX=</span><span class="si">{w}</span><span class="s2">,</span><span class="si">{s}</span><span class="s2">,</span><span class="si">{e}</span><span class="s2">,</span><span class="si">{n}</span><span class="s2">&amp;CRS=</span><span class="si">{crs}</span><span class="s2">&amp;RESPONSE_CRS=</span><span class="si">{crs}</span><span class="s2">&amp;&quot;</span>
-        <span class="s2">&quot;WIDTH=</span><span class="si">{width}</span><span class="s2">&amp;HEIGHT=</span><span class="si">{height}</span><span class="s2">&amp;TIME=</span><span class="si">{time}</span><span class="s2">&quot;</span>
-    <span class="p">)</span>
+    <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;layer&quot;</span><span class="p">]</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">capabilities_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Constructs the url that requests the WCS capabilities</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            The url that requests the WCS capabilities</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">+</span> <span class="s2">&quot;?&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_capabilities_qs</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">)</span>
+    <span class="n">_requested_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_evaluated_coordinates</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">Coordinates</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
-    <span class="k">def</span> <span class="nf">wcs_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Coordinates reported by the WCS service.</span>
+    <span class="k">def</span> <span class="nf">client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">owslib_wcs</span><span class="o">.</span><span class="n">WebCoverageService</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the full WCS grid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">contents</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">]</span>
+
+        <span class="c1"># TODO select correct boundingbox by crs</span>
+
+        <span class="c1"># coordinates</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">boundingBoxWGS84</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">lowlimits</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">highlimits</span>
+        <span class="n">xsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">high</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">low</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">ysize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">high</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">low</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">ysize</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">))</span>
+        <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">xsize</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">metadata</span><span class="o">.</span><span class="n">timepositions</span><span class="p">:</span>
+            <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">timepositions</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">metadata</span><span class="o">.</span><span class="n">timelimits</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;TODO&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluates this node using the supplied coordinates.</span>
+
+<span class="sd">        This method intercepts the DataSource._eval method in order to use the requested coordinates directly when</span>
+<span class="sd">        they are a uniform grid.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coordinates : :class:`podpac.Coordinates`</span>
+<span class="sd">            {requested_coordinates}</span>
+
+<span class="sd">            An exception is raised if the requested coordinates are missing dimensions in the DataSource.</span>
+<span class="sd">            Extra dimensions in the requested coordinates are dropped.</span>
+<span class="sd">        output : :class:`podpac.UnitsDataArray`, optional</span>
+<span class="sd">            {eval_output}</span>
+<span class="sd">        _selector: callable(coordinates, request_coordinates)</span>
+<span class="sd">            {eval_selector}</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Coordinates</span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        -------</span>
-<span class="sd">        This assumes a `time`, `lat`, `lon` order for the coordinates, and currently doesn&#39;t handle `alt` coordinates</span>
+<span class="sd">        {eval_return}</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
-<span class="sd">        Exception</span>
-<span class="sd">            Raises this if the required dependencies are not installed.</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            Cannot evaluate these coordinates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">requests</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">capabilities</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">capabilities_url</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">capabilities</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server&quot;</span><span class="p">)</span>
-            <span class="n">capabilities</span> <span class="o">=</span> <span class="n">capabilities</span><span class="o">.</span><span class="n">text</span>
+        <span class="c1"># the datasource does do this, but we need to do it here to correctly select the correct case</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
 
-        <span class="c1"># TODO: remove support urllib3 - requests is sufficient</span>
-        <span class="k">elif</span> <span class="n">urllib3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">certifi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">(</span><span class="n">ca_certs</span><span class="o">=</span><span class="n">certifi</span><span class="o">.</span><span class="n">where</span><span class="p">())</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">()</span>
-
-            <span class="n">r</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">capabilities_url</span><span class="p">)</span>
-            <span class="n">capabilities</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">data</span>
-            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server:&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">capabilities_url</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Do not have a URL request library to get WCS data.&quot;</span><span class="p">)</span>
-
+        <span class="c1"># for a uniform grid, use the requested coordinates (the WCS server will interpolate)</span>
         <span class="k">if</span> <span class="p">(</span>
-            <span class="n">lxml</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="p">):</span>  <span class="c1"># could skip using lxml and always use html.parser instead, which seems to work but lxml might be faster</span>
-            <span class="n">capabilities</span> <span class="o">=</span> <span class="n">bs4</span><span class="o">.</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">capabilities</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">capabilities</span> <span class="o">=</span> <span class="n">bs4</span><span class="o">.</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">capabilities</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+            <span class="p">(</span><span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span> <span class="ow">or</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span> <span class="ow">or</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">):</span>
 
-        <span class="n">domain</span> <span class="o">=</span> <span class="n">capabilities</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;wcs:spatialdomain&quot;</span><span class="p">)</span>
-        <span class="n">pos</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;gml:envelope&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_text</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-        <span class="n">lonlat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">grid_env</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;gml:gridenvelope&quot;</span><span class="p">)</span>
-        <span class="n">low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">grid_env</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;gml:low&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="nb">int</span><span class="p">)</span>
-        <span class="n">high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">grid_env</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;gml:high&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="nb">int</span><span class="p">)</span>
-        <span class="n">size</span> <span class="o">=</span> <span class="n">high</span> <span class="o">-</span> <span class="n">low</span>
-        <span class="n">dlondlat</span> <span class="o">=</span> <span class="p">(</span><span class="n">lonlat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">lonlat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span> <span class="o">/</span> <span class="n">size</span>
-        <span class="n">bottom</span> <span class="o">=</span> <span class="n">lonlat</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">dlondlat</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="n">top</span> <span class="o">=</span> <span class="n">lonlat</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">dlondlat</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="n">left</span> <span class="o">=</span> <span class="n">lonlat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">dlondlat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="n">right</span> <span class="o">=</span> <span class="n">lonlat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">dlondlat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">def</span> <span class="nf">selector</span><span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">coordinates</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">)</span>
 
-        <span class="n">timedomain</span> <span class="o">=</span> <span class="n">capabilities</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;wcs:temporaldomain&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">timedomain</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">),</span>
-                    <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">),</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">selector</span><span class="p">)</span>
 
-        <span class="n">date_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;[0-9]</span><span class="si">{4}</span><span class="s2">-[0-9]</span><span class="si">{2}</span><span class="s2">-[0-9]</span><span class="si">{2}</span><span class="s2">T[0-9]</span><span class="si">{2}</span><span class="s2">:[0-9]</span><span class="si">{2}</span><span class="s2">:[0-9]</span><span class="si">{2}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">times</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">timedomain</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;gml:timeposition&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;/gml:timeposition&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span> <span class="k">if</span> <span class="n">date_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">t</span><span class="p">)],</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)</span>
+        <span class="c1"># for uniform stacked, unstack to use the requested coordinates (the WCS server will interpolate)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">is_stacked</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">))</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">udims</span> <span class="ow">and</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">is_stacked</span><span class="p">(</span><span class="s2">&quot;lon&quot;</span><span class="p">))</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span> <span class="ow">or</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span> <span class="ow">or</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">):</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">),</span>
-                    <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">),</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
+            <span class="k">def</span> <span class="nf">selector</span><span class="p">(</span><span class="n">rsc</span><span class="p">,</span> <span class="n">rsci</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+                <span class="n">unstacked</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">unstack</span><span class="p">()</span>
+                <span class="n">unstacked</span> <span class="o">=</span> <span class="n">unstacked</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;alt&quot;</span><span class="p">,</span> <span class="n">ignore_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># if lat_lon_alt</span>
+                <span class="k">return</span> <span class="n">unstacked</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">unstacked</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span>
-            <span class="p">[</span>
-                <span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">),</span>
-                <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">),</span>
-                <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">),</span>
-            <span class="p">]</span>
-        <span class="p">)</span>
-
-    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;{get_coordinates}</span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        ------</span>
-<span class="sd">        This is a little tricky and doesn&#39;t fit into the usual PODPAC method, as the service is actually doing the</span>
-<span class="sd">        data wrangling for us...</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># TODO update so that we don&#39;t rely on _requested_coordinates if possible</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wcs_coordinates</span>
-
-        <span class="n">cs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">wcs_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-                <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requested_coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ArrayCoordinates1d</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">dim</span><span class="p">))</span>
-                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">):</span>
-                    <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">step</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="n">dim</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># TODO: generalize/fix this</span>
-                    <span class="c1"># WCS calls require a regular grid, could (otherwise we have to do multiple WCS calls)</span>
-                    <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">dim</span><span class="p">))</span>
+            <span class="n">udata</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">selector</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">udata</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()</span>  <span class="c1"># get just the stacked data</span>
+            <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wcs_coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">])</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">c</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="k">return</span> <span class="n">output</span>
 
-    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
+        <span class="c1"># otherwise, pass-through (podpac will select and interpolate)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">_selector</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;{get_data}</span>
 
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        Exception</span>
-<span class="sd">            Raises this if there is a network error or required dependencies are not installed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># transpose the coordinates to match the response data</span>
+        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">:</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">)</span>
+
+        <span class="c1"># determine the chunk size (if applicable)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">//</span> <span class="n">s</span>
+                <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">:</span>
+                    <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                <span class="n">s</span> <span class="o">*=</span> <span class="n">n</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># request each chunk and composite the data</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
-        <span class="n">dotime</span> <span class="o">=</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">wcs_coordinates</span><span class="o">.</span><span class="n">dims</span>
-
-        <span class="n">wbound</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
-        <span class="n">ebound</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
-        <span class="n">sbound</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
-        <span class="n">nbound</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
-
-        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="n">dotime</span><span class="p">:</span>
-            <span class="n">sd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">)</span>
-            <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="n">sd</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">times</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">time</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
-                <span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
-                    <span class="o">+</span> <span class="s2">&quot;?&quot;</span>
-                    <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data_qs</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
-                        <span class="n">layer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span>
-                        <span class="n">w</span><span class="o">=</span><span class="n">wbound</span><span class="p">,</span>
-                        <span class="n">e</span><span class="o">=</span><span class="n">ebound</span><span class="p">,</span>
-                        <span class="n">s</span><span class="o">=</span><span class="n">sbound</span><span class="p">,</span>
-                        <span class="n">n</span><span class="o">=</span><span class="n">nbound</span><span class="p">,</span>
-                        <span class="n">width</span><span class="o">=</span><span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
-                        <span class="n">height</span><span class="o">=</span><span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
-                        <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span>
-                        <span class="n">crs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">dotime</span><span class="p">:</span>
-                    <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&amp;TIME=&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="n">requests</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get data from WCS server:&quot;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
-                    <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
-                    <span class="n">content</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">content</span>
-
-                <span class="c1"># TODO: remove support urllib3 - requests is sufficient</span>
-                <span class="k">elif</span> <span class="n">urllib3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">certifi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">(</span><span class="n">ca_certs</span><span class="o">=</span><span class="n">certifi</span><span class="o">.</span><span class="n">where</span><span class="p">())</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">()</span>
-                    <span class="n">r</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server:&quot;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
-                    <span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">data</span>
-                    <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Do not have a URL request library to get WCS data.&quot;</span><span class="p">)</span>
-
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="k">try</span><span class="p">:</span>  <span class="c1"># This works with rasterio v1.0a8 or greater, but not on python 2</span>
-                        <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
-                            <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># Probably python 2</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-                        <span class="n">tmppath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">cache_path</span><span class="p">,</span> <span class="s2">&quot;wcs_temp.tiff&quot;</span><span class="p">)</span>
-
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span>
-                            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-
-                        <span class="c1"># TODO: close tmppath? os does this on remove?</span>
-                        <span class="nb">open</span><span class="p">(</span><span class="n">tmppath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
-
-                        <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
-                            <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-
-                        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)</span>  <span class="c1"># Clean up</span>
-
-                <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                    <span class="c1"># Writing the data to a temporary tiff and reading it from there is hacky</span>
-                    <span class="c1"># However reading directly from r.data or io doesn&#39;t work</span>
-                    <span class="c1"># Should improve in the future</span>
-                    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;temp.tiff&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-                    <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">RasterToNumPyArray</span><span class="p">(</span><span class="s2">&quot;temp.tiff&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">time</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-            <span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
-                <span class="o">+</span> <span class="s2">&quot;?&quot;</span>
-                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data_qs</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
-                    <span class="n">layer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span>
-                    <span class="n">w</span><span class="o">=</span><span class="n">wbound</span><span class="p">,</span>
-                    <span class="n">e</span><span class="o">=</span><span class="n">ebound</span><span class="p">,</span>
-                    <span class="n">s</span><span class="o">=</span><span class="n">sbound</span><span class="p">,</span>
-                    <span class="n">n</span><span class="o">=</span><span class="n">nbound</span><span class="p">,</span>
-                    <span class="n">width</span><span class="o">=</span><span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
-                    <span class="n">height</span><span class="o">=</span><span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
-                    <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span>
-                    <span class="n">crs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">dotime</span><span class="p">:</span>
-                <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&amp;TIME=&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">requests</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get data from WCS server:&quot;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
-                <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
-                <span class="n">content</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">content</span>
-
-            <span class="c1"># TODO: remove support urllib3 - requests is sufficient</span>
-            <span class="k">elif</span> <span class="n">urllib3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">certifi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">(</span><span class="n">ca_certs</span><span class="o">=</span><span class="n">certifi</span><span class="o">.</span><span class="n">where</span><span class="p">())</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">()</span>
-                <span class="n">r</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not get capabilities from WCS server:&quot;</span> <span class="o">+</span> <span class="n">url</span><span class="p">)</span>
-                <span class="n">content</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">data</span>
-                <span class="n">io</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Do not have a URL request library to get WCS data.&quot;</span><span class="p">)</span>
-
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>  <span class="c1"># This works with rasterio v1.0a8 or greater, but not on python 2</span>
-                    <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">dotime</span><span class="p">:</span>
-                            <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># Probably python 2</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-                    <span class="n">tmppath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">cache_path</span><span class="p">,</span> <span class="s2">&quot;wcs_temp.tiff&quot;</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="nb">open</span><span class="p">(</span><span class="n">tmppath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
-                    <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset</span><span class="p">:</span>
-                        <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmppath</span><span class="p">)</span>  <span class="c1"># Clean up</span>
-            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                <span class="c1"># Writing the data to a temporary tiff and reading it from there is hacky</span>
-                <span class="c1"># However reading directly from r.data or io doesn&#39;t work</span>
-                <span class="c1"># Should improve in the future</span>
-                <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;temp.tiff&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">RasterToNumPyArray</span><span class="p">(</span><span class="s2">&quot;temp.tiff&quot;</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Rasterio or Arcpy not available to read WCS feed.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_descending</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">dotime</span><span class="p">:</span>
-                <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">for</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">slc</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">iterchunks</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">return_slices</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">output</span><span class="p">[</span><span class="n">slc</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">output</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">base_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; definition base_ref &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">WCSBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">base_ref</span>
+    <span class="k">def</span> <span class="nf">_get_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span> <span class="o">+</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span> <span class="o">+</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+        <span class="n">width</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;interpolation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolation</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;WCS GetCoverage (source=</span><span class="si">%s</span><span class="s2">, layer=</span><span class="si">%s</span><span class="s2">, bbox=</span><span class="si">%s</span><span class="s2">, shape=</span><span class="si">%s</span><span class="s2">)&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+        <span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">getCoverage</span><span class="p">(</span>
+            <span class="n">identifier</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">,</span>
+            <span class="n">bbox</span><span class="o">=</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+            <span class="n">crs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">crs</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+            <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="c1"># check for errors</span>
+        <span class="n">xml</span> <span class="o">=</span> <span class="n">bs4</span><span class="o">.</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;serviceexception&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">WCSError</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="c1"># get data using rasterio</span>
+        <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">MemoryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">mf</span><span class="p">:</span>
+            <span class="n">mf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">mf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">driver</span><span class="o">=</span><span class="s2">&quot;GTiff&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="n">coordinates</span> <span class="ow">and</span> <span class="n">coordinates</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># this should be easy to do, I&#39;m just not sure how the data comes back.</span>
+            <span class="c1"># is each time in a different band?</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;TODO&quot;</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_layers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">source</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">owslib_wcs</span><span class="o">.</span><span class="n">WebCoverageService</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">contents</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="WCS"><a class="viewcode-back" href="../../../../api/podpac.data.WCS.html#podpac.data.WCS">[docs]</a><span class="k">class</span> <span class="nc">WCS</span><span class="p">(</span><span class="n">InterpolationMixin</span><span class="p">,</span> <span class="n">WCSBase</span><span class="p">):</span>

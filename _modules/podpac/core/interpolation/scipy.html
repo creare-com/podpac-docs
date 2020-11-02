@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.interpolation.interpolators &mdash; 2.3.0</title>
+  <title>podpac.core.interpolation.scipy &mdash; 2.3.0</title>
   
 
   
@@ -21,7 +21,7 @@
   
   
   
-    <link rel="canonical" href="https://podpac.org_modules/podpac/core/interpolation/interpolators.html"/>
+    <link rel="canonical" href="https://podpac.org_modules/podpac/core/interpolation/scipy.html"/>
   
 
   
@@ -173,7 +173,7 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>podpac.core.interpolation.interpolators</li>
+      <li>podpac.core.interpolation.scipy</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -188,24 +188,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for podpac.core.interpolation.interpolators</h1><div class="highlight"><pre>
+  <h1>Source code for podpac.core.interpolation.scipy</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Interpolator implementations</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
-<span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">string_types</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
 
 <span class="c1"># Optional dependencies</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">rasterio</span>
-    <span class="kn">from</span> <span class="nn">rasterio</span> <span class="kn">import</span> <span class="n">transform</span>
-    <span class="kn">from</span> <span class="nn">rasterio.warp</span> <span class="kn">import</span> <span class="n">reproject</span><span class="p">,</span> <span class="n">Resampling</span>
-<span class="k">except</span><span class="p">:</span>
-    <span class="n">rasterio</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">scipy</span>
     <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">griddata</span><span class="p">,</span> <span class="n">RectBivariateSpline</span><span class="p">,</span> <span class="n">RegularGridInterpolator</span>
@@ -219,277 +212,6 @@
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">,</span> <span class="n">StackedCoordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates.utils</span> <span class="kn">import</span> <span class="n">get_timedelta</span>
-
-
-<div class="viewcode-block" id="NearestNeighbor"><a class="viewcode-back" href="../../../../api/podpac.interpolators.NearestNeighbor.html#podpac.interpolators.NearestNeighbor">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">NearestNeighbor</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Nearest Neighbor Interpolation</span>
-
-<span class="sd">    {nearest_neighbor_attributes}</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">dims_supported</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;alt&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">]</span>
-    <span class="n">methods_supported</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nearest&quot;</span><span class="p">]</span>
-
-    <span class="c1"># defined at instantiation</span>
-    <span class="n">method</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span>
-    <span class="n">spatial_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">time_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)])</span>
-
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">rep</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">NearestNeighbor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
-        <span class="c1"># rep += &#39;\n\tspatial_tolerance: {}\n\ttime_tolerance: {}&#39;.format(self.spatial_tolerance, self.time_tolerance)</span>
-        <span class="k">return</span> <span class="n">rep</span>
-
-<div class="viewcode-block" id="NearestNeighbor.can_interpolate"><a class="viewcode-back" href="../../../../api/podpac.interpolators.NearestNeighbor.html#podpac.interpolators.NearestNeighbor.can_interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        {interpolator_interpolate}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">udims_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_udims_supported</span><span class="p">(</span><span class="n">udims</span><span class="p">)</span>
-
-        <span class="c1"># confirm that udims are in both source and eval coordinates</span>
-        <span class="c1"># TODO: handle stacked coordinates</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_in</span><span class="p">(</span><span class="n">udims_subset</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">udims_subset</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
-
-<div class="viewcode-block" id="NearestNeighbor.interpolate"><a class="viewcode-back" href="../../../../api/podpac.interpolators.NearestNeighbor.html#podpac.interpolators.NearestNeighbor.interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        {interpolator_interpolate}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">indexers</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="c1"># select dimensions common to eval_coordinates and udims</span>
-        <span class="c1"># TODO: this is sort of convoluted implementation</span>
-        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-
-            <span class="c1"># TODO: handle stacked coordinates</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eval_coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">],</span> <span class="n">StackedCoordinates</span><span class="p">):</span>
-
-                <span class="c1"># udims within stacked dims that are in the input udims</span>
-                <span class="n">udims_in_stack</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">udims</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">eval_coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span>
-
-                <span class="c1"># TODO: how do we choose a dimension to use from the stacked coordinates?</span>
-                <span class="c1"># For now, choose the first coordinate found in the udims definition</span>
-                <span class="k">if</span> <span class="n">udims_in_stack</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">InterpolatorException</span><span class="p">(</span><span class="s2">&quot;Nearest interpolation does not yet support stacked dimensions&quot;</span><span class="p">)</span>
-                    <span class="c1"># dim = udims_in_stack[0]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">continue</span>
-
-            <span class="c1"># TODO: handle if the source coordinates contain `dim` within a stacked coordinate</span>
-            <span class="k">elif</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">InterpolatorException</span><span class="p">(</span><span class="s2">&quot;Nearest interpolation does not yet support stacked dimensions&quot;</span><span class="p">)</span>
-
-            <span class="k">elif</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">udims</span><span class="p">:</span>
-                <span class="k">continue</span>
-
-            <span class="c1"># set tolerance value based on dim type</span>
-            <span class="n">tolerance</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="s2">&quot;time&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_tolerance</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_tolerance</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">time_tolerance</span> <span class="o">=</span> <span class="n">get_timedelta</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_tolerance</span><span class="p">)</span>
-                <span class="n">tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_tolerance</span>
-            <span class="k">elif</span> <span class="n">dim</span> <span class="o">!=</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span>
-                <span class="n">tolerance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_tolerance</span>
-
-            <span class="c1"># reindex using xarray</span>
-            <span class="n">indexer</span> <span class="o">=</span> <span class="p">{</span><span class="n">dim</span><span class="p">:</span> <span class="n">eval_coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">copy</span><span class="p">()}</span>
-            <span class="n">indexers</span> <span class="o">+=</span> <span class="p">[</span><span class="n">dim</span><span class="p">]</span>
-            <span class="n">source_data</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s2">&quot;nearest&quot;</span><span class="p">),</span> <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">,</span> <span class="o">**</span><span class="n">indexer</span><span class="p">)</span>
-
-        <span class="c1"># at this point, output_data and eval_coordinates have the same dim order</span>
-        <span class="c1"># this transpose makes sure the source_data has the same dim order as the eval coordinates</span>
-        <span class="n">eval_dims</span> <span class="o">=</span> <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">dims</span>
-        <span class="n">output_data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">part_transpose</span><span class="p">(</span><span class="n">eval_dims</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">output_data</span></div></div>
-
-
-<div class="viewcode-block" id="NearestPreview"><a class="viewcode-back" href="../../../../api/podpac.interpolators.NearestPreview.html#podpac.interpolators.NearestPreview">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">NearestPreview</span><span class="p">(</span><span class="n">NearestNeighbor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Nearest Neighbor (Preview) Interpolation</span>
-
-<span class="sd">    {nearest_neighbor_attributes}</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">methods_supported</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nearest_preview&quot;</span><span class="p">]</span>
-    <span class="n">method</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;nearest_preview&quot;</span><span class="p">)</span>
-    <span class="n">spatial_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-<div class="viewcode-block" id="NearestPreview.can_select"><a class="viewcode-back" href="../../../../api/podpac.interpolators.NearestPreview.html#podpac.interpolators.NearestPreview.can_select">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">can_select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        {interpolator_can_select}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">udims_subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_udims_supported</span><span class="p">(</span><span class="n">udims</span><span class="p">)</span>
-
-        <span class="c1"># confirm that udims are in both source and eval coordinates</span>
-        <span class="c1"># TODO: handle stacked coordinates</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_in</span><span class="p">(</span><span class="n">udims_subset</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">udims_subset</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
-
-<div class="viewcode-block" id="NearestPreview.select_coordinates"><a class="viewcode-back" href="../../../../api/podpac.interpolators.NearestPreview.html#podpac.interpolators.NearestPreview.select_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        {interpolator_select}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">new_coords</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">new_coords_idx</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="c1"># iterate over the source coordinate dims in case they are stacked</span>
-        <span class="k">for</span> <span class="n">src_dim</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">):</span>
-
-            <span class="c1"># TODO: handle stacked coordinates</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">[</span><span class="n">src_dim</span><span class="p">],</span> <span class="n">StackedCoordinates</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">InterpolatorException</span><span class="p">(</span><span class="s2">&quot;NearestPreview select does not yet support stacked dimensions&quot;</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">src_dim</span> <span class="ow">in</span> <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-                <span class="n">src_coords</span> <span class="o">=</span> <span class="n">source_coordinates</span><span class="p">[</span><span class="n">src_dim</span><span class="p">]</span>
-                <span class="n">dst_coords</span> <span class="o">=</span> <span class="n">eval_coordinates</span><span class="p">[</span><span class="n">src_dim</span><span class="p">]</span>
-
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dst_coords</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">):</span>
-                    <span class="n">dst_start</span> <span class="o">=</span> <span class="n">dst_coords</span><span class="o">.</span><span class="n">start</span>
-                    <span class="n">dst_stop</span> <span class="o">=</span> <span class="n">dst_coords</span><span class="o">.</span><span class="n">stop</span>
-                    <span class="n">dst_delta</span> <span class="o">=</span> <span class="n">dst_coords</span><span class="o">.</span><span class="n">step</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">dst_start</span> <span class="o">=</span> <span class="n">dst_coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="n">dst_stop</span> <span class="o">=</span> <span class="n">dst_coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">):</span>
-                        <span class="n">dst_delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">dst_stop</span> <span class="o">-</span> <span class="n">dst_start</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">dst_coords</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src_coords</span><span class="p">,</span> <span class="n">UniformCoordinates1d</span><span class="p">):</span>
-                    <span class="n">src_start</span> <span class="o">=</span> <span class="n">src_coords</span><span class="o">.</span><span class="n">start</span>
-                    <span class="n">src_stop</span> <span class="o">=</span> <span class="n">src_coords</span><span class="o">.</span><span class="n">stop</span>
-                    <span class="n">src_delta</span> <span class="o">=</span> <span class="n">src_coords</span><span class="o">.</span><span class="n">step</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">src_start</span> <span class="o">=</span> <span class="n">src_coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="n">src_stop</span> <span class="o">=</span> <span class="n">src_coords</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">):</span>
-                        <span class="n">src_delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">src_stop</span> <span class="o">-</span> <span class="n">src_start</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">src_coords</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-
-                <span class="n">ndelta</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dst_delta</span> <span class="o">/</span> <span class="n">src_delta</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">src_coords</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">c</span> <span class="o">=</span> <span class="n">src_coords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">c</span> <span class="o">=</span> <span class="n">UniformCoordinates1d</span><span class="p">(</span><span class="n">src_start</span><span class="p">,</span> <span class="n">src_stop</span><span class="p">,</span> <span class="n">ndelta</span> <span class="o">*</span> <span class="n">src_delta</span><span class="p">,</span> <span class="o">**</span><span class="n">src_coords</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
-                    <span class="n">idx</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">idx</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">ndelta</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">idx</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idx</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">ndelta</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">c</span> <span class="o">=</span> <span class="n">source_coordinates</span><span class="p">[</span><span class="n">src_dim</span><span class="p">]</span>
-
-            <span class="n">new_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-            <span class="n">new_coords_idx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">Coordinates</span><span class="p">(</span><span class="n">new_coords</span><span class="p">,</span> <span class="n">validate_crs</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_coords_idx</span><span class="p">)</span></div></div>
-
-
-<div class="viewcode-block" id="Rasterio"><a class="viewcode-back" href="../../../../api/podpac.interpolators.Rasterio.html#podpac.interpolators.Rasterio">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Rasterio</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Rasterio Interpolation</span>
-
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    {interpolator_attributes}</span>
-<span class="sd">    rasterio_interpolators : list of str</span>
-<span class="sd">        Interpolator methods available via rasterio</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">methods_supported</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;bilinear&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;cubic&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;cubic_spline&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;lanczos&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;average&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;mode&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;gauss&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;max&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;min&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;med&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;q1&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;q3&quot;</span><span class="p">,</span>
-    <span class="p">]</span>
-    <span class="n">method</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span>
-
-    <span class="c1"># TODO: implement these parameters for the method &#39;nearest&#39;</span>
-    <span class="n">spatial_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
-    <span class="n">time_tolerance</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Union</span><span class="p">([</span><span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(),</span> <span class="n">tl</span><span class="o">.</span><span class="n">Instance</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)])</span>
-
-    <span class="c1"># TODO: support &#39;gauss&#39; method?</span>
-
-<div class="viewcode-block" id="Rasterio.can_interpolate"><a class="viewcode-back" href="../../../../api/podpac.interpolators.Rasterio.html#podpac.interpolators.Rasterio.can_interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;{interpolator_can_interpolate}&quot;&quot;&quot;</span>
-
-        <span class="c1"># TODO: make this so we don&#39;t need to specify lat and lon together</span>
-        <span class="c1"># or at least throw a warning</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="s2">&quot;lat&quot;</span> <span class="ow">in</span> <span class="n">udims</span>
-            <span class="ow">and</span> <span class="s2">&quot;lon&quot;</span> <span class="ow">in</span> <span class="n">udims</span>
-            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_in</span><span class="p">([</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">],</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">)</span>
-            <span class="ow">and</span> <span class="n">source_coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span>
-            <span class="ow">and</span> <span class="n">source_coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span>
-            <span class="ow">and</span> <span class="n">eval_coordinates</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span>
-            <span class="ow">and</span> <span class="n">eval_coordinates</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">is_uniform</span>
-        <span class="p">):</span>
-
-            <span class="k">return</span> <span class="n">udims</span>
-
-        <span class="c1"># otherwise return no supported dims</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">()</span></div>
-
-<div class="viewcode-block" id="Rasterio.interpolate"><a class="viewcode-back" href="../../../../api/podpac.interpolators.Rasterio.html#podpac.interpolators.Rasterio.interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        {interpolator_interpolate}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># TODO: handle when udims does not contain both lat and lon</span>
-        <span class="c1"># if the source data has more dims than just lat/lon is asked, loop over those dims and run the interpolation</span>
-        <span class="c1"># on those grids</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">source_data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">keep_dims</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loop_helper</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">interpolate</span><span class="p">,</span> <span class="n">keep_dims</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span>
-            <span class="p">)</span>
-
-        <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">Env</span><span class="p">():</span>
-            <span class="n">src_transform</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">Affine</span><span class="o">.</span><span class="n">from_gdal</span><span class="p">(</span><span class="o">*</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">geotransform</span><span class="p">)</span>
-            <span class="n">src_crs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;init&quot;</span><span class="p">:</span> <span class="n">source_coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">}</span>
-            <span class="c1"># Need to make sure array is c-contiguous</span>
-            <span class="n">source</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">source_data</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-
-            <span class="n">dst_transform</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">Affine</span><span class="o">.</span><span class="n">from_gdal</span><span class="p">(</span><span class="o">*</span><span class="n">eval_coordinates</span><span class="o">.</span><span class="n">geotransform</span><span class="p">)</span>
-            <span class="n">dst_crs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;init&quot;</span><span class="p">:</span> <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">crs</span><span class="p">}</span>
-            <span class="c1"># Need to make sure array is c-contiguous</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">output_data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flags</span><span class="p">[</span><span class="s2">&quot;C_CONTIGUOUS&quot;</span><span class="p">]:</span>
-                <span class="n">destination</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">output_data</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">destination</span> <span class="o">=</span> <span class="n">output_data</span><span class="o">.</span><span class="n">data</span>
-
-            <span class="n">reproject</span><span class="p">(</span>
-                <span class="n">source</span><span class="p">,</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">destination</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()),</span>  <span class="c1"># Needed for legacy compatibility</span>
-                <span class="n">src_transform</span><span class="o">=</span><span class="n">src_transform</span><span class="p">,</span>
-                <span class="n">src_crs</span><span class="o">=</span><span class="n">src_crs</span><span class="p">,</span>
-                <span class="n">src_nodata</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
-                <span class="n">dst_transform</span><span class="o">=</span><span class="n">dst_transform</span><span class="p">,</span>
-                <span class="n">dst_crs</span><span class="o">=</span><span class="n">dst_crs</span><span class="p">,</span>
-                <span class="n">dst_nodata</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
-                <span class="n">resampling</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">Resampling</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">),</span>
-            <span class="p">)</span>
-            <span class="n">output_data</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">destination</span>
-
-        <span class="k">return</span> <span class="n">output_data</span></div></div>
 
 
 <div class="viewcode-block" id="ScipyPoint"><a class="viewcode-back" href="../../../../api/podpac.interpolators.ScipyPoint.html#podpac.interpolators.ScipyPoint">[docs]</a><span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>

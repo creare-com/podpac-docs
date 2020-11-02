@@ -190,18 +190,21 @@
             
   <h1>Source code for podpac.core.interpolation.interpolation_manager</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">string_types</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+
 
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">podpac.core.units</span> <span class="kn">import</span> <span class="n">UnitsDataArray</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">merge_dims</span>
 <span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolator</span> <span class="kn">import</span> <span class="n">Interpolator</span>
-<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolators</span> <span class="kn">import</span> <span class="n">NearestNeighbor</span><span class="p">,</span> <span class="n">NearestPreview</span><span class="p">,</span> <span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyPoint</span><span class="p">,</span> <span class="n">ScipyGrid</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.nearest_neighbor</span> <span class="kn">import</span> <span class="n">NearestNeighbor</span><span class="p">,</span> <span class="n">NearestPreview</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.rasterio</span> <span class="kn">import</span> <span class="n">Rasterio</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation.scipy</span> <span class="kn">import</span> <span class="n">ScipyPoint</span><span class="p">,</span> <span class="n">ScipyGrid</span>
 
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -295,15 +298,15 @@
     <span class="n">config</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># container for interpolation methods for each dimension</span>
     <span class="n">_last_interpolator_queue</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># container for the last run interpolator queue - useful for debugging</span>
     <span class="n">_last_select_queue</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># container for the last run select queue - useful for debugging</span>
+    <span class="n">_interpolation_params</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="n">INTERPOLATION_DEFAULT</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_params</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="c1"># if definition is None, set to default</span>
-        <span class="c1"># TODO: do we want to always have a default for interpolation?</span>
-        <span class="c1"># Or should there be an option to turn off interpolation?</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">definition</span> <span class="o">=</span> <span class="n">INTERPOLATION_DEFAULT</span>
 
@@ -338,17 +341,17 @@
                             <span class="o">+</span> <span class="s2">&quot;multiple times in interpolation definition </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">interp_definition</span><span class="p">)</span>
                         <span class="p">)</span>
                 <span class="c1"># add all udims to definition</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
 
             <span class="c1"># set default if its not been specified in the dict</span>
             <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">,)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
 
                 <span class="n">default_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_interpolation_method</span><span class="p">(</span><span class="n">INTERPOLATION_DEFAULT</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">((</span><span class="s2">&quot;default&quot;</span><span class="p">,),</span> <span class="n">default_method</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">((</span><span class="s2">&quot;default&quot;</span><span class="p">,),</span> <span class="n">default_method</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
             <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_interpolation_method</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">((</span><span class="s2">&quot;default&quot;</span><span class="p">,),</span> <span class="n">method</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_interpolation_method</span><span class="p">((</span><span class="s2">&quot;default&quot;</span><span class="p">,),</span> <span class="n">method</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
@@ -516,8 +519,12 @@
 
         <span class="n">definition</span><span class="p">[</span><span class="s2">&quot;interpolators&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolators</span>
 
+        <span class="c1"># Record parameters to make sure they are being captured</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">params</span><span class="p">})</span>
+
         <span class="c1"># set to interpolation configuration for dims</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="n">udims</span><span class="p">]</span> <span class="o">=</span> <span class="n">definition</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span>
 
     <span class="k">def</span> <span class="nf">_select_interpolator_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">select_method</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create interpolator queue based on interpolation configuration and requested/native source_coordinates</span>
@@ -593,7 +600,7 @@
         <span class="c1"># TODO: adjust by interpolation cost</span>
         <span class="k">return</span> <span class="n">interpolator_queue</span>
 
-    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_coordinates_index</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Select a subset or coordinates if interpolator can downselect.</span>
 
@@ -605,9 +612,6 @@
 <span class="sd">        ----------</span>
 <span class="sd">        source_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Intersected source coordinates</span>
-<span class="sd">        source_coordinates_index : list</span>
-<span class="sd">            Index of intersected source coordinates. See :class:`podpac.data.DataSource` for</span>
-<span class="sd">            more information about valid values for the source_coordinates_index</span>
 <span class="sd">        eval_coordinates : :class:`podpac.Coordinates`</span>
 <span class="sd">            Requested coordinates to evaluate</span>
 
@@ -621,21 +625,20 @@
         <span class="c1"># TODO: short circuit if source_coordinates contains eval_coordinates</span>
         <span class="c1"># short circuit if source and eval coordinates are the same</span>
         <span class="k">if</span> <span class="n">source_coordinates</span> <span class="o">==</span> <span class="n">eval_coordinates</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">source_coordinates_index</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
 
         <span class="n">interpolator_queue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_interpolator_queue</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="s2">&quot;can_select&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_select_queue</span> <span class="o">=</span> <span class="n">interpolator_queue</span>
 
         <span class="n">selected_coords</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">)</span>
-        <span class="n">selected_coords_idx</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">source_coordinates_index</span><span class="p">)</span>
-
+        <span class="n">selected_coords_idx</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">source_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">udims</span> <span class="ow">in</span> <span class="n">interpolator_queue</span><span class="p">:</span>
             <span class="n">interpolator</span> <span class="o">=</span> <span class="n">interpolator_queue</span><span class="p">[</span><span class="n">udims</span><span class="p">]</span>
 
             <span class="c1"># run interpolation. mutates selected coordinates and selected coordinates index</span>
             <span class="n">selected_coords</span><span class="p">,</span> <span class="n">selected_coords_idx</span> <span class="o">=</span> <span class="n">interpolator</span><span class="o">.</span><span class="n">select_coordinates</span><span class="p">(</span>
-                <span class="n">udims</span><span class="p">,</span> <span class="n">selected_coords</span><span class="p">,</span> <span class="n">selected_coords_idx</span><span class="p">,</span> <span class="n">eval_coordinates</span>
+                <span class="n">udims</span><span class="p">,</span> <span class="n">selected_coords</span><span class="p">,</span> <span class="n">eval_coordinates</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">selected_coords</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">selected_coords_idx</span><span class="p">)</span>
@@ -677,10 +680,10 @@
                 <span class="p">)</span>
             <span class="k">return</span> <span class="n">output_data</span>
 
-        <span class="c1"># drop already-selected output variable</span>
-        <span class="k">if</span> <span class="s2">&quot;output&quot;</span> <span class="ow">in</span> <span class="n">output_data</span><span class="o">.</span><span class="n">coords</span><span class="p">:</span>
-            <span class="n">source_data</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
-            <span class="n">output_data</span> <span class="o">=</span> <span class="n">output_data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
+        <span class="c1">## drop already-selected output variable</span>
+        <span class="c1"># if &quot;output&quot; in output_data.coords:</span>
+        <span class="c1"># source_data = source_data.drop(&quot;output&quot;)</span>
+        <span class="c1"># output_data = output_data.drop(&quot;output&quot;)</span>
 
         <span class="c1"># TODO does this allow undesired extrapolation?</span>
         <span class="c1"># short circuit if the source data and requested coordinates are of shape == 1</span>
@@ -691,7 +694,9 @@
         <span class="c1"># short circuit if source_coordinates contains eval_coordinates</span>
         <span class="k">if</span> <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">output_data</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output_data</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output_data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+                <span class="n">output_data</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">output_data</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+                    <span class="o">*</span><span class="n">output_data</span><span class="o">.</span><span class="n">dims</span>
+                <span class="p">)</span>
             <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
                 <span class="n">output_data</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output_data</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output_data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">output_data</span>
@@ -703,10 +708,18 @@
         <span class="c1"># for debugging purposes, save the last defined interpolator queue</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_interpolator_queue</span> <span class="o">=</span> <span class="n">interpolator_queue</span>
 
+        <span class="c1"># reset interpolation parameters</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_params</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
         <span class="c1"># iterate through each dim tuple in the queue</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">output_data</span><span class="o">.</span><span class="n">dtype</span>
         <span class="k">for</span> <span class="n">udims</span><span class="p">,</span> <span class="n">interpolator</span> <span class="ow">in</span> <span class="n">interpolator_queue</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="c1"># TODO move the above short-circuits into this loop</span>
+
+            <span class="c1"># Check if parameters are being used</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">interpolator</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
 
             <span class="c1"># interp_coordinates are essentially intermediate eval_coordinates</span>
             <span class="n">interp_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">source_coordinates</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">udims</span><span class="p">)]</span>
@@ -722,6 +735,12 @@
             <span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">interp_coordinates</span>
 
         <span class="n">output_data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">interp_data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output_data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+
+        <span class="c1"># Throw warnings for unused parameters</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_params</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The interpolation parameter &#39;</span><span class="si">{}</span><span class="s2">&#39; was ignored during interpolation.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">output_data</span>
 
