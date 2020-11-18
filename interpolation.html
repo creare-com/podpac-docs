@@ -119,6 +119,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#as-a-list">…as a list</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#interpolators">Interpolators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#nearestneighbor">NearestNeighbor</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#advanced-nearestneighbor-interpolation-examples">Advanced NearestNeighbor Interpolation Examples</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#notes-and-caveats">Notes and Caveats</a></li>
 </ul>
 </li>
@@ -263,12 +271,148 @@ increased granularity, and even lets users write their own interpolators.</p>
 <li><p><strong>Descripition</strong>: The dimensions listed in the <code class="docutils literal notranslate"><span class="pre">'dims'</span></code> list will used the specified method. These dictionaries can also specify the same field shown in the previous section.</p></li>
 <li><p><strong>Details</strong>: PODPAC loops through the <code class="docutils literal notranslate"><span class="pre">interpolation</span></code> list, using the settings specified for each dimension independently.</p></li>
 </ul>
+<p><strong>NOTE! Specifying the interpolation as a list also control the ORDER of interpolation.</strong>
+The first item in the list will be interpolated first. In this case, <code class="docutils literal notranslate"><span class="pre">lat</span></code>/<code class="docutils literal notranslate"><span class="pre">lon</span></code> will be bilinearly interpolated BEFORE <code class="docutils literal notranslate"><span class="pre">time</span></code> is nearest-neighbor interpolated.</p>
+</div>
+</div>
+<div class="section" id="interpolators">
+<h2>Interpolators<a class="headerlink" href="#interpolators" title="Permalink to this headline">¶</a></h2>
+<p>The list of available interpolators are as follows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NearestNeighbor</span></code>: A custom implementation based on <code class="docutils literal notranslate"><span class="pre">scipy.cKDtree</span></code>, which handles nearly any combination of source and destination coordinates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">XarrayInterpolator</span></code>: A light-weight wrapper around <code class="docutils literal notranslate"><span class="pre">xarray</span></code>’s <code class="docutils literal notranslate"><span class="pre">DataArray.interp</span></code> method, which is itself a wrapper around <code class="docutils literal notranslate"><span class="pre">scipy</span></code> interpolation functions, but with a clean <code class="docutils literal notranslate"><span class="pre">xarray</span></code> interface</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Rasterio</span></code>: A wrapper around <code class="docutils literal notranslate"><span class="pre">rasterio</span></code>’s interpolation/reprojection routines. Appropriate for grid-to-grid interpolation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ScipyGrid</span></code>: An optimized implementation for <code class="docutils literal notranslate"><span class="pre">grid</span></code> sources that uses <code class="docutils literal notranslate"><span class="pre">scipy</span></code>’s <code class="docutils literal notranslate"><span class="pre">RegularGridInterpolator</span></code>, or <code class="docutils literal notranslate"><span class="pre">RectBivariateSplit</span></code> interpolator depending on the method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ScipyPoint</span></code>: An implementation based on <code class="docutils literal notranslate"><span class="pre">scipy.KDtree</span></code> capable of <code class="docutils literal notranslate"><span class="pre">nearest</span></code> interpolation for <code class="docutils literal notranslate"><span class="pre">point</span></code> sources</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NearestPreview</span></code>: An approximate nearest-neighbor interpolator useful for rapidly viewing large files</p></li>
+</ul>
+<p>The default order for these interpolators can be found in <code class="docutils literal notranslate"><span class="pre">podpac.data.INTERPOLATORS</span></code>.</p>
+<div class="section" id="nearestneighbor">
+<h3>NearestNeighbor<a class="headerlink" href="#nearestneighbor" title="Permalink to this headline">¶</a></h3>
+<p>Since this is the most general of the interpolators, this section deals with the available parameters and settings for the <code class="docutils literal notranslate"><span class="pre">NearestNeighbor</span></code> interpolator.</p>
+<div class="section" id="parameters">
+<h4>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h4>
+<p>The following parameters can be set by specifying the interpolation as a dictionary or a list, as described above.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">respect_bounds</span></code> : <code class="docutils literal notranslate"><span class="pre">bool</span></code></p>
+<ul>
+<li><p>Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, any requested dimension OUTSIDE of the bounds will be interpolated as <code class="docutils literal notranslate"><span class="pre">nan</span></code>.
+Otherwise, any point outside the bounds will have the value of the nearest neighboring point</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">remove_nan</span></code> : <code class="docutils literal notranslate"><span class="pre">bool</span></code></p>
+<ul>
+<li><p>Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">nan</span></code>’s in the source dataset will NOT be interpolated. This can be used if a value for the function
+is needed at every point of the request. It is not helpful when computing statistics, where <code class="docutils literal notranslate"><span class="pre">nan</span></code> values will be explicitly
+ignored. In that case, if <code class="docutils literal notranslate"><span class="pre">remove_nan</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">nan</span></code> values will take on the values of neighbors, skewing the statistical result.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*_tolerance</span></code> : <code class="docutils literal notranslate"><span class="pre">float</span></code>, where <code class="docutils literal notranslate"><span class="pre">*</span></code> in [“spatial”, “time”, “alt”]</p>
+<ul>
+<li><p>Default is <code class="docutils literal notranslate"><span class="pre">inf</span></code>. Maximum distance to the nearest coordinate to be interpolated.
+Corresponds to the unit of the <code class="docutils literal notranslate"><span class="pre">*</span></code> dimension.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*_scale</span></code> : <code class="docutils literal notranslate"><span class="pre">float</span></code>, where <code class="docutils literal notranslate"><span class="pre">*</span></code> in [“spatial”, “time”, “alt”]</p>
+<ul>
+<li><p>Default is <code class="docutils literal notranslate"><span class="pre">1</span></code>. This only applies when the source has stacked dimensions with different units. The <code class="docutils literal notranslate"><span class="pre">*_scale</span></code>
+defines the factor that the coordinates will be scaled by (coordinates are divided by <code class="docutils literal notranslate"><span class="pre">*_scale</span></code>) to output
+a valid distance for the combined set of dimensions.
+For example, when “lat, lon, and alt” dimensions are stacked, [“lat”, “lon”] are in degrees
+and “alt” is in feet, the <code class="docutils literal notranslate"><span class="pre">*_scale</span></code> parameters should be set so that
+<code class="docutils literal notranslate"><span class="pre">||</span> <span class="pre">[dlat</span> <span class="pre">/</span> <span class="pre">spatial_scale,</span> <span class="pre">dlon</span> <span class="pre">/</span> <span class="pre">spatial_scale,</span> <span class="pre">dalt</span> <span class="pre">/</span> <span class="pre">alt_scale]</span> <span class="pre">||</span></code> results in a reasonable distance.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use_selector</span></code> : <code class="docutils literal notranslate"><span class="pre">bool</span></code></p>
+<ul>
+<li><p>Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, a subset of the coordinates will be selected BEFORE the data of a dataset is retrieved. This
+reduces the number of data retrievals needed for large datasets. In cases where <code class="docutils literal notranslate"><span class="pre">remove_nan</span></code> = <code class="docutils literal notranslate"><span class="pre">True</span></code>, the selector may select
+only <code class="docutils literal notranslate"><span class="pre">nan</span></code> points, in which case the interpolation fails to produce non-<code class="docutils literal notranslate"><span class="pre">nan</span></code> data. This usually happens when requesting a single
+point from a dataset that contains <code class="docutils literal notranslate"><span class="pre">nan</span></code>s. As such, in these cases set <code class="docutils literal notranslate"><span class="pre">use_selector</span></code> = <code class="docutils literal notranslate"><span class="pre">False</span></code> to get a non-<code class="docutils literal notranslate"><span class="pre">nan</span></code> value.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="advanced-nearestneighbor-interpolation-examples">
+<h4>Advanced NearestNeighbor Interpolation Examples<a class="headerlink" href="#advanced-nearestneighbor-interpolation-examples" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>Only interpolate points that are within <code class="docutils literal notranslate"><span class="pre">1</span></code> of the source data lat/lon locations</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interpolation</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;spatial_tolerance&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}},</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>When interpolating with mixed time/space, use <code class="docutils literal notranslate"><span class="pre">1</span></code> day as equivalent to <code class="docutils literal notranslate"><span class="pre">1</span></code> degree for determining the distance</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interpolation</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;spatial_scale&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;time_scale&quot;</span><span class="p">:</span> <span class="s2">&quot;1,D&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;alt_scale&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Remove nan values in the source datasource – in some cases a <code class="docutils literal notranslate"><span class="pre">nan</span></code> may still be interpolated</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interpolation</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;remove_nan&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Remove nan values in the source datasource in all cases, even for single point requests located directly at <code class="docutils literal notranslate"><span class="pre">nan</span></code>-values in the source.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interpolation</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;remove_nan&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">&quot;use_selector&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Do nearest-neighbor extrapolation outside of the bounds of the source dataset</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interpolation</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;respect_bounds&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Do nearest-neighbor interpolation of time with <code class="docutils literal notranslate"><span class="pre">nan</span></code> removal followed by spatial interpolation</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interpolation</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;remove_nan&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;dims&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span>
+    <span class="p">},</span> 
+    <span class="p">{</span>
+        <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;dims&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;alt&quot;</span><span class="p">]</span>
+    <span class="p">},</span> 
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
 </div>
 </div>
 <div class="section" id="notes-and-caveats">
 <h2>Notes and Caveats<a class="headerlink" href="#notes-and-caveats" title="Permalink to this headline">¶</a></h2>
 <p>While the API is well developed, all conceivable functionality is not. For example, while we can interpolate gridded data to point data, point data to grid data interpolation is not as well supported, and there may be errors or unexpected results. Advanced users can develop their own interpolators, but this is not currently well-documented.</p>
-<p><strong>Gotcha</strong>: Parameters for a specific interpolator may silently be ignored if a different interpolator is automatically selected.</p>
+<p><strong>Gotcha</strong>: Parameters for a specific interpolator may be ignored if a different interpolator is automatically selected. These ignored parameters are logged as warnings.</p>
 </div>
 </div>
 

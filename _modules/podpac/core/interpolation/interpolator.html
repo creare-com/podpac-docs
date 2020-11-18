@@ -241,11 +241,39 @@
 <span class="s2">            This attribute should be defined by the implementing :class:`Interpolator`.</span>
 <span class="s2">            Used by private convience method :meth:`_filter_udims_supported`.</span>
 <span class="s2">        spatial_tolerance : float</span>
-<span class="s2">            Maximum distance to the nearest coordinate in space.</span>
+<span class="s2">            Default is inf. Maximum distance to the nearest coordinate in space.</span>
 <span class="s2">            Cooresponds to the unit of the space measurement.</span>
 <span class="s2">        time_tolerance : float</span>
-<span class="s2">            Maximum distance to the nearest coordinate in time coordinates.</span>
+<span class="s2">            Default is inf. Maximum distance to the nearest coordinate in time coordinates.</span>
 <span class="s2">            Accepts p.timedelta64() (i.e. np.timedelta64(1, &#39;D&#39;) for a 1-Day tolerance)</span>
+<span class="s2">        alt_tolerance : float</span>
+<span class="s2">            Default is inf. Maximum distance to the nearest coordinate in altitude coordinates. Corresponds to the unit</span>
+<span class="s2">            of the altitude as part of the requested coordinates</span>
+<span class="s2">        spatial_scale : float</span>
+<span class="s2">            Default is 1. This only applies when the source has stacked dimensions with different units.</span>
+<span class="s2">            The spatial_scale defines the factor that lat, lon coordinates will be scaled by (coordinates are divided by spatial_scale)</span>
+<span class="s2">            to output a valid distance for the combined set of dimensions.</span>
+<span class="s2">        time_scale : float</span>
+<span class="s2">            Default is 1. This only applies when the source has stacked dimensions with different units.</span>
+<span class="s2">            The time_scale defines the factor that time coordinates will be scaled by (coordinates are divided by time_scale)</span>
+<span class="s2">            to output a valid distance for the combined set of dimensions.</span>
+<span class="s2">        alt_scale : float</span>
+<span class="s2">            Default is 1. This only applies when the source has stacked dimensions with different units.</span>
+<span class="s2">            The alt_scale defines the factor that alt coordinates will be scaled by (coordinates are divided by alt_scale)</span>
+<span class="s2">            to output a valid distance for the combined set of dimensions.</span>
+<span class="s2">        respect_bounds : bool</span>
+<span class="s2">            Default is True. If True, any requested dimension OUTSIDE of the bounds will be interpolated as &#39;nan&#39;. </span>
+<span class="s2">            Otherwise, any point outside the bounds will have NN interpolation allowed. </span>
+<span class="s2">        remove_nan: bool</span>
+<span class="s2">            Default is False. If True, nan&#39;s in the source dataset will NOT be interpolated. This can be used if a value for the function</span>
+<span class="s2">            is needed at every point of the request. It is not helpful when computing statistics, where nan values will be explicitly</span>
+<span class="s2">            ignored. In that case, if remove_nan is True, nan values will take on the values of neighbors, skewing the statistical result. </span>
+<span class="s2">        use_selector: bool</span>
+<span class="s2">            Default is True. If True, a subset of the coordinates will be selected BEFORE the data of a dataset is retrieved. This </span>
+<span class="s2">            reduces the number of data retrievals needed for large datasets. In cases where remove_nan = True, the selector may select</span>
+<span class="s2">            only nan points, in which case the interpolation fails to produce non-nan data. This usually happens when requesting a single</span>
+<span class="s2">            point from a dataset that contains nans. As such, in these cases set use_selector = False to get a non-nan value. </span>
+
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span>
     <span class="s2">&quot;interpolator_can_select&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        Evaluate if interpolator can downselect the source coordinates from the requested coordinates</span>
@@ -510,8 +538,21 @@
             <span class="c1"># short circuit if source_coordinates contains eval_coordinates</span>
             <span class="k">if</span> <span class="n">eval_coordinates</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">):</span>
                 <span class="c1"># select/transpose, and copy</span>
-                <span class="n">output_coords</span> <span class="o">=</span> <span class="n">output_data</span><span class="o">.</span><span class="n">coords</span>
-                <span class="n">output_data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output_coords</span><span class="p">)</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">source_coordinates</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">):</span>
+                        <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">StackedCoordinates</span><span class="p">):</span>
+                        <span class="n">bs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span>
+                        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span>
+                        <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">source_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Coordinates1d</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">source_coordinates</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                    <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;nearest&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">method</span> <span class="o">=</span> <span class="kc">None</span>
+
+                <span class="n">output_data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">output_data</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">output_data</span>
 
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">source_data</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">output_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -530,12 +571,12 @@
         <span class="k">return</span> <span class="n">udims_subset</span></div>
 
 <div class="viewcode-block" id="Interpolator.select_coordinates"><a class="viewcode-back" href="../../../../api/podpac.interpolators.Interpolator.html#podpac.interpolators.Interpolator.select_coordinates">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">select_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">index_type</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        {interpolator_select}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">selector</span> <span class="o">=</span> <span class="n">Selector</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">selector</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">selector</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">,</span> <span class="n">index_type</span><span class="o">=</span><span class="n">index_type</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Interpolator.can_interpolate"><a class="viewcode-back" href="../../../../api/podpac.interpolators.Interpolator.html#podpac.interpolators.Interpolator.can_interpolate">[docs]</a>    <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_INTERPOLATOR_DOCS</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">can_interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udims</span><span class="p">,</span> <span class="n">source_coordinates</span><span class="p">,</span> <span class="n">eval_coordinates</span><span class="p">):</span>
