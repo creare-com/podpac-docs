@@ -213,7 +213,7 @@
 <span class="n">INTERPOLATION_DEFAULT</span> <span class="o">=</span> <span class="s2">&quot;nearest&quot;</span>
 <span class="sd">&quot;&quot;&quot;str : Default interpolation method used when creating a new :class:`Interpolation` class &quot;&quot;&quot;</span>
 
-<span class="n">INTERPOLATORS</span> <span class="o">=</span> <span class="p">[</span><span class="n">NearestNeighbor</span><span class="p">,</span> <span class="n">XarrayInterpolator</span><span class="p">,</span> <span class="n">NearestPreview</span><span class="p">,</span> <span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyPoint</span><span class="p">,</span> <span class="n">ScipyGrid</span><span class="p">]</span>
+<span class="n">INTERPOLATORS</span> <span class="o">=</span> <span class="p">[</span><span class="n">NearestNeighbor</span><span class="p">,</span> <span class="n">XarrayInterpolator</span><span class="p">,</span> <span class="n">Rasterio</span><span class="p">,</span> <span class="n">ScipyPoint</span><span class="p">,</span> <span class="n">ScipyGrid</span><span class="p">,</span> <span class="n">NearestPreview</span><span class="p">]</span>
 <span class="sd">&quot;&quot;&quot;list : list of available interpolator classes&quot;&quot;&quot;</span>
 
 <span class="n">INTERPOLATORS_DICT</span> <span class="o">=</span> <span class="p">{}</span>
@@ -751,6 +751,7 @@
 
         <span class="c1"># iterate through each dim tuple in the queue</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="n">output_data</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="n">source_data</span><span class="o">.</span><span class="n">attrs</span>
         <span class="k">for</span> <span class="n">udims</span><span class="p">,</span> <span class="n">interpolator</span> <span class="ow">in</span> <span class="n">interpolator_queue</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="c1"># TODO move the above short-circuits into this loop</span>
             <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">ud</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source_coordinates</span><span class="o">.</span><span class="n">udims</span> <span class="k">for</span> <span class="n">ud</span> <span class="ow">in</span> <span class="n">udims</span><span class="p">]):</span>
@@ -771,6 +772,7 @@
 
             <span class="c1"># prepare for the next iteration</span>
             <span class="n">source_data</span> <span class="o">=</span> <span class="n">interp_data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">interp_coordinates</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+            <span class="n">source_data</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="n">attrs</span>
             <span class="n">source_coordinates</span> <span class="o">=</span> <span class="n">interp_coordinates</span>
 
         <span class="n">output_data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">interp_data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">output_data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
