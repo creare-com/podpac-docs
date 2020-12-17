@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.data.csv_source &mdash; 2.3.0</title>
+  <title>podpac.core.data.csv_source &mdash; 3.0.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.3.0
+                3.0.0
               </div>
             
           
@@ -200,7 +200,7 @@
 
 
 <span class="nd">@common_doc</span><span class="p">(</span><span class="n">COMMON_DATA_DOC</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">CSVBase</span><span class="p">(</span><span class="n">FileKeysMixin</span><span class="p">,</span> <span class="n">LoadFileMixin</span><span class="p">,</span> <span class="n">BaseFileSource</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">CSVRaw</span><span class="p">(</span><span class="n">FileKeysMixin</span><span class="p">,</span> <span class="n">LoadFileMixin</span><span class="p">,</span> <span class="n">BaseFileSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a DataSource from a .csv file.</span>
 
 <span class="sd">    This class assumes that the data has a storage format such as:</span>
@@ -230,6 +230,10 @@
 <span class="sd">        altitude column number or column title, default &#39;alt&#39;</span>
 <span class="sd">    crs : str</span>
 <span class="sd">        Coordinate reference system of the coordinates</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    CSV : Interpolated CSV file datasource for general use.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">header</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">default_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -241,7 +245,7 @@
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="s2">&quot;data_key&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_default_data_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">CSVBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_default_data_key</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">CSVRaw</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_default_data_key</span><span class="p">()</span>
 
     <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;data_key&quot;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_validate_data_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
@@ -311,7 +315,7 @@
 <span class="sd">        Note: CSV files have StackedCoordinates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">coords</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CSVBase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">()</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">CSVRaw</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">coords</span>
         <span class="n">stacked</span> <span class="o">=</span> <span class="n">StackedCoordinates</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">coords</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
@@ -343,7 +347,9 @@
         <span class="k">return</span> <span class="n">key</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_loc</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="CSV"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV">[docs]</a><span class="k">class</span> <span class="nc">CSV</span><span class="p">(</span><span class="n">InterpolationMixin</span><span class="p">,</span> <span class="n">CSVBase</span><span class="p">):</span>
+<div class="viewcode-block" id="CSV"><a class="viewcode-back" href="../../../../api/podpac.data.CSV.html#podpac.data.CSV">[docs]</a><span class="k">class</span> <span class="nc">CSV</span><span class="p">(</span><span class="n">InterpolationMixin</span><span class="p">,</span> <span class="n">CSVRaw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; CSV datasource with interpolation. &quot;&quot;&quot;</span>
+
     <span class="k">pass</span></div>
 </pre></div>
 

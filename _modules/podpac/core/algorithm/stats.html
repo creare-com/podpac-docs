@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.algorithm.stats &mdash; 2.3.0</title>
+  <title>podpac.core.algorithm.stats &mdash; 3.0.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.3.0
+                3.0.0
               </div>
             
           
@@ -1129,7 +1129,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    custom_reduce_fn : function</span>
 <span class="sd">        required if reduce_fn is &#39;custom&#39;.</span>
-<span class="sd">    resampleby : str</span>
+<span class="sd">    resample : str</span>
 <span class="sd">        datetime sub-accessor. Currently &#39;dayofyear&#39; is the enabled option.</span>
 <span class="sd">    reduce_fn : str</span>
 <span class="sd">        builtin xarray groupby reduce function, or &#39;custom&#39;.</span>
@@ -1137,11 +1137,11 @@
 <span class="sd">        Source node</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;resampleby&quot;</span><span class="p">,</span> <span class="s2">&quot;reduce_fn&quot;</span><span class="p">]</span>
+    <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;resample&quot;</span><span class="p">,</span> <span class="s2">&quot;reduce_fn&quot;</span><span class="p">]</span>
     <span class="n">coordinates_source</span> <span class="o">=</span> <span class="n">NodeTrait</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># see https://github.com/pydata/xarray/blob/eeb109d9181c84dfb93356c5f14045d839ee64cb/xarray/core/accessors.py#L61</span>
-    <span class="n">resample</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># could add season, month, etc</span>
+    <span class="n">resample</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">CaselessStrEnum</span><span class="p">(</span><span class="n">_REDUCE_FUNCTIONS</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">custom_reduce_fn</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -1171,7 +1171,7 @@
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
-<span class="sd">            If source it not time-depended (required by this node).</span>
+<span class="sd">            If source it not time-dependent (required by this node).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">source_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="n">_selector</span><span class="p">)</span>
@@ -1187,11 +1187,8 @@
             <span class="n">out</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">grouped</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_fn</span><span class="p">)()</span>
 
         <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">merge_dims</span><span class="p">(</span>
-                <span class="p">[</span><span class="n">coordinates</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">),</span> <span class="n">Coordinates</span><span class="p">([</span><span class="n">out</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]],</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])]</span>
-            <span class="p">)</span>
-            <span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">out</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">out</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">UnitsDataArray</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="n">source_output</span><span class="o">.</span><span class="n">attrs</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">data</span><span class="p">[:]</span>
 

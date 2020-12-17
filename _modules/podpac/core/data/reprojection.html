@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>podpac.core.data.reprojection &mdash; 2.3.0</title>
+  <title>podpac.core.data.reprojection &mdash; 3.0.0</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                2.3.0
+                3.0.0
               </div>
             
           
@@ -193,6 +193,7 @@
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">string_types</span>
 <span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
@@ -200,8 +201,8 @@
 <span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">common_doc</span><span class="p">,</span> <span class="n">NodeTrait</span><span class="p">,</span> <span class="n">cached_property</span>
 <span class="kn">from</span> <span class="nn">podpac.core.coordinates</span> <span class="kn">import</span> <span class="n">Coordinates</span>
 <span class="kn">from</span> <span class="nn">podpac.core.node</span> <span class="kn">import</span> <span class="n">Node</span>
-<span class="kn">from</span> <span class="nn">podpac.core.interpolation.interpolation</span> <span class="kn">import</span> <span class="n">InterpolationTrait</span>
 <span class="kn">from</span> <span class="nn">podpac.core.data.datasource</span> <span class="kn">import</span> <span class="n">COMMON_DATA_DOC</span><span class="p">,</span> <span class="n">DataSource</span>
+<span class="kn">from</span> <span class="nn">podpac.core.interpolation</span> <span class="kn">import</span> <span class="n">InterpolationTrait</span>
 
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -228,6 +229,12 @@
     <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;interpolation&quot;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_first_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;ReprojectedSource has been replaced by the Reproject algorithm node &quot;</span>
+            <span class="s2">&quot;and will be removed in a future version of podpac.&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+
         <span class="k">if</span> <span class="s2">&quot;reprojected_coordinates&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Coordinates</span><span class="o">.</span><span class="n">from_definition</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reprojected_coordinates&quot;</span><span class="p">])</span>
