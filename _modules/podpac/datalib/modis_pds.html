@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>podpac.datalib.modis_pds &mdash; 3.2.0+1.g44ea00f8</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/style.css" type="text/css" />
+    <link rel="shortcut icon" href="../../../_static/favicon.png"/>
+    <link rel="canonical" href="https://podpac.org_modules/podpac/datalib/modis_pds.html"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html">
+            <img src="../../../_static/icon.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.2.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html#id18">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html#id71">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html#id92">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../design.html">Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id10">]</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id19">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id22">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html#id25">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html#id10">]</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html#id15">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html#id20">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html#id25">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html#id30">}</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html#id35">]</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PODPAC</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">podpac.datalib.modis_pds</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for podpac.datalib.modis_pds</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">MODIS on AWS OpenData</span>
+
+<span class="sd">MODIS Coordinates Grids: https://modis-land.gsfc.nasa.gov/MODLAND_grid.html</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
+
+<span class="kn">import</span> <span class="nn">podpac</span>
+<span class="kn">from</span> <span class="nn">podpac.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span> <span class="nn">podpac.compositor</span> <span class="kn">import</span> <span class="n">TileCompositorRaw</span>
+<span class="kn">from</span> <span class="nn">podpac.core.data.rasterio_source</span> <span class="kn">import</span> <span class="n">RasterioRaw</span>
+<span class="kn">from</span> <span class="nn">podpac.authentication</span> <span class="kn">import</span> <span class="n">S3Mixin</span>
+<span class="kn">from</span> <span class="nn">podpac.interpolators</span> <span class="kn">import</span> <span class="n">InterpolationMixin</span>
+
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">BUCKET</span> <span class="o">=</span> <span class="s2">&quot;modis-pds&quot;</span>
+<span class="n">PRODUCTS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;MCD43A4.006&quot;</span><span class="p">,</span> <span class="s2">&quot;MOD09GA.006&quot;</span><span class="p">,</span> <span class="s2">&quot;MYD09GA.006&quot;</span><span class="p">,</span> <span class="s2">&quot;MOD09GQ.006&quot;</span><span class="p">,</span> <span class="s2">&quot;MYD09GQ.006&quot;</span><span class="p">]</span>
+<span class="n">CRS</span> <span class="o">=</span> <span class="s2">&quot;+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +R=6371007.181 +units=m +no_defs +type=crs&quot;</span>
+
+<span class="n">SINUSOIDAL_HORIZONTAL</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;00&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">20014877.697641734</span><span class="p">,</span> <span class="o">-</span><span class="mf">18903390.490691263</span><span class="p">),</span>
+    <span class="s2">&quot;01&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">18902927.177974734</span><span class="p">,</span> <span class="o">-</span><span class="mf">17791439.971025266</span><span class="p">),</span>
+    <span class="s2">&quot;02&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">17790976.658308737</span><span class="p">,</span> <span class="o">-</span><span class="mf">16679489.451358264</span><span class="p">),</span>
+    <span class="s2">&quot;03&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">16679026.138641736</span><span class="p">,</span> <span class="o">-</span><span class="mf">15567538.931691263</span><span class="p">),</span>
+    <span class="s2">&quot;04&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">15567075.618974736</span><span class="p">,</span> <span class="o">-</span><span class="mf">14455588.412025262</span><span class="p">),</span>
+    <span class="s2">&quot;05&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">14455125.099308735</span><span class="p">,</span> <span class="o">-</span><span class="mf">13343637.892358262</span><span class="p">),</span>
+    <span class="s2">&quot;06&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">13343174.579641735</span><span class="p">,</span> <span class="o">-</span><span class="mf">12231687.372691263</span><span class="p">),</span>
+    <span class="s2">&quot;07&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">12231224.059974736</span><span class="p">,</span> <span class="o">-</span><span class="mf">11119736.853025263</span><span class="p">),</span>
+    <span class="s2">&quot;08&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">11119273.540308736</span><span class="p">,</span> <span class="o">-</span><span class="mf">10007786.333358264</span><span class="p">),</span>
+    <span class="s2">&quot;09&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">10007323.020641735</span><span class="p">,</span> <span class="o">-</span><span class="mf">8895835.813691262</span><span class="p">),</span>
+    <span class="s2">&quot;10&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">8895372.500974735</span><span class="p">,</span> <span class="o">-</span><span class="mf">7783885.294025263</span><span class="p">),</span>
+    <span class="s2">&quot;11&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">7783421.981308736</span><span class="p">,</span> <span class="o">-</span><span class="mf">6671934.774358263</span><span class="p">),</span>
+    <span class="s2">&quot;12&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">6671471.461641735</span><span class="p">,</span> <span class="o">-</span><span class="mf">5559984.254691264</span><span class="p">),</span>
+    <span class="s2">&quot;13&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">5559520.941974737</span><span class="p">,</span> <span class="o">-</span><span class="mf">4448033.735025264</span><span class="p">),</span>
+    <span class="s2">&quot;14&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">4447570.422308736</span><span class="p">,</span> <span class="o">-</span><span class="mf">3336083.215358263</span><span class="p">),</span>
+    <span class="s2">&quot;15&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">3335619.902641736</span><span class="p">,</span> <span class="o">-</span><span class="mf">2224132.695691264</span><span class="p">),</span>
+    <span class="s2">&quot;16&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2223669.382974736</span><span class="p">,</span> <span class="o">-</span><span class="mf">1112182.176025264</span><span class="p">),</span>
+    <span class="s2">&quot;17&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">1111718.863308736</span><span class="p">,</span> <span class="o">-</span><span class="mf">231.656358264</span><span class="p">),</span>
+    <span class="s2">&quot;18&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">231.656358264</span><span class="p">,</span> <span class="mf">1111718.863308736</span><span class="p">),</span>
+    <span class="s2">&quot;19&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1112182.176025264</span><span class="p">,</span> <span class="mf">2223669.382974736</span><span class="p">),</span>
+    <span class="s2">&quot;20&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2224132.695691264</span><span class="p">,</span> <span class="mf">3335619.902641736</span><span class="p">),</span>
+    <span class="s2">&quot;21&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3336083.215358264</span><span class="p">,</span> <span class="mf">4447570.422308736</span><span class="p">),</span>
+    <span class="s2">&quot;22&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">4448033.735025263</span><span class="p">,</span> <span class="mf">5559520.941974737</span><span class="p">),</span>
+    <span class="s2">&quot;23&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">5559984.254691265</span><span class="p">,</span> <span class="mf">6671471.461641736</span><span class="p">),</span>
+    <span class="s2">&quot;24&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">6671934.774358264</span><span class="p">,</span> <span class="mf">7783421.981308737</span><span class="p">),</span>
+    <span class="s2">&quot;25&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">7783885.294025264</span><span class="p">,</span> <span class="mf">8895372.500974735</span><span class="p">),</span>
+    <span class="s2">&quot;26&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">8895835.813691264</span><span class="p">,</span> <span class="mf">10007323.020641737</span><span class="p">),</span>
+    <span class="s2">&quot;27&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">10007786.333358264</span><span class="p">,</span> <span class="mf">11119273.540308736</span><span class="p">),</span>
+    <span class="s2">&quot;28&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">11119736.853025265</span><span class="p">,</span> <span class="mf">12231224.059974737</span><span class="p">),</span>
+    <span class="s2">&quot;29&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">12231687.372691264</span><span class="p">,</span> <span class="mf">13343174.579641737</span><span class="p">),</span>
+    <span class="s2">&quot;30&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">13343637.892358264</span><span class="p">,</span> <span class="mf">14455125.099308737</span><span class="p">),</span>
+    <span class="s2">&quot;31&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">14455588.412025264</span><span class="p">,</span> <span class="mf">15567075.618974738</span><span class="p">),</span>
+    <span class="s2">&quot;32&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">15567538.931691265</span><span class="p">,</span> <span class="mf">16679026.138641737</span><span class="p">),</span>
+    <span class="s2">&quot;33&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">16679489.451358264</span><span class="p">,</span> <span class="mf">17790976.658308737</span><span class="p">),</span>
+    <span class="s2">&quot;34&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">17791439.971025266</span><span class="p">,</span> <span class="mf">18902927.177974734</span><span class="p">),</span>
+    <span class="s2">&quot;35&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">18903390.490691263</span><span class="p">,</span> <span class="mf">20014877.697641734</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="n">SINUSOIDAL_VERTICAL</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;00&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">10007323.020641735</span><span class="p">,</span> <span class="mf">8895835.813691262</span><span class="p">),</span>
+    <span class="s2">&quot;01&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">8895372.500974735</span><span class="p">,</span> <span class="mf">7783885.294025263</span><span class="p">),</span>
+    <span class="s2">&quot;02&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">7783421.981308736</span><span class="p">,</span> <span class="mf">6671934.774358263</span><span class="p">),</span>
+    <span class="s2">&quot;03&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">6671471.461641735</span><span class="p">,</span> <span class="mf">5559984.254691264</span><span class="p">),</span>
+    <span class="s2">&quot;04&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">5559520.941974737</span><span class="p">,</span> <span class="mf">4448033.735025264</span><span class="p">),</span>
+    <span class="s2">&quot;05&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">4447570.422308736</span><span class="p">,</span> <span class="mf">3336083.215358263</span><span class="p">),</span>
+    <span class="s2">&quot;06&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3335619.902641736</span><span class="p">,</span> <span class="mf">2224132.695691264</span><span class="p">),</span>
+    <span class="s2">&quot;07&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2223669.382974736</span><span class="p">,</span> <span class="mf">1112182.176025264</span><span class="p">),</span>
+    <span class="s2">&quot;08&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1111718.863308736</span><span class="p">,</span> <span class="mf">231.656358264</span><span class="p">),</span>
+    <span class="s2">&quot;09&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">231.656358264</span><span class="p">,</span> <span class="o">-</span><span class="mf">1111718.863308736</span><span class="p">),</span>
+    <span class="s2">&quot;10&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">1112182.176025264</span><span class="p">,</span> <span class="o">-</span><span class="mf">2223669.382974736</span><span class="p">),</span>
+    <span class="s2">&quot;11&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2224132.695691264</span><span class="p">,</span> <span class="o">-</span><span class="mf">3335619.902641736</span><span class="p">),</span>
+    <span class="s2">&quot;12&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">3336083.215358264</span><span class="p">,</span> <span class="o">-</span><span class="mf">4447570.422308736</span><span class="p">),</span>
+    <span class="s2">&quot;13&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">4448033.735025263</span><span class="p">,</span> <span class="o">-</span><span class="mf">5559520.941974737</span><span class="p">),</span>
+    <span class="s2">&quot;14&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">5559984.254691265</span><span class="p">,</span> <span class="o">-</span><span class="mf">6671471.461641736</span><span class="p">),</span>
+    <span class="s2">&quot;15&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">6671934.774358264</span><span class="p">,</span> <span class="o">-</span><span class="mf">7783421.981308737</span><span class="p">),</span>
+    <span class="s2">&quot;16&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">7783885.294025264</span><span class="p">,</span> <span class="o">-</span><span class="mf">8895372.500974735</span><span class="p">),</span>
+    <span class="s2">&quot;17&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">8895835.813691264</span><span class="p">,</span> <span class="o">-</span><span class="mf">10007323.020641737</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_modis_date</span><span class="p">(</span><span class="n">date</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="s2">&quot;%Y%j&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_available</span><span class="p">(</span><span class="n">s3</span><span class="p">,</span> <span class="o">*</span><span class="n">l</span><span class="p">):</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">BUCKET</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">s3</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="k">if</span> <span class="s2">&quot;_scenes.txt&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">get_tile_coordinates</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;use pre-fetched lat and lon bounds to get coordinates for a single tile&quot;&quot;&quot;</span>
+    <span class="n">lat_start</span><span class="p">,</span> <span class="n">lat_stop</span> <span class="o">=</span> <span class="n">SINUSOIDAL_VERTICAL</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+    <span class="n">lon_start</span><span class="p">,</span> <span class="n">lon_stop</span> <span class="o">=</span> <span class="n">SINUSOIDAL_HORIZONTAL</span><span class="p">[</span><span class="n">h</span><span class="p">]</span>
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="n">lat_start</span><span class="p">,</span> <span class="n">lat_stop</span><span class="p">,</span> <span class="mi">2400</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">)</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="n">lon_start</span><span class="p">,</span> <span class="n">lon_stop</span><span class="p">,</span> <span class="mi">2400</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">CRS</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">MODISSource</span><span class="p">(</span><span class="n">RasterioRaw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Individual MODIS data tile using AWS OpenData, with caching.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    product : str</span>
+<span class="sd">        MODIS product (&#39;MCD43A4.006&#39;, &#39;MOD09GA.006&#39;, &#39;MYD09GA.006&#39;, &#39;MOD09GQ.006&#39;, or &#39;MYD09GQ.006&#39;)</span>
+<span class="sd">    horizontal : str</span>
+<span class="sd">        column in the MODIS Sinusoidal Tiling System, e.g. &#39;21&#39;</span>
+<span class="sd">    vertical : str</span>
+<span class="sd">        row in the MODIS Sinusoidal Tiling System, e.g. &#39;07&#39;</span>
+<span class="sd">    date : str</span>
+<span class="sd">        year and three-digit day of year, e.g. &#39;2011260&#39;</span>
+<span class="sd">    data_key : str</span>
+<span class="sd">        individual object (varies by product)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">product</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">PRODUCTS</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;MODIS product ID&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">horizontal</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="s2">&quot;column in the MODIS Sinusoidal Tiling System, e.g. &#39;21&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">vertical</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="s2">&quot;row in the MODIS Sinusoidal Tiling System, e.g. &#39;07&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">date</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="s2">&quot;year and three-digit day of year, e.g. &#39;2011460&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">data_key</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="s2">&quot;data to retrieve (varies by product)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">anon</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">check_exists</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">,</span> <span class="s2">&quot;data_key&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;validation&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;horizontal&quot;</span><span class="p">,</span> <span class="s2">&quot;vertical&quot;</span><span class="p">,</span> <span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;data_key&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;MODISSource &#39;</span><span class="si">%s</span><span class="s2">&#39; required&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">horizontal</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">36</span><span class="p">)]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;MODISSource horizontal invalid (&#39;</span><span class="si">%s</span><span class="s2">&#39; should be between &#39;00&#39; and &#39;35&#39;)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">horizontal</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertical</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">36</span><span class="p">)]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;MODISSource vertical invalid (&#39;</span><span class="si">%s</span><span class="s2">&#39; should be between &#39;00&#39; and &#39;17&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertical</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_parse_modis_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;MODISSource date invalid (&#39;</span><span class="si">%s</span><span class="s2">&#39; should be year and doy, e.g. &#39;2009260&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_exists</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No S3 object found at &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+
+    <span class="nd">@cached_property</span><span class="p">(</span><span class="n">use_cache_ctrl</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Looking up source filename (product=</span><span class="si">%s</span><span class="s2">, h=</span><span class="si">%s</span><span class="s2">, v=</span><span class="si">%s</span><span class="s2">, date=</span><span class="si">%s</span><span class="s2">, data_key=</span><span class="si">%s</span><span class="s2">)...&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">horizontal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertical</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">BUCKET</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">horizontal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertical</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">])</span>
+        <span class="n">objs</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.TIF&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No matches found for data_key=&#39;</span><span class="si">%s</span><span class="s2">&#39; at &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">,</span> <span class="n">prefix</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Too many matches for data_key=&#39;</span><span class="si">%s</span><span class="s2">&#39; at &#39;</span><span class="si">%s</span><span class="s2">&#39; (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">objs</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">horizontal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertical</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;s3://</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">BUCKET</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># use pre-fetched coordinate bounds (instead of loading from the dataset)</span>
+        <span class="n">spatial_coords</span> <span class="o">=</span> <span class="n">get_tile_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">horizontal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertical</span><span class="p">)</span>
+        <span class="n">time_coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">_parse_modis_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">date</span><span class="p">)],</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">spatial_coords</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">merge_dims</span><span class="p">([</span><span class="n">spatial_coords</span><span class="p">,</span> <span class="n">time_coords</span><span class="p">])</span>
+
+
+<span class="k">class</span> <span class="nc">MODISComposite</span><span class="p">(</span><span class="n">S3Mixin</span><span class="p">,</span> <span class="n">TileCompositorRaw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;MODIS whole-world compositor.</span>
+<span class="sd">    For documentation about the data, start here: https://ladsweb.modaps.eosdis.nasa.gov/search/order/1</span>
+<span class="sd">    For information about the bands, see here: https://modis.gsfc.nasa.gov/about/specifications.php</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    product : str</span>
+<span class="sd">        MODIS product (&#39;MCD43A4.006&#39;, &#39;MOD09GA.006&#39;, &#39;MYD09GA.006&#39;, &#39;MOD09GQ.006&#39;, or &#39;MYD09GQ.006&#39;)</span>
+<span class="sd">    data_key : str</span>
+<span class="sd">        individual object (varies by product)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">product</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">PRODUCTS</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;MODIS product ID&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">data_key</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="s2">&quot;data to retrieve (varies by product)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">tile_width</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2400</span><span class="p">,</span> <span class="mi">2400</span><span class="p">)</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="s2">&quot;2013-01-01&quot;</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">anon</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]</span>
+
+    <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;product&quot;</span><span class="p">,</span> <span class="s2">&quot;data_key&quot;</span><span class="p">]</span>
+
+    <span class="nd">@cached_property</span><span class="p">(</span><span class="n">use_cache_ctrl</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">tile_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">get_tile_coordinates</span><span class="p">(</span><span class="o">*</span><span class="n">hv</span><span class="p">)</span> <span class="k">for</span> <span class="n">hv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_tiles</span><span class="p">]</span>
+
+    <span class="nd">@cached_property</span><span class="p">(</span><span class="n">use_cache_ctrl</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">available_tiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Looking up available tiles...&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">h</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">_available</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_available</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">h</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">select_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;2d select sources filtering&quot;&quot;&quot;</span>
+
+        <span class="c1"># filter tiles spatially</span>
+        <span class="n">ct</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">CRS</span><span class="p">)</span>
+        <span class="n">tiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">at</span> <span class="k">for</span> <span class="n">at</span><span class="p">,</span> <span class="n">atc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">available_tiles</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tile_coordinates</span><span class="p">)</span> <span class="k">if</span> <span class="n">ct</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">atc</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">sources</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tile</span> <span class="ow">in</span> <span class="n">tiles</span><span class="p">:</span>
+            <span class="n">h</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">tile</span>
+            <span class="n">available_dates</span> <span class="o">=</span> <span class="n">_available</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="n">dates</span> <span class="o">=</span> <span class="p">[</span><span class="n">_parse_modis_date</span><span class="p">(</span><span class="n">date</span><span class="p">)</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">available_dates</span><span class="p">]</span>
+            <span class="n">date_coords</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">dates</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
+            <span class="c1"># Filter individual tiles temporally</span>
+            <span class="k">if</span> <span class="n">_selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="n">_selector</span><span class="p">(</span><span class="n">date_coords</span><span class="p">,</span> <span class="n">ct</span><span class="p">,</span> <span class="n">index_type</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="n">date_coords</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span> <span class="n">outer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">valid_dates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">available_dates</span><span class="p">)[</span><span class="n">I</span><span class="p">]</span>
+            <span class="n">valid_sources</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">MODISSource</span><span class="p">(</span>
+                    <span class="n">product</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span>
+                    <span class="n">horizontal</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+                    <span class="n">vertical</span><span class="o">=</span><span class="n">v</span><span class="p">,</span>
+                    <span class="n">date</span><span class="o">=</span><span class="n">date</span><span class="p">,</span>
+                    <span class="n">data_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">,</span>
+                    <span class="n">check_exists</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">cache_ctrl</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="p">,</span>
+                    <span class="n">force_eval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">force_eval</span><span class="p">,</span>
+                    <span class="n">cache_output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_output</span><span class="p">,</span>
+                    <span class="n">cache_dataset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">s3</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">valid_dates</span>
+            <span class="p">]</span>
+            <span class="n">sources</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">valid_sources</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;sources&quot;</span><span class="p">,</span> <span class="n">sources</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sources</span>
+
+
+<div class="viewcode-block" id="MODIS"><a class="viewcode-back" href="../../../api/podpac.datalib.MODIS.html#podpac.datalib.MODIS">[docs]</a><span class="k">class</span> <span class="nc">MODIS</span><span class="p">(</span><span class="n">InterpolationMixin</span><span class="p">,</span> <span class="n">MODISComposite</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># basic modis source</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+
+    <span class="n">source</span> <span class="o">=</span> <span class="n">MODISSource</span><span class="p">(</span>
+        <span class="n">product</span><span class="o">=</span><span class="n">PRODUCTS</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">data_key</span><span class="o">=</span><span class="s2">&quot;B01&quot;</span><span class="p">,</span>
+        <span class="n">horizontal</span><span class="o">=</span><span class="s2">&quot;01&quot;</span><span class="p">,</span>
+        <span class="n">vertical</span><span class="o">=</span><span class="s2">&quot;11&quot;</span><span class="p">,</span>
+        <span class="n">date</span><span class="o">=</span><span class="s2">&quot;2020009&quot;</span><span class="p">,</span>
+        <span class="n">cache_ctrl</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;disk&quot;</span><span class="p">],</span>
+        <span class="n">cache_dataset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">cache_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;source: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;path: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">source</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;coordinates: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+
+    <span class="c1"># native coordinates</span>
+    <span class="n">o1</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+
+    <span class="c1"># cropped and resampled using EPSG:4326 coordinates</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="o">-</span><span class="mi">22</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="o">-</span><span class="mi">176</span><span class="p">,</span> <span class="o">-</span><span class="mi">174</span><span class="p">,</span> <span class="mi">200</span><span class="p">)],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">])</span>
+    <span class="n">o2</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># modis tile with time</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+
+    <span class="n">tile</span> <span class="o">=</span> <span class="n">MODISTile</span><span class="p">(</span>
+        <span class="n">product</span><span class="o">=</span><span class="n">PRODUCTS</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data_key</span><span class="o">=</span><span class="s2">&quot;B01&quot;</span><span class="p">,</span> <span class="n">horizontal</span><span class="o">=</span><span class="s2">&quot;01&quot;</span><span class="p">,</span> <span class="n">vertical</span><span class="o">=</span><span class="s2">&quot;11&quot;</span><span class="p">,</span> <span class="n">cache_ctrl</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;disk&quot;</span><span class="p">],</span> <span class="n">cache_output</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;tile: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">tile</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;available dates: </span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2"> (n=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tile</span><span class="o">.</span><span class="n">available_dates</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tile</span><span class="o">.</span><span class="n">available_dates</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">tile</span><span class="o">.</span><span class="n">available_dates</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;coordinates: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tile</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+
+    <span class="c1"># existing date</span>
+    <span class="k">assert</span> <span class="s2">&quot;2020009&quot;</span> <span class="ow">in</span> <span class="n">tile</span><span class="o">.</span><span class="n">available_dates</span>
+    <span class="n">ct1</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="s2">&quot;2020-01-09&quot;</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">])</span>
+    <span class="n">o2</span> <span class="o">=</span> <span class="n">tile</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">ct1</span><span class="p">)</span>
+
+    <span class="c1"># nearest date</span>
+    <span class="k">assert</span> <span class="s2">&quot;2020087&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tile</span><span class="o">.</span><span class="n">available_dates</span>
+    <span class="n">ct2</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="s2">&quot;2020-03-27&quot;</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">])</span>
+    <span class="n">o3</span> <span class="o">=</span> <span class="n">tile</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">ct2</span><span class="p">)</span>
+
+    <span class="c1"># time-series</span>
+    <span class="n">ct3</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([[</span><span class="s2">&quot;2019-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2019-02-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2019-03-01&quot;</span><span class="p">],</span> <span class="o">-</span><span class="mf">21.45</span><span class="p">,</span> <span class="o">-</span><span class="mf">174.92</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">])</span>
+    <span class="n">o4</span> <span class="o">=</span> <span class="n">tile</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">ct3</span><span class="p">)</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># modis compositor</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+
+    <span class="n">node</span> <span class="o">=</span> <span class="n">MODIS</span><span class="p">(</span><span class="n">product</span><span class="o">=</span><span class="n">PRODUCTS</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data_key</span><span class="o">=</span><span class="s2">&quot;B01&quot;</span><span class="p">,</span> <span class="n">cache_ctrl</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;disk&quot;</span><span class="p">],</span> <span class="n">cache_output</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;node: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sources: n=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">sources</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   .e.g: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="c1"># single tile</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">select_sources</span><span class="p">(</span><span class="n">ct2</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">o5</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">ct2</span><span class="p">)</span>
+
+    <span class="c1"># time-series in a single tile</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">select_sources</span><span class="p">(</span><span class="n">ct3</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">o6</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">ct3</span><span class="p">)</span>
+
+    <span class="c1"># multiple tiles</span>
+    <span class="n">ct3</span> <span class="o">=</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">&quot;2020-01-09&quot;</span><span class="p">,</span> <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="mi">45</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="n">podpac</span><span class="o">.</span><span class="n">clinspace</span><span class="p">(</span><span class="o">-</span><span class="mi">80</span><span class="p">,</span> <span class="o">-</span><span class="mi">40</span><span class="p">,</span> <span class="mi">200</span><span class="p">)],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">select_sources</span><span class="p">(</span><span class="n">ct3</span><span class="p">))</span> <span class="o">==</span> <span class="mi">7</span>
+    <span class="n">o7</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">ct3</span><span class="p">)</span>
+
+    <span class="c1"># o7.plot()</span>
+    <span class="c1"># pyplot.show()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2017-2023, Creare.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
