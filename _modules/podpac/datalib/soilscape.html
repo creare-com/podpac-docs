@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>podpac.datalib.soilscape &mdash; 3.2.0+1.g44ea00f8</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/style.css" type="text/css" />
+    <link rel="canonical" href="https://podpac.org_modules/podpac/datalib/soilscape.html"/>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> PODPAC
+          </a>
+              <div class="version">
+                3.2.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../aws.html">AWS Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../why-podpac.html">Why PODPAC?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../design.html">Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../dependencies.html">Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../nodes.html">Nodes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../coordinates.html">Coordinates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cache.html">Cache</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">Supported Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../earthdata.html">NASA Earth Data Login</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../aws-development.html">AWS Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../wrapping-datasets.html">Wrapping Datasets</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Support</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../roadmap.html">Development Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PODPAC</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">podpac.datalib.soilscape</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for podpac.datalib.soilscape</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">traitlets</span> <span class="k">as</span> <span class="nn">tl</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">podpac</span>
+<span class="kn">from</span> <span class="nn">podpac.core.utils</span> <span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span> <span class="nn">podpac.interpolators</span> <span class="kn">import</span> <span class="n">InterpolationMixin</span>
+
+<span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">SOILSCAPE_FILESERVER_BASE</span> <span class="o">=</span> <span class="s2">&quot;https://thredds.daac.ornl.gov/thredds/fileServer/ornldaac/1339&quot;</span>
+<span class="n">CRS</span> <span class="o">=</span> <span class="s2">&quot;+proj=longlat +datum=WGS84 +vunits=cm&quot;</span>
+
+<span class="n">NODES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;BLMLand1STonzi_CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">900</span><span class="p">,</span> <span class="mi">901</span><span class="p">,</span> <span class="mi">902</span><span class="p">,</span> <span class="mi">903</span><span class="p">,</span> <span class="mi">904</span><span class="p">,</span> <span class="mi">905</span><span class="p">,</span> <span class="mi">906</span><span class="p">,</span> <span class="mi">907</span><span class="p">,</span> <span class="mi">908</span><span class="p">,</span> <span class="mi">909</span><span class="p">,</span> <span class="mi">910</span><span class="p">,</span> <span class="mi">911</span><span class="p">,</span> <span class="mi">912</span><span class="p">,</span> <span class="mi">913</span><span class="p">,</span> <span class="mi">914</span><span class="p">,</span> <span class="mi">915</span><span class="p">,</span> <span class="mi">916</span><span class="p">],</span>
+    <span class="s2">&quot;BLMLand2STonzi_CA&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">1000</span><span class="p">,</span>
+        <span class="mi">1017</span><span class="p">,</span>
+        <span class="mi">1018</span><span class="p">,</span>
+        <span class="mi">1019</span><span class="p">,</span>
+        <span class="mi">1020</span><span class="p">,</span>
+        <span class="mi">1021</span><span class="p">,</span>
+        <span class="mi">1022</span><span class="p">,</span>
+        <span class="mi">1023</span><span class="p">,</span>
+        <span class="mi">1024</span><span class="p">,</span>
+        <span class="mi">1025</span><span class="p">,</span>
+        <span class="mi">1026</span><span class="p">,</span>
+        <span class="mi">1027</span><span class="p">,</span>
+        <span class="mi">1028</span><span class="p">,</span>
+        <span class="mi">1029</span><span class="p">,</span>
+        <span class="mi">1030</span><span class="p">,</span>
+        <span class="mi">1031</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;BLMLand3NTonzi_CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1200</span><span class="p">,</span> <span class="mi">1201</span><span class="p">,</span> <span class="mi">1202</span><span class="p">,</span> <span class="mi">1204</span><span class="p">,</span> <span class="mi">1205</span><span class="p">,</span> <span class="mi">1206</span><span class="p">],</span>
+    <span class="s2">&quot;Canton_OK&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">101</span><span class="p">,</span>
+        <span class="mi">102</span><span class="p">,</span>
+        <span class="mi">103</span><span class="p">,</span>
+        <span class="mi">104</span><span class="p">,</span>
+        <span class="mi">105</span><span class="p">,</span>
+        <span class="mi">106</span><span class="p">,</span>
+        <span class="mi">107</span><span class="p">,</span>
+        <span class="mi">108</span><span class="p">,</span>
+        <span class="mi">109</span><span class="p">,</span>
+        <span class="mi">110</span><span class="p">,</span>
+        <span class="mi">111</span><span class="p">,</span>
+        <span class="mi">112</span><span class="p">,</span>
+        <span class="mi">113</span><span class="p">,</span>
+        <span class="mi">114</span><span class="p">,</span>
+        <span class="mi">115</span><span class="p">,</span>
+        <span class="mi">116</span><span class="p">,</span>
+        <span class="mi">117</span><span class="p">,</span>
+        <span class="mi">118</span><span class="p">,</span>
+        <span class="mi">119</span><span class="p">,</span>
+        <span class="mi">120</span><span class="p">,</span>
+        <span class="mi">121</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;Kendall_AZ&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1400</span><span class="p">,</span> <span class="mi">1401</span><span class="p">,</span> <span class="mi">1402</span><span class="p">,</span> <span class="mi">1403</span><span class="p">,</span> <span class="mi">1404</span><span class="p">,</span> <span class="mi">1405</span><span class="p">,</span> <span class="mi">1406</span><span class="p">,</span> <span class="mi">1407</span><span class="p">,</span> <span class="mi">1408</span><span class="p">,</span> <span class="mi">1409</span><span class="p">],</span>
+    <span class="s2">&quot;LuckyHills_AZ&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1500</span><span class="p">,</span> <span class="mi">1501</span><span class="p">,</span> <span class="mi">1502</span><span class="p">,</span> <span class="mi">1503</span><span class="p">,</span> <span class="mi">1504</span><span class="p">,</span> <span class="mi">1505</span><span class="p">,</span> <span class="mi">1506</span><span class="p">,</span> <span class="mi">1507</span><span class="p">],</span>
+    <span class="s2">&quot;MatthaeiGardens_MI&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">200</span><span class="p">,</span>
+        <span class="mi">202</span><span class="p">,</span>
+        <span class="mi">203</span><span class="p">,</span>
+        <span class="mi">204</span><span class="p">,</span>
+        <span class="mi">206</span><span class="p">,</span>
+        <span class="mi">207</span><span class="p">,</span>
+        <span class="mi">208</span><span class="p">,</span>
+        <span class="mi">209</span><span class="p">,</span>
+        <span class="mi">210</span><span class="p">,</span>
+        <span class="mi">211</span><span class="p">,</span>
+        <span class="mi">212</span><span class="p">,</span>
+        <span class="mi">214</span><span class="p">,</span>
+        <span class="mi">215</span><span class="p">,</span>
+        <span class="mi">216</span><span class="p">,</span>
+        <span class="mi">217</span><span class="p">,</span>
+        <span class="mi">218</span><span class="p">,</span>
+        <span class="mi">219</span><span class="p">,</span>
+        <span class="mi">220</span><span class="p">,</span>
+        <span class="mi">221</span><span class="p">,</span>
+        <span class="mi">222</span><span class="p">,</span>
+        <span class="mi">223</span><span class="p">,</span>
+        <span class="mi">224</span><span class="p">,</span>
+        <span class="mi">225</span><span class="p">,</span>
+        <span class="mi">226</span><span class="p">,</span>
+        <span class="mi">227</span><span class="p">,</span>
+        <span class="mi">228</span><span class="p">,</span>
+        <span class="mi">230</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;NewHoganLakeN_CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">701</span><span class="p">,</span> <span class="mi">702</span><span class="p">,</span> <span class="mi">703</span><span class="p">,</span> <span class="mi">704</span><span class="p">,</span> <span class="mi">705</span><span class="p">,</span> <span class="mi">706</span><span class="p">,</span> <span class="mi">707</span><span class="p">,</span> <span class="mi">708</span><span class="p">,</span> <span class="mi">709</span><span class="p">,</span> <span class="mi">710</span><span class="p">,</span> <span class="mi">711</span><span class="p">,</span> <span class="mi">712</span><span class="p">,</span> <span class="mi">713</span><span class="p">,</span> <span class="mi">715</span><span class="p">],</span>
+    <span class="s2">&quot;NewHoganLakeS_CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">501</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">,</span> <span class="mi">505</span><span class="p">,</span> <span class="mi">506</span><span class="p">,</span> <span class="mi">507</span><span class="p">,</span> <span class="mi">508</span><span class="p">,</span> <span class="mi">509</span><span class="p">,</span> <span class="mi">510</span><span class="p">,</span> <span class="mi">511</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">513</span><span class="p">,</span> <span class="mi">514</span><span class="p">,</span> <span class="mi">515</span><span class="p">,</span> <span class="mi">516</span><span class="p">,</span> <span class="mi">517</span><span class="p">,</span> <span class="mi">518</span><span class="p">],</span>
+    <span class="s2">&quot;TerradOro_CA&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">1300</span><span class="p">,</span>
+        <span class="mi">1301</span><span class="p">,</span>
+        <span class="mi">1302</span><span class="p">,</span>
+        <span class="mi">1303</span><span class="p">,</span>
+        <span class="mi">1304</span><span class="p">,</span>
+        <span class="mi">1305</span><span class="p">,</span>
+        <span class="mi">1306</span><span class="p">,</span>
+        <span class="mi">1307</span><span class="p">,</span>
+        <span class="mi">1308</span><span class="p">,</span>
+        <span class="mi">1309</span><span class="p">,</span>
+        <span class="mi">1310</span><span class="p">,</span>
+        <span class="mi">1311</span><span class="p">,</span>
+        <span class="mi">1312</span><span class="p">,</span>
+        <span class="mi">1313</span><span class="p">,</span>
+        <span class="mi">1314</span><span class="p">,</span>
+        <span class="mi">1315</span><span class="p">,</span>
+        <span class="mi">1316</span><span class="p">,</span>
+        <span class="mi">1317</span><span class="p">,</span>
+        <span class="mi">1318</span><span class="p">,</span>
+        <span class="mi">1319</span><span class="p">,</span>
+        <span class="mi">1320</span><span class="p">,</span>
+        <span class="mi">1321</span><span class="p">,</span>
+        <span class="mi">1322</span><span class="p">,</span>
+        <span class="mi">1323</span><span class="p">,</span>
+        <span class="mi">801</span><span class="p">,</span>
+        <span class="mi">802</span><span class="p">,</span>
+        <span class="mi">803</span><span class="p">,</span>
+        <span class="mi">804</span><span class="p">,</span>
+        <span class="mi">805</span><span class="p">,</span>
+        <span class="mi">806</span><span class="p">,</span>
+        <span class="mi">807</span><span class="p">,</span>
+        <span class="mi">808</span><span class="p">,</span>
+        <span class="mi">809</span><span class="p">,</span>
+        <span class="mi">810</span><span class="p">,</span>
+        <span class="mi">811</span><span class="p">,</span>
+        <span class="mi">812</span><span class="p">,</span>
+        <span class="mi">813</span><span class="p">,</span>
+        <span class="mi">814</span><span class="p">,</span>
+        <span class="mi">815</span><span class="p">,</span>
+        <span class="mi">816</span><span class="p">,</span>
+        <span class="mi">817</span><span class="p">,</span>
+        <span class="mi">818</span><span class="p">,</span>
+        <span class="mi">819</span><span class="p">,</span>
+        <span class="mi">820</span><span class="p">,</span>
+        <span class="mi">821</span><span class="p">,</span>
+        <span class="mi">822</span><span class="p">,</span>
+        <span class="mi">823</span><span class="p">,</span>
+        <span class="mi">824</span><span class="p">,</span>
+        <span class="mi">825</span><span class="p">,</span>
+        <span class="mi">827</span><span class="p">,</span>
+        <span class="mi">828</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;TonziRanch_CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">401</span><span class="p">,</span> <span class="mi">402</span><span class="p">,</span> <span class="mi">403</span><span class="p">,</span> <span class="mi">404</span><span class="p">,</span> <span class="mi">405</span><span class="p">,</span> <span class="mi">406</span><span class="p">,</span> <span class="mi">408</span><span class="p">,</span> <span class="mi">409</span><span class="p">,</span> <span class="mi">410</span><span class="p">,</span> <span class="mi">411</span><span class="p">,</span> <span class="mi">412</span><span class="p">,</span> <span class="mi">413</span><span class="p">,</span> <span class="mi">414</span><span class="p">,</span> <span class="mi">415</span><span class="p">,</span> <span class="mi">416</span><span class="p">,</span> <span class="mi">417</span><span class="p">,</span> <span class="mi">418</span><span class="p">,</span> <span class="mi">419</span><span class="p">,</span> <span class="mi">420</span><span class="p">],</span>
+    <span class="s2">&quot;Vaira_CA&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">600</span><span class="p">,</span>
+        <span class="mi">642</span><span class="p">,</span>
+        <span class="mi">644</span><span class="p">,</span>
+        <span class="mi">645</span><span class="p">,</span>
+        <span class="mi">646</span><span class="p">,</span>
+        <span class="mi">649</span><span class="p">,</span>
+        <span class="mi">651</span><span class="p">,</span>
+        <span class="mi">653</span><span class="p">,</span>
+        <span class="mi">656</span><span class="p">,</span>
+        <span class="mi">659</span><span class="p">,</span>
+        <span class="mi">661</span><span class="p">,</span>
+        <span class="mi">662</span><span class="p">,</span>
+        <span class="mi">664</span><span class="p">,</span>
+        <span class="mi">665</span><span class="p">,</span>
+        <span class="mi">666</span><span class="p">,</span>
+        <span class="mi">667</span><span class="p">,</span>
+        <span class="mi">668</span><span class="p">,</span>
+        <span class="mi">669</span><span class="p">,</span>
+        <span class="mi">670</span><span class="p">,</span>
+        <span class="mi">671</span><span class="p">,</span>
+        <span class="mi">675</span><span class="p">,</span>
+        <span class="mi">676</span><span class="p">,</span>
+        <span class="mi">679</span><span class="p">,</span>
+        <span class="mi">680</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+
+<span class="n">NODE2SITE</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="n">site</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">NODES</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">NODES</span><span class="p">[</span><span class="n">site</span><span class="p">]}</span>
+
+<span class="n">NODE_LOCATIONS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">101</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00210189819336</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.6310806274414</span><span class="p">),</span>
+    <span class="mi">102</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00204849243164</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.63016510009766</span><span class="p">),</span>
+    <span class="mi">103</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00210189819336</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62930297851562</span><span class="p">),</span>
+    <span class="mi">104</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00208282470703</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62843322753906</span><span class="p">),</span>
+    <span class="mi">105</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00148391723633</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.6310806274414</span><span class="p">),</span>
+    <span class="mi">106</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00153350830078</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.63020324707031</span><span class="p">),</span>
+    <span class="mi">107</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00153350830078</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62933349609375</span><span class="p">),</span>
+    <span class="mi">108</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00148391723633</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62846374511719</span><span class="p">),</span>
+    <span class="mi">109</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00094985961914</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.63113403320312</span><span class="p">),</span>
+    <span class="mi">110</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00091552734375</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.63023376464844</span><span class="p">),</span>
+    <span class="mi">111</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00090026855469</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62934875488281</span><span class="p">),</span>
+    <span class="mi">112</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00094985961914</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62848663330078</span><span class="p">),</span>
+    <span class="mi">113</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.0009651184082</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62813568115234</span><span class="p">),</span>
+    <span class="mi">114</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00080108642578</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.63224792480469</span><span class="p">),</span>
+    <span class="mi">115</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00051498413086</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.63228607177734</span><span class="p">),</span>
+    <span class="mi">116</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.0003662109375</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.631103515625</span><span class="p">),</span>
+    <span class="mi">117</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00038146972656</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.63026428222656</span><span class="p">),</span>
+    <span class="mi">118</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.000450134277344</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62934875488281</span><span class="p">),</span>
+    <span class="mi">119</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00043487548828</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62848663330078</span><span class="p">),</span>
+    <span class="mi">120</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.00041580200195</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.62813568115234</span><span class="p">),</span>
+    <span class="mi">121</span><span class="p">:</span> <span class="p">(</span><span class="mf">36.0002326965332</span><span class="p">,</span> <span class="o">-</span><span class="mf">98.63236999511719</span><span class="p">),</span>
+    <span class="mi">900</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39332962036133</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9057388305664</span><span class="p">),</span>
+    <span class="mi">901</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39311218261719</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90608978271484</span><span class="p">),</span>
+    <span class="mi">902</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39351272583008</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90546417236328</span><span class="p">),</span>
+    <span class="mi">903</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.3934326171875</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90485382080078</span><span class="p">),</span>
+    <span class="mi">904</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39322280883789</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90523529052734</span><span class="p">),</span>
+    <span class="mi">905</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.3930549621582</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90473937988281</span><span class="p">),</span>
+    <span class="mi">906</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39268493652344</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90612030029297</span><span class="p">),</span>
+    <span class="mi">907</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.392616271972656</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90575408935547</span><span class="p">),</span>
+    <span class="mi">908</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39276885986328</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90546417236328</span><span class="p">),</span>
+    <span class="mi">909</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.392539978027344</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90435791015625</span><span class="p">),</span>
+    <span class="mi">910</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39240646362305</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90538024902344</span><span class="p">),</span>
+    <span class="mi">911</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39205551147461</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90554809570312</span><span class="p">),</span>
+    <span class="mi">912</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39206314086914</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90470123291016</span><span class="p">),</span>
+    <span class="mi">913</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39163589477539</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9051513671875</span><span class="p">),</span>
+    <span class="mi">914</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.391475677490234</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90571594238281</span><span class="p">),</span>
+    <span class="mi">915</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.39125442504883</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90613555908203</span><span class="p">),</span>
+    <span class="mi">916</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.390968322753906</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90583038330078</span><span class="p">),</span>
+    <span class="mi">1000</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38666534423828</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90629577636719</span><span class="p">),</span>
+    <span class="mi">1017</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38922119140625</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90509796142578</span><span class="p">),</span>
+    <span class="mi">1018</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38896179199219</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90476989746094</span><span class="p">),</span>
+    <span class="mi">1019</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38833236694336</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90593719482422</span><span class="p">),</span>
+    <span class="mi">1020</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.388309478759766</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90525817871094</span><span class="p">),</span>
+    <span class="mi">1021</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38798904418945</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90575408935547</span><span class="p">),</span>
+    <span class="mi">1022</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38800048828125</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90465545654297</span><span class="p">),</span>
+    <span class="mi">1023</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38770294189453</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90603637695312</span><span class="p">),</span>
+    <span class="mi">1024</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38750457763672</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.905517578125</span><span class="p">),</span>
+    <span class="mi">1025</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38759231567383</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90480041503906</span><span class="p">),</span>
+    <span class="mi">1026</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38713836669922</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9060287475586</span><span class="p">),</span>
+    <span class="mi">1027</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38721466064453</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90483856201172</span><span class="p">),</span>
+    <span class="mi">1028</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38737487792969</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90460205078125</span><span class="p">),</span>
+    <span class="mi">1029</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.387081146240234</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90457153320312</span><span class="p">),</span>
+    <span class="mi">1030</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38673400878906</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90526580810547</span><span class="p">),</span>
+    <span class="mi">1031</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.38658142089844</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.90449523925781</span><span class="p">),</span>
+    <span class="mi">1200</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.47132110595703</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.99401092529297</span><span class="p">),</span>
+    <span class="mi">1201</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.47126770019531</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.99333190917969</span><span class="p">),</span>
+    <span class="mi">1202</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.471134185791016</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.99433135986328</span><span class="p">),</span>
+    <span class="mi">1204</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.47080612182617</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.99436950683594</span><span class="p">),</span>
+    <span class="mi">1205</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.47153854370117</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.99373626708984</span><span class="p">),</span>
+    <span class="mi">1206</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.47169876098633</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.99419403076172</span><span class="p">),</span>
+    <span class="mi">1400</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.736480712890625</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.94183349609375</span><span class="p">),</span>
+    <span class="mi">1401</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.737104415893555</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.94342041015625</span><span class="p">),</span>
+    <span class="mi">1402</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.736867904663086</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.94287109375</span><span class="p">),</span>
+    <span class="mi">1403</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.736665725708008</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.94261169433594</span><span class="p">),</span>
+    <span class="mi">1404</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.735862731933594</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.94123840332031</span><span class="p">),</span>
+    <span class="mi">1405</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.735509872436523</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.94096374511719</span><span class="p">),</span>
+    <span class="mi">1406</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.736804962158203</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.94418334960938</span><span class="p">),</span>
+    <span class="mi">1407</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.736730575561523</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.94657897949219</span><span class="p">),</span>
+    <span class="mi">1408</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.737119674682617</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.94674682617188</span><span class="p">),</span>
+    <span class="mi">1409</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.737913131713867</span><span class="p">,</span> <span class="o">-</span><span class="mf">109.9466323852539</span><span class="p">),</span>
+    <span class="mi">1500</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.743972778320312</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.05152130126953</span><span class="p">),</span>
+    <span class="mi">1501</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.742450714111328</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.05266571044922</span><span class="p">),</span>
+    <span class="mi">1502</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.742727279663086</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.05255889892578</span><span class="p">),</span>
+    <span class="mi">1503</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.743019104003906</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.05261993408203</span><span class="p">),</span>
+    <span class="mi">1504</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.742687225341797</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.05278015136719</span><span class="p">),</span>
+    <span class="mi">1505</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.744464874267578</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.05230712890625</span><span class="p">),</span>
+    <span class="mi">1506</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.744050979614258</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.05297088623047</span><span class="p">),</span>
+    <span class="mi">1507</span><span class="p">:</span> <span class="p">(</span><span class="mf">31.742982864379883</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.05318450927734</span><span class="p">),</span>
+    <span class="mi">200</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29828643798828</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66435241699219</span><span class="p">),</span>
+    <span class="mi">202</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.2977409362793</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66523742675781</span><span class="p">),</span>
+    <span class="mi">203</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29869842529297</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66448974609375</span><span class="p">),</span>
+    <span class="mi">204</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.297706604003906</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66458892822266</span><span class="p">),</span>
+    <span class="mi">206</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.298709869384766</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66460418701172</span><span class="p">),</span>
+    <span class="mi">207</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29875183105469</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66545867919922</span><span class="p">),</span>
+    <span class="mi">208</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29795837402344</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66423797607422</span><span class="p">),</span>
+    <span class="mi">209</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29881286621094</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66336822509766</span><span class="p">),</span>
+    <span class="mi">210</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29900360107422</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66426086425781</span><span class="p">),</span>
+    <span class="mi">211</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29833984375</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66524505615234</span><span class="p">),</span>
+    <span class="mi">212</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.299034118652344</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66350555419922</span><span class="p">),</span>
+    <span class="mi">214</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29782485961914</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66586303710938</span><span class="p">),</span>
+    <span class="mi">215</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.298744201660156</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66431427001953</span><span class="p">),</span>
+    <span class="mi">216</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29877853393555</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66446685791016</span><span class="p">),</span>
+    <span class="mi">217</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29825210571289</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66380310058594</span><span class="p">),</span>
+    <span class="mi">218</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.298919677734375</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.6642837524414</span><span class="p">),</span>
+    <span class="mi">219</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29914855957031</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66537475585938</span><span class="p">),</span>
+    <span class="mi">220</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29893112182617</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66461944580078</span><span class="p">),</span>
+    <span class="mi">221</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29887390136719</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66364288330078</span><span class="p">),</span>
+    <span class="mi">222</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.297340393066406</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.6669921875</span><span class="p">),</span>
+    <span class="mi">223</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.299259185791016</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66424560546875</span><span class="p">),</span>
+    <span class="mi">224</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29872512817383</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66317749023438</span><span class="p">),</span>
+    <span class="mi">225</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29872512817383</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66317749023438</span><span class="p">),</span>
+    <span class="mi">226</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29866027832031</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66433715820312</span><span class="p">),</span>
+    <span class="mi">227</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29909896850586</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66386413574219</span><span class="p">),</span>
+    <span class="mi">228</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29883575439453</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66429138183594</span><span class="p">),</span>
+    <span class="mi">230</span><span class="p">:</span> <span class="p">(</span><span class="mf">42.29800033569336</span><span class="p">,</span> <span class="o">-</span><span class="mf">83.66378021240234</span><span class="p">),</span>
+    <span class="mi">701</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.17225646972656</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80365753173828</span><span class="p">),</span>
+    <span class="mi">702</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.17338943481445</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80694580078125</span><span class="p">),</span>
+    <span class="mi">703</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.17353057861328</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.806396484375</span><span class="p">),</span>
+    <span class="mi">704</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.17322540283203</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80656433105469</span><span class="p">),</span>
+    <span class="mi">705</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.172794342041016</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80677795410156</span><span class="p">),</span>
+    <span class="mi">706</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.17293167114258</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80503845214844</span><span class="p">),</span>
+    <span class="mi">707</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.17230987548828</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80622100830078</span><span class="p">),</span>
+    <span class="mi">708</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.171714782714844</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.8061752319336</span><span class="p">),</span>
+    <span class="mi">709</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.172157287597656</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80663299560547</span><span class="p">),</span>
+    <span class="mi">710</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.171875</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80497741699219</span><span class="p">),</span>
+    <span class="mi">711</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.17270278930664</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80281066894531</span><span class="p">),</span>
+    <span class="mi">712</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.172607421875</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80424499511719</span><span class="p">),</span>
+    <span class="mi">713</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.17242431640625</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80474853515625</span><span class="p">),</span>
+    <span class="mi">715</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.17243576049805</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.80218505859375</span><span class="p">),</span>
+    <span class="mi">501</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.149559020996094</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78845977783203</span><span class="p">),</span>
+    <span class="mi">502</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.14886474609375</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78742218017578</span><span class="p">),</span>
+    <span class="mi">503</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.14878463745117</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78624725341797</span><span class="p">),</span>
+    <span class="mi">504</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.14914321899414</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7858657836914</span><span class="p">),</span>
+    <span class="mi">505</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.14955520629883</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78559112548828</span><span class="p">),</span>
+    <span class="mi">506</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.15018081665039</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78546905517578</span><span class="p">),</span>
+    <span class="mi">507</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.148681640625</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78858184814453</span><span class="p">),</span>
+    <span class="mi">508</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.14809799194336</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78727722167969</span><span class="p">),</span>
+    <span class="mi">509</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.14791488647461</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78558349609375</span><span class="p">),</span>
+    <span class="mi">510</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.148048400878906</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78516387939453</span><span class="p">),</span>
+    <span class="mi">511</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.148773193359375</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78800201416016</span><span class="p">),</span>
+    <span class="mi">512</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.1482048034668</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78649139404297</span><span class="p">),</span>
+    <span class="mi">513</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.14846420288086</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78553771972656</span><span class="p">),</span>
+    <span class="mi">514</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.14806365966797</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78932189941406</span><span class="p">),</span>
+    <span class="mi">515</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.1475944519043</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78753662109375</span><span class="p">),</span>
+    <span class="mi">516</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.145992279052734</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78764343261719</span><span class="p">),</span>
+    <span class="mi">517</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.147003173828125</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78844451904297</span><span class="p">),</span>
+    <span class="mi">518</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.14594650268555</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.78685760498047</span><span class="p">),</span>
+    <span class="mi">1300</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506004333496094</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79766082763672</span><span class="p">),</span>
+    <span class="mi">1301</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506587982177734</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79779052734375</span><span class="p">),</span>
+    <span class="mi">1302</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50718688964844</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79734802246094</span><span class="p">),</span>
+    <span class="mi">1303</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50724792480469</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79829406738281</span><span class="p">),</span>
+    <span class="mi">1304</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50733184814453</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7967529296875</span><span class="p">),</span>
+    <span class="mi">1305</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506893157958984</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79652404785156</span><span class="p">),</span>
+    <span class="mi">1306</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50655746459961</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79510498046875</span><span class="p">),</span>
+    <span class="mi">1307</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.507179260253906</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79487609863281</span><span class="p">),</span>
+    <span class="mi">1308</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506568908691406</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79683685302734</span><span class="p">),</span>
+    <span class="mi">1309</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.5062255859375</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79696655273438</span><span class="p">),</span>
+    <span class="mi">1310</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506229400634766</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79557037353516</span><span class="p">),</span>
+    <span class="mi">1311</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50590896606445</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79559326171875</span><span class="p">),</span>
+    <span class="mi">1312</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50571060180664</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79660034179688</span><span class="p">),</span>
+    <span class="mi">1313</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.505611419677734</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79607391357422</span><span class="p">),</span>
+    <span class="mi">1314</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50545120239258</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79638671875</span><span class="p">),</span>
+    <span class="mi">1315</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50564956665039</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79755401611328</span><span class="p">),</span>
+    <span class="mi">1316</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50514221191406</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7978744506836</span><span class="p">),</span>
+    <span class="mi">1317</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.505279541015625</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79678344726562</span><span class="p">),</span>
+    <span class="mi">1318</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50477981567383</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7974853515625</span><span class="p">),</span>
+    <span class="mi">1319</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.505733489990234</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79812622070312</span><span class="p">),</span>
+    <span class="mi">1320</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506534576416016</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7989730834961</span><span class="p">),</span>
+    <span class="mi">1321</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.505680084228516</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7990951538086</span><span class="p">),</span>
+    <span class="mi">1322</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50444030761719</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79913330078125</span><span class="p">),</span>
+    <span class="mi">1323</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50520324707031</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7984848022461</span><span class="p">),</span>
+    <span class="mi">801</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506587982177734</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79779052734375</span><span class="p">),</span>
+    <span class="mi">802</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50718688964844</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79734802246094</span><span class="p">),</span>
+    <span class="mi">803</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50724792480469</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79829406738281</span><span class="p">),</span>
+    <span class="mi">804</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50733184814453</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7967529296875</span><span class="p">),</span>
+    <span class="mi">805</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506893157958984</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79652404785156</span><span class="p">),</span>
+    <span class="mi">806</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50655746459961</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79510498046875</span><span class="p">),</span>
+    <span class="mi">807</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.507179260253906</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79487609863281</span><span class="p">),</span>
+    <span class="mi">808</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506568908691406</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79683685302734</span><span class="p">),</span>
+    <span class="mi">809</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.5062255859375</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79696655273438</span><span class="p">),</span>
+    <span class="mi">810</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506229400634766</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79557037353516</span><span class="p">),</span>
+    <span class="mi">811</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50590896606445</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79559326171875</span><span class="p">),</span>
+    <span class="mi">812</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50571060180664</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79660034179688</span><span class="p">),</span>
+    <span class="mi">813</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.505611419677734</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79607391357422</span><span class="p">),</span>
+    <span class="mi">814</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50545120239258</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79638671875</span><span class="p">),</span>
+    <span class="mi">815</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50564956665039</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79755401611328</span><span class="p">),</span>
+    <span class="mi">816</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50514221191406</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7978744506836</span><span class="p">),</span>
+    <span class="mi">817</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.505279541015625</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79678344726562</span><span class="p">),</span>
+    <span class="mi">818</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50477981567383</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7974853515625</span><span class="p">),</span>
+    <span class="mi">819</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.505733489990234</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79812622070312</span><span class="p">),</span>
+    <span class="mi">820</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.506534576416016</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7989730834961</span><span class="p">),</span>
+    <span class="mi">821</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.505680084228516</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7990951538086</span><span class="p">),</span>
+    <span class="mi">822</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50444030761719</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79913330078125</span><span class="p">),</span>
+    <span class="mi">823</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50520324707031</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.7984848022461</span><span class="p">),</span>
+    <span class="mi">824</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50476837158203</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79838562011719</span><span class="p">),</span>
+    <span class="mi">825</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50437927246094</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79798126220703</span><span class="p">),</span>
+    <span class="mi">827</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.50798797607422</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79448699951172</span><span class="p">),</span>
+    <span class="mi">828</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.5061149597168</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.79402923583984</span><span class="p">),</span>
+    <span class="mi">401</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.431915283203125</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96541595458984</span><span class="p">),</span>
+    <span class="mi">402</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.431888580322266</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96483612060547</span><span class="p">),</span>
+    <span class="mi">403</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.4322509765625</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96546936035156</span><span class="p">),</span>
+    <span class="mi">404</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43227767944336</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96485900878906</span><span class="p">),</span>
+    <span class="mi">405</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43230438232422</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96441650390625</span><span class="p">),</span>
+    <span class="mi">406</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43255615234375</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96488952636719</span><span class="p">),</span>
+    <span class="mi">408</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.432777404785156</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9669189453125</span><span class="p">),</span>
+    <span class="mi">409</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.433223724365234</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96697235107422</span><span class="p">),</span>
+    <span class="mi">410</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43375015258789</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9669418334961</span><span class="p">),</span>
+    <span class="mi">411</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43077850341797</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96622467041016</span><span class="p">),</span>
+    <span class="mi">412</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43091583251953</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96663665771484</span><span class="p">),</span>
+    <span class="mi">413</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43063735961914</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96785736083984</span><span class="p">),</span>
+    <span class="mi">414</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43002700805664</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96749877929688</span><span class="p">),</span>
+    <span class="mi">415</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43063735961914</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9666976928711</span><span class="p">),</span>
+    <span class="mi">416</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43058395385742</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96700286865234</span><span class="p">),</span>
+    <span class="mi">417</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43080520629883</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96736145019531</span><span class="p">),</span>
+    <span class="mi">418</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43077850341797</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96808624267578</span><span class="p">),</span>
+    <span class="mi">419</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43033218383789</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96736145019531</span><span class="p">),</span>
+    <span class="mi">420</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.43030548095703</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.96785736083984</span><span class="p">),</span>
+    <span class="mi">600</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41737365722656</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9493179321289</span><span class="p">),</span>
+    <span class="mi">642</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41261291503906</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95011138916016</span><span class="p">),</span>
+    <span class="mi">644</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41255569458008</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95069122314453</span><span class="p">),</span>
+    <span class="mi">645</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41291809082031</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.94975280761719</span><span class="p">),</span>
+    <span class="mi">646</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41238784790039</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95085906982422</span><span class="p">),</span>
+    <span class="mi">649</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41522216796875</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95005798339844</span><span class="p">),</span>
+    <span class="mi">651</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41477966308594</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95024871826172</span><span class="p">),</span>
+    <span class="mi">653</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41236114501953</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.94789123535156</span><span class="p">),</span>
+    <span class="mi">656</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41458511352539</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95175170898438</span><span class="p">),</span>
+    <span class="mi">659</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.414249420166016</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.94966888427734</span><span class="p">),</span>
+    <span class="mi">661</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41211700439453</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9535140991211</span><span class="p">),</span>
+    <span class="mi">662</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41253662109375</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95446014404297</span><span class="p">),</span>
+    <span class="mi">664</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41349411010742</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.94889068603516</span><span class="p">),</span>
+    <span class="mi">665</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.414520263671875</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.94795989990234</span><span class="p">),</span>
+    <span class="mi">666</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.416015625</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.94960021972656</span><span class="p">),</span>
+    <span class="mi">667</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.414939880371094</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.94808197021484</span><span class="p">),</span>
+    <span class="mi">668</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41300582885742</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95339965820312</span><span class="p">),</span>
+    <span class="mi">669</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41335678100586</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95158386230469</span><span class="p">),</span>
+    <span class="mi">670</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41355514526367</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95103454589844</span><span class="p">),</span>
+    <span class="mi">671</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.416221618652344</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95032501220703</span><span class="p">),</span>
+    <span class="mi">675</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.414466857910156</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9533920288086</span><span class="p">),</span>
+    <span class="mi">676</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41484832763672</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.95587158203125</span><span class="p">),</span>
+    <span class="mi">679</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.4171142578125</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.9493179321289</span><span class="p">),</span>
+    <span class="mi">680</span><span class="p">:</span> <span class="p">(</span><span class="mf">38.41756057739258</span><span class="p">,</span> <span class="o">-</span><span class="mf">120.94951629638672</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">get_node_location</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get SoilSCAPE node location by id.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    node : int</span>
+<span class="sd">        node id</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    location : tuple</span>
+<span class="sd">        (lat, lon) coordinates</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">NODE_LOCATIONS</span><span class="p">:</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Looking up location for &#39;</span><span class="si">%s</span><span class="s2">&#39; node </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">NODE2SITE</span><span class="p">[</span><span class="n">node</span><span class="p">],</span> <span class="n">node</span><span class="p">))</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">SoilSCAPENode</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="n">NODE2SITE</span><span class="p">[</span><span class="n">node</span><span class="p">],</span> <span class="n">node</span><span class="o">=</span><span class="n">node</span><span class="p">)</span>
+        <span class="n">NODE_LOCATIONS</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">lat</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">lon</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">NODE_LOCATIONS</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">get_site_coordinates</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get location coordinates for the given SoilSCAPE site.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    site : str</span>
+<span class="sd">        SoilSCAPE site, e.g. &#39;Canton_OK&#39;</span>
+<span class="sd">    time : array, datetime64, str</span>
+<span class="sd">        datetime(s). Default is the current time.</span>
+<span class="sd">    depth : float, array</span>
+<span class="sd">        depth(s). Default: [4, 13, 30] (all available depths)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    coords : Coordinates</span>
+<span class="sd">        Coordinates with (lat_lon) for all nodes at the site and the given time and depth</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">site</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">NODES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;site &#39;</span><span class="si">%s</span><span class="s2">&#39; not found&quot;</span> <span class="o">%</span> <span class="n">site</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>  <span class="c1"># now</span>
+
+    <span class="k">if</span> <span class="n">depth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">30</span><span class="p">]</span>  <span class="c1"># all</span>
+
+    <span class="n">lats</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lons</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">NODES</span><span class="p">[</span><span class="n">site</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="o">=</span> <span class="n">get_node_location</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Could not get coordinates for &#39;</span><span class="si">%s</span><span class="s2">&#39; node &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">NODE2SITE</span><span class="p">[</span><span class="n">node</span><span class="p">],</span> <span class="n">node</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="n">lats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+        <span class="n">lons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([[</span><span class="n">lats</span><span class="p">,</span> <span class="n">lons</span><span class="p">],</span> <span class="n">time</span><span class="p">,</span> <span class="n">depth</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lat_lon&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;alt&quot;</span><span class="p">],</span> <span class="n">crs</span><span class="o">=</span><span class="n">CRS</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">SoilSCAPENode</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dataset_source</span><span class="o">.</span><span class="n">DatasetRaw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;SoilSCAPE 20min soil moisture for a particular node.</span>
+
+<span class="sd">    Data is loaded from the THREDDS https fileserver.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    site : str</span>
+<span class="sd">        SoilSCAPE site, e.g. &#39;Canton_OK&#39;.</span>
+<span class="sd">    node : int</span>
+<span class="sd">        SoilSCAPE node id.</span>
+<span class="sd">    rescale : float</span>
+<span class="sd">        Default is 0.01. The soilscape soil moisture is multiplied by this number.</span>
+<span class="sd">        Soilscape soil moisture by default is absolute volumetric percentage, so we can rescale that to absolute volumetric fraction.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">alt_key</span> <span class="o">=</span> <span class="s2">&quot;depth&quot;</span>
+    <span class="n">site</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">NODES</span><span class="p">))</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">node</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Int</span><span class="p">()</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cache_dataset</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">rescale</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="n">coordinate_index_type</span> <span class="o">=</span> <span class="s2">&quot;numpy&quot;</span>
+
+    <span class="n">_repr_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">,</span> <span class="s2">&quot;node&quot;</span><span class="p">]</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">dims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;dataset coordinate dims&quot;&quot;&quot;</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lat_key</span><span class="p">:</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lon_key</span><span class="p">:</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alt_key</span><span class="p">:</span> <span class="s2">&quot;alt&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_key</span><span class="p">:</span> <span class="s2">&quot;time&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lookup</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">dims</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;lon&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">coordinates_index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;{get_data}&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">]</span><span class="o">.</span><span class="n">to_array</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
+            <span class="n">tdims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">tdims</span><span class="p">)</span>
+
+        <span class="c1"># add dims for lat and lon</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_output_array</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">coordinates_index</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">rescale</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">lat</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">lon</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">physicalid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># note: this should be the same as the node number</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">physicalid</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">coordinates</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">SoilSCAPENode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">()</span>
+        <span class="n">coordinates</span><span class="o">.</span><span class="n">set_trait</span><span class="p">(</span><span class="s2">&quot;crs&quot;</span><span class="p">,</span> <span class="n">CRS</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">coordinates</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;node&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_validate_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">NODES</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">site</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Site &#39;</span><span class="si">%s</span><span class="s2">&#39; does not have a node n</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{base_url}</span><span class="s2">/</span><span class="si">{filename}</span><span class="s2">.nc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="n">SOILSCAPE_FILESERVER_BASE</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;soil_moist_20min_</span><span class="si">{site}</span><span class="s2">_n</span><span class="si">{node}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">site</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">site</span><span class="p">,</span> <span class="n">node</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">SoilSCAPE20minRaw</span><span class="p">(</span><span class="n">podpac</span><span class="o">.</span><span class="n">compositor</span><span class="o">.</span><span class="n">TileCompositorRaw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Raw SoilSCAPE 20min soil moisture data for an entire site.</span>
+
+<span class="sd">    Data is loaded from the THREDDS https fileserver.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    site : str</span>
+<span class="sd">        SoilSCAPE site, e.g. &#39;Canton_OK&#39;.</span>
+<span class="sd">    exclude : list</span>
+<span class="sd">        data points with these quality flags will be excluded. Default excludes [1, 2, 3, 4].</span>
+<span class="sd">        Flags::</span>
+<span class="sd">         * 0 - (G) Good (Standard for all data)</span>
+<span class="sd">         * 1 - (D) Dubious (Automatically flagged, spikes etc.,)</span>
+<span class="sd">         * 2 - (I) Interpolated / Estimated</span>
+<span class="sd">         * 3 - (B) Bad (Manually flagged)</span>
+<span class="sd">         * 4 - (M) Missing</span>
+<span class="sd">         * 5 - (C) Exceeds field size (Negative SM values, fixed at 0.1 percent)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">site</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">NODES</span><span class="p">),</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">exclude</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">List</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dataset_expires</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Any</span><span class="p">()</span>
+    <span class="n">data_key</span> <span class="o">=</span> <span class="n">tl</span><span class="o">.</span><span class="n">Unicode</span><span class="p">(</span><span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">attr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@tl</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="s2">&quot;dataset_expires&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_validate_dataset_expires</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="n">podpac</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">expiration_timestamp</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_repr_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">site</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">keys</span>
+
+    <span class="nd">@podpac</span><span class="o">.</span><span class="n">cached_property</span>
+    <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">site</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">site</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">NODES</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">site</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[(</span><span class="n">site</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">NODES</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">NODES</span><span class="p">[</span><span class="n">site</span><span class="p">]]</span>
+
+    <span class="nd">@podpac</span><span class="o">.</span><span class="n">cached_property</span>
+    <span class="k">def</span> <span class="nf">source_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">latlons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">NODE_LOCATIONS</span><span class="p">[</span><span class="n">node</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">podpac</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">([</span><span class="n">latlons</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">tolist</span><span class="p">()],</span> <span class="p">[</span><span class="s2">&quot;lat_lon&quot;</span><span class="p">])</span>
+
+    <span class="nd">@podpac</span><span class="o">.</span><span class="n">cached_property</span>
+    <span class="k">def</span> <span class="nf">sources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_make_source</span><span class="p">(</span><span class="n">site</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">site</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_make_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">site</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SoilSCAPENode</span><span class="p">(</span>
+            <span class="n">site</span><span class="o">=</span><span class="n">site</span><span class="p">,</span>
+            <span class="n">node</span><span class="o">=</span><span class="n">node</span><span class="p">,</span>
+            <span class="n">cache_ctrl</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_ctrl</span><span class="p">,</span>
+            <span class="n">dataset_expires</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_expires</span><span class="p">,</span>
+            <span class="n">data_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_key</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">make_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make coordinates with the site locations and the given time and depth.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        time : array, datetime64, str</span>
+<span class="sd">            datetime(s). Default is the current time.</span>
+<span class="sd">        depth : float, array</span>
+<span class="sd">            depth(s). Default: [4, 13, 30] (all available depths)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        coords : Coordinates</span>
+<span class="sd">            Coordinates with (lat_lon) for all nodes at the site and the given time and depth</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">get_site_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">available_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">NODES</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="SoilSCAPE20min"><a class="viewcode-back" href="../../../api/podpac.datalib.SoilSCAPE20min.html#podpac.datalib.SoilSCAPE20min">[docs]</a><span class="k">class</span> <span class="nc">SoilSCAPE20min</span><span class="p">(</span><span class="n">InterpolationMixin</span><span class="p">,</span> <span class="n">SoilSCAPE20minRaw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;SoilSCAPE 20min soil moisture data for an entire site, with interpolation.&quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2017-2023, Creare.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
